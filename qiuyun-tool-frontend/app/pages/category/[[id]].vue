@@ -10,9 +10,31 @@ import {
   TrendingUp,
   Star,
   ChevronRight,
-  Filter
+  Filter,
+  Code, 
+  Image, 
+  FileText, 
+  Lock, 
+  Type, 
+  Calculator,
+  Wrench
 } from 'lucide-vue-next'
 import { categories, getTools, tools } from '@/composables/useTools'
+
+// 图标映射表
+const iconMap: Record<string, any> = {
+  'Code': Code,
+  'Image': Image,
+  'FileText': FileText,
+  'Lock': Lock,
+  'Type': Type,
+  'Calculator': Calculator,
+}
+
+// 获取图标组件
+const getIconComponent = (iconName: string) => {
+  return iconMap[iconName] || Wrench
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -117,7 +139,7 @@ const switchCategory = (id: string) => {
                 class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors"
                 :class="categoryId === category.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-foreground'"
               >
-                <component :is="category.icon" class="w-5 h-5" />
+                <component :is="getIconComponent(category.icon)" class="w-5 h-5" />
                 <span>{{ category.name }}</span>
                 <span class="ml-auto text-sm opacity-70">
                   {{ tools.filter(t => t.category === category.id).length }}

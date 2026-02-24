@@ -20,7 +20,7 @@ const handleSearch = () => {
     <!-- Background Grid -->
     <div class="absolute inset-0 -z-10">
       <div class="absolute inset-0 bg-[linear-gradient(to_right,#38bdf808_1px,transparent_1px),linear-gradient(to_bottom,#38bdf808_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-      <div class="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-sky-400 opacity-20 blur-[100px]"></div>
+      <div class="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-sky-300 opacity-20 blur-[100px]"></div>
     </div>
     
     <div class="container mx-auto px-4 relative">
@@ -29,7 +29,7 @@ const handleSearch = () => {
           <Sparkles class="w-3 h-3 mr-1" />
           程序员必备工具箱
         </Badge>
-        <h1 class="text-4xl lg:text-6xl font-bold text-foreground mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-blue-600">
+        <h1 class="text-4xl lg:text-6xl font-bold mb-6 text-transparent bg-clip-text bg-linear-to-r from-cyan-200 to-blue-600">
           秋云工具
         </h1>
         <p class="text-lg lg:text-xl text-muted-foreground mb-8">

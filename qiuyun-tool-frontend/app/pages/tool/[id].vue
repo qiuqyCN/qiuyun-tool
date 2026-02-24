@@ -26,6 +26,20 @@ if (!tool) {
   throw createError({ statusCode: 404, statusMessage: 'Tool not found' })
 }
 
+// 记录最近访问
+onMounted(() => {
+  if (process.client) {
+    const recentIds = JSON.parse(localStorage.getItem('recentTools') || '[]') as string[]
+    // 移除已存在的相同ID
+    const filteredIds = recentIds.filter(id => id !== toolId)
+    // 添加到开头
+    filteredIds.unshift(toolId)
+    // 只保留最近20个
+    const newRecentIds = filteredIds.slice(0, 20)
+    localStorage.setItem('recentTools', JSON.stringify(newRecentIds))
+  }
+})
+
 const isFavorite = ref(false)
 const activeTab = ref('format')
 const showRatingModal = ref(false)

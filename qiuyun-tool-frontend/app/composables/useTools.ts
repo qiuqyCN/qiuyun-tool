@@ -1,3 +1,29 @@
+// 图标名称映射（用于动态导入）
+export const toolIconNames: Record<string, string> = {
+  'Braces': 'Braces',
+  'FileJson': 'FileJson',
+  'Code2': 'Code2',
+  'Search': 'Search',
+  'Clock': 'Clock',
+  'Binary': 'Binary',
+  'ImageMinus': 'ImageMinus',
+  'ImagePlus': 'ImagePlus',
+  'Image': 'Image',
+  'QrCode': 'QrCode',
+  'FileType': 'FileType',
+  'FileMinus': 'FileMinus',
+  'FileEdit': 'FileEdit',
+  'Hash': 'Hash',
+  'Fingerprint': 'Fingerprint',
+  'Link': 'Link',
+  'Key': 'Key',
+  'GitCompare': 'GitCompare',
+  'Text': 'Text',
+  'Type': 'Type',
+  'Dices': 'Dices',
+  'Scale': 'Scale',
+}
+
 // 工具分类
 export const categories = [
   { id: 'dev', name: '开发工具', icon: 'Code', description: 'JSON格式化、代码压缩、正则测试等开发常用工具' },
