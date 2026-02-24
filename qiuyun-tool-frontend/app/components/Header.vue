@@ -27,6 +27,23 @@ import {
 const colorMode = useColorMode()
 const isMobileMenuOpen = ref(false)
 
+// 滚动状态
+const isScrolled = ref(false)
+
+// 监听滚动
+onMounted(() => {
+  const handleScroll = () => {
+    isScrolled.value = window.scrollY > 10
+  }
+  
+  window.addEventListener('scroll', handleScroll)
+  handleScroll() // 初始化检查
+  
+  onUnmounted(() => {
+    window.removeEventListener('scroll', handleScroll)
+  })
+})
+
 // 模拟用户登录状态
 const isLoggedIn = ref(false)
 const user = ref({
@@ -52,12 +69,20 @@ const logout = () => {
 </script>
 
 <template>
-  <header class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-    <div class="container mx-auto px-4 h-16 flex items-center justify-between">
+  <header 
+    class="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300 ease-in-out"
+    :class="[
+      isScrolled ? 'border-b border-border/40' : 'border-b border-transparent',
+      isScrolled ? 'py-2' : 'py-4'
+    ]"
+  >
+    <div class="container mx-auto px-4 flex items-center justify-between transition-all duration-300 ease-in-out"
+      :class="isScrolled ? 'h-12' : 'h-14'"
+    >
       <!-- Logo -->
       <NuxtLink to="/" class="flex items-center gap-2 mr-6">
-        <img src="/logo.svg" alt="秋云工具" class="w-9 h-9 bg-sky-400 text-white px-1 py-1 rounded-md" />
-        <span class="text-2xl font-bold text-foreground">秋云工具</span>
+        <img src="/logo.svg" alt="秋云工具" class="bg-sky-400 text-white px-1 py-1 rounded-md transition-all duration-300" :class="isScrolled ? 'w-8 h-8' : 'w-10 h-10'" />
+        <span class="font-bold text-foreground transition-all duration-300" :class="isScrolled ? 'text-xl' : 'text-2xl'">秋云工具</span>
       </NuxtLink>
 
       <!-- Desktop Navigation -->

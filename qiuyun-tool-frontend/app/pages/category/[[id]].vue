@@ -17,12 +17,31 @@ import {
   Lock, 
   Type, 
   Calculator,
-  Wrench
+  Wrench,
+  Braces,
+  FileJson,
+  Code2,
+  Clock,
+  Binary,
+  ImageMinus,
+  ImagePlus,
+  QrCode,
+  FileType,
+  FileMinus,
+  FileEdit,
+  Hash,
+  Fingerprint,
+  Link,
+  Key,
+  GitCompare,
+  Text,
+  Dices,
+  Scale
 } from 'lucide-vue-next'
 import { categories, getTools, tools } from '@/composables/useTools'
 
-// 图标映射表
-const iconMap: Record<string, any> = {
+// 分类图标映射表
+const categoryIconMap: Record<string, any> = {
   'Code': Code,
   'Image': Image,
   'FileText': FileText,
@@ -31,9 +50,40 @@ const iconMap: Record<string, any> = {
   'Calculator': Calculator,
 }
 
-// 获取图标组件
+// 工具图标映射表
+const toolIconMap: Record<string, any> = {
+  'Braces': Braces,
+  'FileJson': FileJson,
+  'Code2': Code2,
+  'Search': Search,
+  'Clock': Clock,
+  'Binary': Binary,
+  'ImageMinus': ImageMinus,
+  'ImagePlus': ImagePlus,
+  'Image': Image,
+  'QrCode': QrCode,
+  'FileType': FileType,
+  'FileMinus': FileMinus,
+  'FileEdit': FileEdit,
+  'Hash': Hash,
+  'Fingerprint': Fingerprint,
+  'Link': Link,
+  'Key': Key,
+  'GitCompare': GitCompare,
+  'Text': Text,
+  'Type': Type,
+  'Dices': Dices,
+  'Scale': Scale,
+}
+
+// 获取分类图标组件
 const getIconComponent = (iconName: string) => {
-  return iconMap[iconName] || Wrench
+  return categoryIconMap[iconName] || Wrench
+}
+
+// 获取工具图标组件
+const getToolIconComponent = (iconName: string) => {
+  return toolIconMap[iconName] || Wrench
 }
 
 const route = useRoute()
@@ -194,36 +244,47 @@ const switchCategory = (id: string) => {
               :to="`/tool/${tool.id}`"
               class="group p-5 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
             >
-              <div class="flex items-start justify-between mb-3">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                  <component :is="tool.icon" class="w-6 h-6 text-primary" />
+              <!-- 工具头部：图标 + 标题 + 标签 -->
+              <div class="flex items-start gap-4 mb-3">
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0">
+                  <component :is="getToolIconComponent(tool.icon)" class="w-7 h-7 text-primary" />
                 </div>
-                <div class="flex items-center gap-2">
-                  <Badge v-if="tool.tags.includes('热门')" variant="destructive" class="text-xs">
-                    HOT
-                  </Badge>
-                  <Badge v-if="tool.isVip" variant="secondary" class="text-xs">
-                    <Crown class="w-3 h-3 mr-1" />
-                    VIP
-                  </Badge>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <h3 class="font-semibold text-foreground truncate">{{ tool.name }}</h3>
+                    <Badge v-if="tool.isVip" variant="secondary" class="text-xs flex-shrink-0">
+                      <Crown class="w-3 h-3 mr-1" />
+                      VIP
+                    </Badge>
+                    <Badge v-else variant="outline" class="text-xs flex-shrink-0">免费</Badge>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <div class="flex">
+                      <Star v-for="i in 5" :key="i" :class="['w-3 h-3', i <= Math.round(tool.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground']" />
+                    </div>
+                    <span class="text-xs text-muted-foreground">{{ tool.rating }} ({{ tool.reviewCount }}评价)</span>
+                  </div>
                 </div>
               </div>
               
-              <h3 class="font-semibold text-foreground mb-2">{{ tool.name }}</h3>
               <p class="text-sm text-muted-foreground mb-4 line-clamp-2">{{ tool.description }}</p>
               
+              <!-- 标签 -->
+              <div v-if="tool.tags && tool.tags.length > 0" class="flex flex-wrap gap-2 mb-4">
+                <Badge v-for="tag in tool.tags.slice(0, 3)" :key="tag" variant="outline" class="text-xs">
+                  {{ tag }}
+                </Badge>
+              </div>
+              
+              <!-- 底部按钮 -->
               <div class="flex items-center justify-between pt-4 border-t border-border/40">
-                <div class="flex items-center gap-3 text-xs text-muted-foreground">
-                  <div class="flex items-center gap-1">
-                    <TrendingUp class="w-3 h-3" />
-                    <span>{{ formatVisits(tool.visits) }}</span>
-                  </div>
-                  <div class="flex items-center gap-1">
-                    <Star class="w-3 h-3 text-yellow-500" />
-                    <span>{{ tool.rating }}</span>
-                  </div>
-                </div>
-                <span class="text-xs text-muted-foreground">{{ tool.reviewCount }} 评价</span>
+                <Button variant="ghost" size="sm" class="text-sm">
+                  查看详情
+                </Button>
+                <Button size="sm" class="gap-1">
+                  立即访问
+                  <ChevronRight class="w-4 h-4" />
+                </Button>
               </div>
             </NuxtLink>
           </div>
@@ -237,7 +298,7 @@ const switchCategory = (id: string) => {
               class="group flex items-center gap-4 p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
             >
               <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0">
-                <component :is="tool.icon" class="w-7 h-7 text-primary" />
+                <component :is="getToolIconComponent(tool.icon)" class="w-7 h-7 text-primary" />
               </div>
               
               <div class="flex-1 min-w-0">
