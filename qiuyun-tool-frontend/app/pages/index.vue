@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { 
-  Search, 
   ArrowRight, 
   Flame, 
   Sparkles,
@@ -12,8 +10,6 @@ import {
   ChevronRight
 } from 'lucide-vue-next'
 import { categories, getHotTools, getNewTools } from '@/composables/useTools'
-
-const searchQuery = ref('')
 
 // 获取热门工具
 const hotTools = computed(() => getHotTools(8))
@@ -44,61 +40,19 @@ const getIconComponent = (iconName: string) => {
   }
   return iconMap[iconName] || 'Wrench'
 }
+
+// 处理搜索
+const handleSearch = (query: string) => {
+  if (query.trim()) {
+    navigateTo(`/category?search=${encodeURIComponent(query.trim())}`)
+  }
+}
 </script>
 
 <template>
   <div>
     <!-- Hero Section -->
-    <section class="relative py-20 lg:py-32 overflow-hidden">
-      <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-background" />
-      <div class="container mx-auto px-4 relative">
-        <div class="max-w-3xl mx-auto text-center">
-          <Badge variant="secondary" class="mb-4">
-            <Sparkles class="w-3 h-3 mr-1" />
-            程序员必备工具箱
-          </Badge>
-          <h1 class="text-4xl lg:text-6xl font-bold text-foreground mb-6">
-            秋云工具
-          </h1>
-          <p class="text-lg lg:text-xl text-muted-foreground mb-8">
-            高效、简洁、实用的在线工具集合<br class="hidden sm:block" />
-            助力开发者提升工作效率
-          </p>
-          
-          <!-- Search Box -->
-          <div class="max-w-xl mx-auto relative">
-            <div class="relative">
-              <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input 
-                v-model="searchQuery"
-                type="text" 
-                placeholder="搜索工具..."
-                class="pl-10 pr-24 h-12 text-base"
-              />
-              <Button class="absolute right-1 top-1/2 -translate-y-1/2 h-10">
-                搜索
-              </Button>
-            </div>
-          </div>
-
-          <!-- Quick Stats -->
-          <div class="flex items-center justify-center gap-8 mt-8 text-sm text-muted-foreground">
-            <div class="flex items-center gap-2">
-              <span class="font-semibold text-foreground">30+</span>
-              <span>实用工具</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="font-semibold text-foreground">100w+</span>
-              <span>月使用量</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="font-semibold text-foreground">4.9</span>
-              <span>用户评分</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <HeroSection @search="handleSearch" />
 
     <!-- Categories Section -->
     <section class="py-16 bg-muted/30">
