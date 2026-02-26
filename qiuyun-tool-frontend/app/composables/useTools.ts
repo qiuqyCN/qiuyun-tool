@@ -433,6 +433,11 @@ export const rankings = {
     { rank: 3, toolId: 'image-compress', visits: 4567 },
     { rank: 4, toolId: 'qr-code', visits: 3987 },
     { rank: 5, toolId: 'timestamp-converter', visits: 3456 },
+    { rank: 6, toolId: 'md5-encrypt', visits: 3234 },
+    { rank: 7, toolId: 'base-convert', visits: 2987 },
+    { rank: 8, toolId: 'word-count', visits: 2765 },
+    { rank: 9, toolId: 'url-codec', visits: 2543 },
+    { rank: 10, toolId: 'text-diff', visits: 2345 },
   ],
   weekly: [
     { rank: 1, toolId: 'pdf-to-word', visits: 35678 },
@@ -440,6 +445,11 @@ export const rankings = {
     { rank: 3, toolId: 'image-compress', visits: 29876 },
     { rank: 4, toolId: 'qr-code', visits: 26543 },
     { rank: 5, toolId: 'timestamp-converter', visits: 23456 },
+    { rank: 6, toolId: 'md5-encrypt', visits: 21345 },
+    { rank: 7, toolId: 'base-convert', visits: 19876 },
+    { rank: 8, toolId: 'word-count', visits: 18765 },
+    { rank: 9, toolId: 'url-codec', visits: 17654 },
+    { rank: 10, toolId: 'text-diff', visits: 16543 },
   ],
   monthly: [
     { rank: 1, toolId: 'pdf-to-word', visits: 156789 },
@@ -447,6 +457,11 @@ export const rankings = {
     { rank: 3, toolId: 'json-formatter', visits: 123456 },
     { rank: 4, toolId: 'qr-code', visits: 109876 },
     { rank: 5, toolId: 'timestamp-converter', visits: 98765 },
+    { rank: 6, toolId: 'md5-encrypt', visits: 87654 },
+    { rank: 7, toolId: 'base-convert', visits: 76543 },
+    { rank: 8, toolId: 'word-count', visits: 65432 },
+    { rank: 9, toolId: 'url-codec', visits: 54321 },
+    { rank: 10, toolId: 'text-diff', visits: 43210 },
   ],
 }
 
