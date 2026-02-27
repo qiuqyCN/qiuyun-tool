@@ -71,7 +71,7 @@ const logout = () => {
 
 <template>
   <header 
-    class="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300 ease-in-out"
+    class="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 transition-all duration-300 ease-in-out"
     :class="isScrolled ? 'border-b border-border/40' : 'border-b border-transparent'"
   >
     <div 

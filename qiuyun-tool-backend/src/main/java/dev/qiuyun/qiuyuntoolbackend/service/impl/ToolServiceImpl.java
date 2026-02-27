@@ -56,7 +56,7 @@ public class ToolServiceImpl implements ToolService {
 
     @Override
     public List<ToolResponse> getNewTools() {
-        return toolRepository.findTop6ByIsActiveTrueOrderByCreatedAtDesc()
+        return toolRepository.findTop8ByIsActiveTrueOrderByCreatedAtDesc()
                 .stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());

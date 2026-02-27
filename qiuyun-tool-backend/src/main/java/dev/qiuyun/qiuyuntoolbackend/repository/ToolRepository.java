@@ -80,5 +80,17 @@ public interface ToolRepository extends JpaRepository<Tool, Long> {
     /**
      * 查询最新工具（按创建时间排序）
      */
-    List<Tool> findTop6ByIsActiveTrueOrderByCreatedAtDesc();
+    List<Tool> findTop8ByIsActiveTrueOrderByCreatedAtDesc();
+
+    /**
+     * 根据分类code查询启用的工具
+     */
+    @Query("SELECT t FROM Tool t WHERE t.isActive = true AND t.category.code = :categoryCode ORDER BY t.visitsCount DESC")
+    List<Tool> findByCategoryCodeAndIsActiveTrue(@Param("categoryCode") String categoryCode);
+
+    /**
+     * 统计分类下的工具数量
+     */
+    @Query("SELECT COUNT(t) FROM Tool t WHERE t.isActive = true AND t.category.code = :categoryCode")
+    Integer countByCategoryCodeAndIsActiveTrue(@Param("categoryCode") String categoryCode);
 }

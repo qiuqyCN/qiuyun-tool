@@ -1,25 +1,47 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+import { useApi, type CategoryResponse, type CategoryToolsResponse, type ToolResponse } from '@/composables/useApi'
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { 
-  ArrowRight, 
-  Flame, 
-  Sparkles,
-  Crown,
-  TrendingUp,
-  ChevronRight,
+  ArrowRight,
+  Binary,
+  Braces,
+  Calculator,
   Clock,
+  Code,
+  Code2,
+  Crown,
+  Dices,
+  FileEdit,
+  FileJson,
+  FileMinus,
+  FileText,
+  FileType,
+  Fingerprint,
+  Flame,
+  GitCompare,
+  Hash,
   Heart,
-  Plus
+  Image,
+  ImageMinus,
+  ImagePlus,
+  Key,
+  Link,
+  Loader2,
+  Lock,
+  Plus,
+  QrCode,
+  Scale,
+  Search,
+  Star,
+  Text,
+  Type,
+  Wrench
 } from 'lucide-vue-next'
-import { categories, getHotTools, getNewTools, tools } from '@/composables/useTools'
+
+const api = useApi()
 
 // 当前选中的 tab
 const activeTab = ref('hot')
@@ -27,19 +49,21 @@ const activeTab = ref('hot')
 // 是否登录（模拟）
 const isLoggedIn = ref(false)
 
-// 获取热门工具
-const hotTools = computed(() => getHotTools(8))
+// 加载状态
+const loading = ref(true)
+const error = ref<string | null>(null)
 
-// 获取最新工具
-const newTools = computed(() => getNewTools(8))
+// 首页数据
+const categories = ref<CategoryResponse[]>([])
+const hotTools = ref<ToolResponse[]>([])
+const newTools = ref<ToolResponse[]>([])
+const categoryTools = ref<CategoryToolsResponse[]>([])
 
 // 获取最近访问的工具（从 localStorage 读取）
 const recentTools = computed(() => {
   if (import.meta.client) {
     const recentIds = JSON.parse(localStorage.getItem('recentTools') || '[]') as string[]
-    return recentIds
-      .map(id => tools.find(t => t.id === id))
-      .filter((t): t is typeof tools[0] => !!t)
+    return hotTools.value.filter((t: ToolResponse) => recentIds.includes(t.code))
       .slice(0, 8)
   }
   return []
@@ -49,7 +73,30 @@ const recentTools = computed(() => {
 const favoriteTools = computed(() => {
   if (!isLoggedIn.value) return []
   // 模拟收藏数据
-  return tools.filter(t => t.tags.includes('热门')).slice(0, 8)
+  return hotTools.value.filter((t: ToolResponse) => t.tags.includes('热门')).slice(0, 8)
+})
+
+// 获取首页数据
+const fetchHomeData = async () => {
+  try {
+    loading.value = true
+    error.value = null
+    const data = await api.getHomeData()
+    categories.value = data.categories
+    hotTools.value = data.hotTools
+    newTools.value = data.newTools
+    categoryTools.value = data.categoryTools
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : '获取数据失败'
+    console.error('获取首页数据失败:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 页面加载时获取数据
+onMounted(() => {
+  fetchHomeData()
 })
 
 // 格式化访问数
@@ -62,37 +109,6 @@ const formatVisits = (visits: number) => {
   }
   return visits.toString()
 }
-
-// 导入所有需要的图标
-import { 
-  Code, 
-  Image, 
-  FileText, 
-  Lock, 
-  Type, 
-  Calculator,
-  Wrench,
-  Braces,
-  FileJson,
-  Code2,
-  Search,
-  Clock,
-  Binary,
-  ImageMinus,
-  ImagePlus,
-  QrCode,
-  FileType,
-  FileMinus,
-  FileEdit,
-  Hash,
-  Fingerprint,
-  Link,
-  Key,
-  GitCompare,
-  Text,
-  Dices,
-  Scale
-} from 'lucide-vue-next'
 
 // 分类图标映射表
 const categoryIconMap: Record<string, any> = {
@@ -146,41 +162,45 @@ const handleSearch = (query: string) => {
     navigateTo(`/category?search=${encodeURIComponent(query.trim())}`)
   }
 }
+
+// 获取分类下的工具数量（现在直接从后端数据获取）
+const getToolCountByCategory = (categoryCode: string) => {
+  const category = categories.value.find((c: CategoryResponse) => c.code === categoryCode)
+  return category?.toolCount || 0
+}
+
+// 收集所有工具用于搜索
+const allTools = computed<ToolResponse[]>(() => {
+  const tools = new Map<string, ToolResponse>()
+  
+  // 从热门工具添加
+  hotTools.value.forEach(tool => tools.set(tool.code, tool))
+  
+  // 从最新工具添加
+  newTools.value.forEach(tool => tools.set(tool.code, tool))
+  
+  // 从分类工具添加
+  categoryTools.value.forEach(ct => {
+    ct.tools.forEach(tool => tools.set(tool.code, tool))
+  })
+  
+  return Array.from(tools.values())
+})
+
+// 处理工具选择
+const handleToolSelect = (tool: ToolResponse) => {
+  navigateTo(`/tool/${tool.code}`)
+}
 </script>
 
 <template>
   <div>
     <!-- Hero Section -->
-    <HeroSection @search="handleSearch" />
-
-    <!-- Categories Section -->
-    <section class="py-12 bg-muted/30">
-      <div class="container mx-auto px-4">
-        <TooltipProvider>
-          <div class="flex flex-wrap items-center justify-center gap-3">
-            <Tooltip v-for="category in categories" :key="category.id">
-              <TooltipTrigger as-child>
-                <NuxtLink 
-                  :to="`/category/${category.id}`"
-                  class="group flex items-center gap-2 px-4 py-2 bg-background rounded-full border border-border/40 hover:border-primary/50 hover:shadow-sm transition-all"
-                >
-                  <div class="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <component 
-                      :is="getIconComponent(category.icon)" 
-                      class="w-3.5 h-3.5 text-primary" 
-                    />
-                  </div>
-                  <span class="text-sm font-medium text-foreground">{{ category.name }}</span>
-                </NuxtLink>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{{ category.description }}</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </TooltipProvider>
-      </div>
-    </section>
+    <HeroSection 
+      :tools="allTools" 
+      :loading="loading"
+      @select="handleToolSelect" 
+    />
 
     <!-- Tabs Section -->
     <section class="py-16">
@@ -211,7 +231,7 @@ const handleSearch = (query: string) => {
               <NuxtLink 
                 v-for="tool in hotTools" 
                 :key="tool.id"
-                :to="`/tool/${tool.id}`"
+                :to="`/tool/${tool.code}`"
                 class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
               >
                 <div class="flex items-start gap-3">
@@ -239,7 +259,7 @@ const handleSearch = (query: string) => {
               <NuxtLink 
                 v-for="tool in recentTools" 
                 :key="tool.id"
-                :to="`/tool/${tool.id}`"
+                :to="`/tool/${tool.code}`"
                 class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
               >
                 <div class="flex items-start gap-3">
@@ -273,7 +293,7 @@ const handleSearch = (query: string) => {
                 <NuxtLink 
                   v-for="tool in favoriteTools" 
                   :key="tool.id"
-                  :to="`/tool/${tool.id}`"
+                  :to="`/tool/${tool.code}`"
                   class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
                 >
                   <div class="flex items-start gap-3">
@@ -312,7 +332,7 @@ const handleSearch = (query: string) => {
               <NuxtLink 
                 v-for="tool in newTools" 
                 :key="tool.id"
-                :to="`/tool/${tool.id}`"
+                :to="`/tool/${tool.code}`"
                 class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
               >
                 <div class="flex items-start gap-3">
@@ -337,20 +357,83 @@ const handleSearch = (query: string) => {
       </div>
     </section>
 
+    
+    <!-- Categories Section -->
+    <section class="py-16 bg-muted/30">
+      <div class="container mx-auto px-4">
+        <!-- 标题 -->
+        <div class="text-center mb-10">
+          <h2 class="text-2xl font-bold text-foreground mb-2">工具分类</h2>
+          <p class="text-muted-foreground">按类别快速找到你需要的工具</p>
+        </div>
+        
+        <!-- 加载状态 -->
+        <div v-if="loading" class="flex items-center justify-center py-12">
+          <Loader2 class="w-8 h-8 animate-spin text-primary" />
+          <span class="ml-2 text-muted-foreground">加载中...</span>
+        </div>
+        
+        <!-- 错误状态 -->
+        <div v-else-if="error" class="text-center py-12">
+          <p class="text-red-500 mb-4">{{ error }}</p>
+          <Button @click="fetchHomeData">重新加载</Button>
+        </div>
+        
+        <!-- 分类卡片网格 -->
+        <div v-else class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <NuxtLink 
+            v-for="category in categories" 
+            :key="category.id"
+            :to="`/category/${category.code}`"
+            class="group relative p-6 bg-background rounded-2xl border border-border/40 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1"
+          >
+            <!-- 背景渐变装饰 -->
+            <div class="absolute inset-0 rounded-2xl bg-linear-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            
+            <div class="relative flex flex-col items-center text-center">
+              <!-- 图标容器 -->
+              <div class="w-14 h-14 rounded-xl bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300">
+                <component 
+                  :is="getIconComponent(category.icon)" 
+                  class="w-7 h-7 text-primary" 
+                />
+              </div>
+              
+              <!-- 分类名称 -->
+              <h3 class="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                {{ category.name }}
+              </h3>
+              
+              <!-- 工具数量 -->
+              <span class="text-xs text-muted-foreground">
+                {{ category.toolCount }} 个工具
+              </span>
+              
+              <!-- 悬停指示器 -->
+              <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+            </div>
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
+
+
     <!-- Categories Tools Section -->
     <section class="py-16 bg-muted/30">
       <div class="container mx-auto px-4">
-        <div v-for="category in categories" :key="category.id" class="mb-12 last:mb-0">
+        <div v-for="categoryTool in categoryTools" :key="categoryTool.categoryCode" class="mb-12 last:mb-0">
           <!-- Category Header -->
           <div class="mb-6">
-            <h2 class="text-xl font-bold text-foreground mb-2">{{ category.name }}</h2>
-            <p class="text-sm text-muted-foreground">{{ category.description }}</p>
+            <h2 class="text-xl font-bold text-foreground mb-2">{{ categoryTool.categoryName }}</h2>
+            <p class="text-sm text-muted-foreground">
+              {{ categories.find((c: CategoryResponse) => c.code === categoryTool.categoryCode)?.description || '' }}
+            </p>
           </div>
           
           <!-- Tools Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div 
-              v-for="tool in tools.filter(t => t.category === category.id).slice(0, 6)" 
+              v-for="tool in categoryTool.tools" 
               :key="tool.id"
               class="group bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all p-5"
             >
@@ -382,10 +465,10 @@ const handleSearch = (query: string) => {
               <!-- Actions -->
               <div class="flex items-center justify-between">
                 <Button variant="ghost" size="sm" as-child>
-                  <NuxtLink :to="`/tool/${tool.id}`">查看详情</NuxtLink>
+                  <NuxtLink :to="`/tool/${tool.code}`">查看详情</NuxtLink>
                 </Button>
                 <Button size="sm" as-child>
-                  <NuxtLink :to="`/tool/${tool.id}`">
+                  <NuxtLink :to="`/tool/${tool.code}`">
                     立即访问
                     <ArrowRight class="w-3 h-3 ml-1" />
                   </NuxtLink>
@@ -400,7 +483,7 @@ const handleSearch = (query: string) => {
     <!-- CTA Section -->
     <section class="py-20">
       <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl p-8 lg:p-12 text-center">
+        <div class="max-w-4xl mx-auto bg-linear-to-r from-primary/10 to-primary/5 rounded-2xl p-8 lg:p-12 text-center">
           <h2 class="text-3xl font-bold text-foreground mb-4">
             解锁全部功能
           </h2>

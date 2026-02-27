@@ -19,5 +19,18 @@ public class HomeDataResponse {
     private List<CategoryResponse> categories;
     private List<ToolResponse> hotTools;
     private List<ToolResponse> newTools;
-    private List<TagResponse> hotTags;
+    private List<CategoryToolsResponse> categoryTools;
+
+    /**
+     * 分类工具列表
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class CategoryToolsResponse {
+        private String categoryCode;
+        private String categoryName;
+        private List<ToolResponse> tools;
+    }
 }
