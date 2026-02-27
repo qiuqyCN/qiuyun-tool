@@ -91,7 +91,26 @@ const router = useRouter()
 
 const categoryId = computed(() => route.params.id as string || 'all')
 const searchQuery = ref('')
+
+// 从 localStorage 读取视图模式，默认 grid
 const viewMode = ref<'grid' | 'list'>('grid')
+
+// 页面加载时恢复视图模式
+onMounted(() => {
+  if (import.meta.client) {
+    const savedViewMode = localStorage.getItem('categoryViewMode')
+    if (savedViewMode === 'grid' || savedViewMode === 'list') {
+      viewMode.value = savedViewMode
+    }
+  }
+})
+
+// 监听视图模式变化并保存到 localStorage
+watch(viewMode, (newMode) => {
+  if (import.meta.client) {
+    localStorage.setItem('categoryViewMode', newMode)
+  }
+})
 
 // 当前分类
 const currentCategory = computed(() => {
