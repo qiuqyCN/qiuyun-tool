@@ -20,6 +20,7 @@ public class HomeDataResponse {
     private List<ToolResponse> hotTools;
     private List<ToolResponse> newTools;
     private List<CategoryToolsResponse> categoryTools;
+    private StatsResponse stats;
 
     /**
      * 分类工具列表

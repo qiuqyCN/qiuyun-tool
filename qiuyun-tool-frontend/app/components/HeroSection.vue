@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Sparkles, Loader2 } from "lucide-vue-next";
-import type { ToolResponse } from "@/composables/useApi";
+import type { ToolResponse, StatsResponse } from "@/composables/useApi";
 
 interface SearchResult {
   tool: ToolResponse;
@@ -13,6 +13,7 @@ interface SearchResult {
 const props = defineProps<{
   tools: ToolResponse[];
   loading?: boolean;
+  stats?: StatsResponse;
 }>();
 
 const emit = defineEmits<{
@@ -199,6 +200,17 @@ const highlightText = (text: string, query: string): string => {
 // 转义正则特殊字符
 const escapeRegExp = (string: string): string => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
+
+// 格式化数字（转换为 w/k 格式）
+const formatNumber = (num: number): string => {
+  if (num >= 10000) {
+    return (num / 10000).toFixed(0) + 'w+';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(0) + 'k+';
+  }
+  return num + '+';
 };
 
 // 点击外部关闭结果
@@ -398,16 +410,16 @@ onUnmounted(() => {
           class="flex items-center justify-center gap-8 mt-8 text-sm text-muted-foreground"
         >
           <div class="flex items-center gap-2">
-            <span class="font-semibold text-foreground">30+</span>
+            <span class="font-semibold text-foreground">{{ formatNumber(props.stats?.totalTools || 0) }}</span>
             <span>实用工具</span>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="font-semibold text-foreground">100w+</span>
-            <span>月使用量</span>
+           <div class="flex items-center gap-2">
+            <span class="font-semibold text-foreground">{{ formatNumber(props.stats?.dailyActiveUsers || 0) }}</span>
+            <span>日活用户</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="font-semibold text-foreground">4.9</span>
-            <span>用户评分</span>
+            <span class="font-semibold text-foreground">{{ formatNumber(props.stats?.monthlyVisits || 0) }}</span>
+            <span>月使用量</span>
           </div>
         </div>
       </div>

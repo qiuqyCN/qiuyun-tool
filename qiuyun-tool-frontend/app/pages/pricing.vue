@@ -39,7 +39,6 @@ const comparisons = [
   { feature: '单文件大小', free: '1MB', monthly: '10MB', quarterly: '10MB', yearly: '50MB', permanent: '100MB' },
   { feature: '每日使用次数', free: '10次', monthly: '无限', quarterly: '无限', yearly: '无限', permanent: '无限' },
   { feature: '广告显示', free: '有', monthly: '无', quarterly: '无', yearly: '无', permanent: '无' },
-  { feature: '云存储空间', free: '-', monthly: '-', quarterly: '-', yearly: '5GB', permanent: '10GB' },
   { feature: '客服支持', free: '普通', monthly: '优先', quarterly: '优先', yearly: '优先', permanent: 'VIP专属' },
   { feature: '新功能体验', free: '-', monthly: '-', quarterly: '✓', yearly: '✓', permanent: '✓' },
 ]

@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-import { useApi, type CategoryResponse, type CategoryToolsResponse, type ToolResponse } from '@/composables/useApi'
+import { useApi, type CategoryResponse, type CategoryToolsResponse, type ToolResponse, type StatsResponse } from '@/composables/useApi'
 import {
   ArrowRight,
   Binary,
@@ -58,6 +58,11 @@ const categories = ref<CategoryResponse[]>([])
 const hotTools = ref<ToolResponse[]>([])
 const newTools = ref<ToolResponse[]>([])
 const categoryTools = ref<CategoryToolsResponse[]>([])
+const stats = ref<StatsResponse>({
+  totalTools: 0,
+  dailyActiveUsers: 0,
+  monthlyVisits: 0
+})
 
 // 获取最近访问的工具（从 localStorage 读取）
 const recentTools = computed(() => {
@@ -86,6 +91,9 @@ const fetchHomeData = async () => {
     hotTools.value = data.hotTools
     newTools.value = data.newTools
     categoryTools.value = data.categoryTools
+    if (data.stats) {
+      stats.value = data.stats
+    }
   } catch (err) {
     error.value = err instanceof Error ? err.message : '获取数据失败'
     console.error('获取首页数据失败:', err)
@@ -169,17 +177,11 @@ const getToolCountByCategory = (categoryCode: string) => {
   return category?.toolCount || 0
 }
 
-// 收集所有工具用于搜索
+// 收集所有工具用于搜索（从分类工具中获取所有工具）
 const allTools = computed<ToolResponse[]>(() => {
   const tools = new Map<string, ToolResponse>()
   
-  // 从热门工具添加
-  hotTools.value.forEach(tool => tools.set(tool.code, tool))
-  
-  // 从最新工具添加
-  newTools.value.forEach(tool => tools.set(tool.code, tool))
-  
-  // 从分类工具添加
+  // 从分类工具中获取所有工具（已包含全部工具）
   categoryTools.value.forEach(ct => {
     ct.tools.forEach(tool => tools.set(tool.code, tool))
   })
@@ -199,6 +201,7 @@ const handleToolSelect = (tool: ToolResponse) => {
     <HeroSection 
       :tools="allTools" 
       :loading="loading"
+      :stats="stats"
       @select="handleToolSelect" 
     />
 

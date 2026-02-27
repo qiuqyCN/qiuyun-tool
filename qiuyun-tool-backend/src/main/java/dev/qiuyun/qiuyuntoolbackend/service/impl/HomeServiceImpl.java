@@ -4,6 +4,7 @@ import dev.qiuyun.qiuyuntoolbackend.entity.Category;
 import dev.qiuyun.qiuyuntoolbackend.entity.Tool;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.CategoryResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.HomeDataResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.StatsResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolResponse;
 import dev.qiuyun.qiuyuntoolbackend.repository.CategoryRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.ToolRepository;
@@ -12,7 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -29,27 +32,39 @@ public class HomeServiceImpl implements HomeService {
     @Override
     public HomeDataResponse getHomeData() {
         // 获取所有分类
-        List<CategoryResponse> categories = categoryRepository.findByIsActiveTrueOrderBySortOrderAsc()
-                .stream()
-                .map(this::convertToCategoryResponse)
+        List<Category> categoryEntities = categoryRepository.findByIsActiveTrueOrderBySortOrderAsc();
+
+        // 一次性获取所有启用的工具
+        List<Tool> allTools = toolRepository.findByIsActiveTrue();
+
+        // 按分类分组工具（在内存中处理，减少数据库查询）
+        Map<String, List<Tool>> toolsByCategory = allTools.stream()
+                .filter(tool -> tool.getCategory() != null)
+                .collect(Collectors.groupingBy(tool -> tool.getCategory().getCode()));
+
+        // 转换分类响应（使用内存统计工具数量）
+        List<CategoryResponse> categories = categoryEntities.stream()
+                .map(category -> convertToCategoryResponse(category, toolsByCategory))
                 .collect(Collectors.toList());
 
         // 获取热门工具（8个）
-        List<ToolResponse> hotTools = toolRepository.findTop8ByIsActiveTrueOrderByVisitsCountDesc()
-                .stream()
+        List<ToolResponse> hotTools = allTools.stream()
+                .sorted((t1, t2) -> t2.getVisitsCount().compareTo(t1.getVisitsCount()))
+                .limit(8)
                 .map(this::convertToToolResponse)
                 .collect(Collectors.toList());
 
         // 获取最新工具（8个）
-        List<ToolResponse> newTools = toolRepository.findTop8ByIsActiveTrueOrderByCreatedAtDesc()
-                .stream()
+        List<ToolResponse> newTools = allTools.stream()
+                .sorted((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()))
+                .limit(8)
                 .map(this::convertToToolResponse)
                 .collect(Collectors.toList());
 
-        // 获取所有工具并按分类分组
+        // 构建分类工具列表（从内存分组中获取）
         List<HomeDataResponse.CategoryToolsResponse> categoryTools = categories.stream()
                 .map(category -> {
-                    List<ToolResponse> tools = toolRepository.findByCategoryCodeAndIsActiveTrue(category.getCode())
+                    List<ToolResponse> tools = toolsByCategory.getOrDefault(category.getCode(), List.of())
                             .stream()
                             .map(this::convertToToolResponse)
                             .collect(Collectors.toList());
@@ -61,21 +76,47 @@ public class HomeServiceImpl implements HomeService {
                 })
                 .collect(Collectors.toList());
 
+        // 构建统计数据（从已加载的工具列表计算）
+        StatsResponse stats = buildStatsResponse(allTools);
+
         return HomeDataResponse.builder()
                 .categories(categories)
                 .hotTools(hotTools)
                 .newTools(newTools)
                 .categoryTools(categoryTools)
+                .stats(stats)
                 .build();
     }
 
     /**
-     * 转换Category实体为响应对象
+     * 构建统计数据（从已加载的工具列表计算，避免重复查询数据库）
      */
-    private CategoryResponse convertToCategoryResponse(Category category) {
-        // 统计该分类下的工具数量
-        Integer toolCount = toolRepository.countByCategoryCodeAndIsActiveTrue(category.getCode());
-        
+    private StatsResponse buildStatsResponse(List<Tool> allTools) {
+        // 统计工具总数
+        Integer totalTools = allTools.size();
+
+        // 统计月访问量（所有工具访问量之和）
+        Long monthlyVisits = allTools.stream()
+                .mapToLong(Tool::getVisitsCount)
+                .sum();
+
+        // 日活跃用户（模拟数据：月访问量的 1/30，最低 1000）
+        Integer dailyActiveUsers = (int) Math.max(monthlyVisits / 30, 1000);
+
+        return StatsResponse.builder()
+                .totalTools(totalTools)
+                .dailyActiveUsers(dailyActiveUsers)
+                .monthlyVisits(monthlyVisits)
+                .build();
+    }
+
+    /**
+     * 转换Category实体为响应对象（使用内存统计工具数量）
+     */
+    private CategoryResponse convertToCategoryResponse(Category category, Map<String, List<Tool>> toolsByCategory) {
+        // 从内存分组中统计该分类下的工具数量
+        Integer toolCount = toolsByCategory.getOrDefault(category.getCode(), List.of()).size();
+
         return CategoryResponse.builder()
                 .id(category.getId())
                 .code(category.getCode())

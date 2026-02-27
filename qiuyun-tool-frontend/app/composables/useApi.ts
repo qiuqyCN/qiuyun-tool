@@ -61,12 +61,20 @@ export interface CategoryToolsResponse {
   tools: ToolResponse[]
 }
 
+// 统计数据响应类型
+export interface StatsResponse {
+  totalTools: number
+  dailyActiveUsers: number
+  monthlyVisits: number
+}
+
 // 首页数据响应类型 - 对应后端 HomeDataResponse
 export interface HomeDataResponse {
   categories: CategoryResponse[]
   hotTools: ToolResponse[]
   newTools: ToolResponse[]
   categoryTools: CategoryToolsResponse[]
+  stats: StatsResponse
 }
 
 // 为了保持向后兼容，保留旧名称作为别名

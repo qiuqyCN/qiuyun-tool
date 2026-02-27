@@ -403,7 +403,6 @@ export const membershipPlans = [
       '去除广告',
       '优先客服支持',
       '新功能抢先体验',
-      '5GB云存储空间',
     ],
   },
   {
@@ -419,7 +418,6 @@ export const membershipPlans = [
       '去除广告',
       'VIP专属客服',
       '新功能抢先体验',
-      '10GB云存储空间',
       '终身免费更新',
     ],
   },
