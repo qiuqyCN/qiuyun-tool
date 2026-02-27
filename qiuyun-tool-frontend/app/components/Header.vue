@@ -21,7 +21,8 @@ import {
   Home,
   Grid3X3,
   CreditCard,
-  Trophy
+  Trophy,
+  Github
 } from 'lucide-vue-next'
 
 const colorMode = useColorMode()
@@ -100,15 +101,28 @@ const logout = () => {
       <!-- Right Side -->
       <div class="flex items-center gap-4">
         <!-- Theme Toggle -->
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           class="h-9 w-9"
           @click="toggleTheme"
         >
           <Sun v-if="colorMode.value === 'dark'" class="h-6 w-6" />
           <Moon v-else class="h-6 w-6" />
           <span class="sr-only">切换主题</span>
+        </Button>
+
+        <!-- GitHub Link -->
+        <Button
+          variant="ghost"
+          size="icon"
+          class="h-9 w-9"
+          as-child
+        >
+          <a href="https://github.com/qiuqyCN/qiuyun-tool" target="_blank" rel="noopener noreferrer">
+            <Github class="h-6 w-6" />
+            <span class="sr-only">GitHub</span>
+          </a>
         </Button>
 
         <!-- Desktop User Menu -->

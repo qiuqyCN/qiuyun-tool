@@ -28,7 +28,7 @@ if (!tool) {
 
 // 记录最近访问
 onMounted(() => {
-  if (process.client) {
+  if (import.meta.client) {
     const recentIds = JSON.parse(localStorage.getItem('recentTools') || '[]') as string[]
     // 移除已存在的相同ID
     const filteredIds = recentIds.filter(id => id !== toolId)
@@ -86,7 +86,7 @@ const submitRating = () => {
     <div class="container mx-auto px-4 py-8">
       <!-- Tool Header -->
       <div class="flex flex-col lg:flex-row lg:items-start gap-6 mb-8">
-        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0">
+        <div class="w-20 h-20 rounded-2xl bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
           <component :is="tool.icon" class="w-10 h-10 text-primary" />
         </div>
         

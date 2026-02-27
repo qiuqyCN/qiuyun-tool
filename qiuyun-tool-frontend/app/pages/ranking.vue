@@ -120,7 +120,7 @@ const getToolIconComponent = (iconName: string) => {
         </div>
         
         <div class="flex items-center gap-4">
-          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
+          <div class="w-16 h-16 rounded-2xl bg-linear-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
             <Trophy class="w-8 h-8 text-white" />
           </div>
           <div>
@@ -159,7 +159,7 @@ const getToolIconComponent = (iconName: string) => {
                 getRankBgClass(item.rank)
               ]"
             >
-              <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center">
+              <div class="shrink-0 w-12 h-12 flex items-center justify-center">
                 <component
                   v-if="getRankIcon(item.rank)"
                   :is="getRankIcon(item.rank)"
@@ -170,7 +170,7 @@ const getToolIconComponent = (iconName: string) => {
                 </span>
               </div>
 
-              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0">
+              <div class="w-14 h-14 rounded-xl bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
                 <component :is="getToolIconComponent(item.tool.icon)" class="w-7 h-7 text-primary" />
               </div>
 
@@ -212,7 +212,7 @@ const getToolIconComponent = (iconName: string) => {
                 getRankBgClass(item.rank)
               ]"
             >
-              <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center">
+              <div class="shrink-0 w-12 h-12 flex items-center justify-center">
                 <component
                   v-if="getRankIcon(item.rank)"
                   :is="getRankIcon(item.rank)"
@@ -223,7 +223,7 @@ const getToolIconComponent = (iconName: string) => {
                 </span>
               </div>
 
-              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0">
+              <div class="w-14 h-14 rounded-xl bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
                 <component :is="getToolIconComponent(item.tool.icon)" class="w-7 h-7 text-primary" />
               </div>
 
@@ -265,7 +265,7 @@ const getToolIconComponent = (iconName: string) => {
                 getRankBgClass(item.rank)
               ]"
             >
-              <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center">
+              <div class="shrink-0 w-12 h-12 flex items-center justify-center">
                 <component
                   v-if="getRankIcon(item.rank)"
                   :is="getRankIcon(item.rank)"
@@ -276,7 +276,7 @@ const getToolIconComponent = (iconName: string) => {
                 </span>
               </div>
 
-              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0">
+              <div class="w-14 h-14 rounded-xl bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
                 <component :is="getToolIconComponent(item.tool.icon)" class="w-7 h-7 text-primary" />
               </div>
 

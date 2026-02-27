@@ -94,7 +94,7 @@ const comparisons = [
           <CardContent class="flex-1">
             <ul class="space-y-3">
               <li v-for="feature in plan.features" :key="feature" class="flex items-start gap-2 text-sm">
-                <Check class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <Check class="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
                 <span class="text-muted-foreground">{{ feature }}</span>
               </li>
             </ul>
@@ -164,7 +164,7 @@ const comparisons = [
 
       <!-- CTA -->
       <div class="mt-20 text-center">
-        <div class="bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl p-8 lg:p-12">
+        <div class="bg-linear-to-r from-primary/10 to-primary/5 rounded-2xl p-8 lg:p-12">
           <h2 class="text-2xl font-bold text-foreground mb-4">
             还有疑问？
           </h2>

@@ -164,7 +164,7 @@ const switchCategory = (id: string) => {
     <div class="container mx-auto px-4 py-8">
       <div class="flex flex-col lg:flex-row gap-8">
         <!-- Sidebar -->
-        <aside class="lg:w-64 flex-shrink-0">
+        <aside class="lg:w-64 shrink-0">
           <div class="sticky top-24">
             <div class="flex items-center gap-2 mb-4">
               <Filter class="w-4 h-4" />
@@ -246,17 +246,17 @@ const switchCategory = (id: string) => {
             >
               <!-- 工具头部：图标 + 标题 + 标签 -->
               <div class="flex items-start gap-4 mb-3">
-                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0">
+                <div class="w-14 h-14 rounded-xl bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
                   <component :is="getToolIconComponent(tool.icon)" class="w-7 h-7 text-primary" />
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-1">
                     <h3 class="font-semibold text-foreground truncate">{{ tool.name }}</h3>
-                    <Badge v-if="tool.isVip" variant="secondary" class="text-xs flex-shrink-0">
+                    <Badge v-if="tool.isVip" variant="secondary" class="text-xs shrink-0">
                       <Crown class="w-3 h-3 mr-1" />
                       VIP
                     </Badge>
-                    <Badge v-else variant="outline" class="text-xs flex-shrink-0">免费</Badge>
+                    <Badge v-else variant="outline" class="text-xs shrink-0">免费</Badge>
                   </div>
                   <div class="flex items-center gap-1">
                     <div class="flex">
@@ -297,7 +297,7 @@ const switchCategory = (id: string) => {
               :to="`/tool/${tool.id}`"
               class="group flex items-center gap-4 p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
             >
-              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0">
+              <div class="w-14 h-14 rounded-xl bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
                 <component :is="getToolIconComponent(tool.icon)" class="w-7 h-7 text-primary" />
               </div>
               

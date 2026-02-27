@@ -215,13 +215,13 @@ const handleSearch = (query: string) => {
                 class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
               >
                 <div class="flex items-start gap-3">
-                  <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                     <component :is="getToolIconComponent(tool.icon)" class="w-6 h-6 text-primary" />
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
                       <h3 class="font-semibold text-foreground truncate">{{ tool.name }}</h3>
-                      <Badge v-if="tool.isVip" variant="secondary" class="text-xs flex-shrink-0">
+                      <Badge v-if="tool.isVip" variant="secondary" class="text-xs shrink-0">
                         <Crown class="w-3 h-3 mr-1" />
                         VIP
                       </Badge>
@@ -243,13 +243,13 @@ const handleSearch = (query: string) => {
                 class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
               >
                 <div class="flex items-start gap-3">
-                  <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                     <component :is="getToolIconComponent(tool.icon)" class="w-6 h-6 text-primary" />
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
                       <h3 class="font-semibold text-foreground truncate">{{ tool.name }}</h3>
-                      <Badge v-if="tool.isVip" variant="secondary" class="text-xs flex-shrink-0">
+                      <Badge v-if="tool.isVip" variant="secondary" class="text-xs shrink-0">
                         <Crown class="w-3 h-3 mr-1" />
                         VIP
                       </Badge>
@@ -277,13 +277,13 @@ const handleSearch = (query: string) => {
                   class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
                 >
                   <div class="flex items-start gap-3">
-                    <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                       <component :is="getToolIconComponent(tool.icon)" class="w-6 h-6 text-primary" />
                     </div>
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 mb-1">
                         <h3 class="font-semibold text-foreground truncate">{{ tool.name }}</h3>
-                        <Badge v-if="tool.isVip" variant="secondary" class="text-xs flex-shrink-0">
+                        <Badge v-if="tool.isVip" variant="secondary" class="text-xs shrink-0">
                           <Crown class="w-3 h-3 mr-1" />
                           VIP
                         </Badge>
@@ -316,13 +316,13 @@ const handleSearch = (query: string) => {
                 class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
               >
                 <div class="flex items-start gap-3">
-                  <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                     <component :is="getToolIconComponent(tool.icon)" class="w-6 h-6 text-primary" />
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
                       <h3 class="font-semibold text-foreground truncate">{{ tool.name }}</h3>
-                      <Badge v-if="tool.isVip" variant="secondary" class="text-xs flex-shrink-0">
+                      <Badge v-if="tool.isVip" variant="secondary" class="text-xs shrink-0">
                         <Crown class="w-3 h-3 mr-1" />
                         VIP
                       </Badge>
