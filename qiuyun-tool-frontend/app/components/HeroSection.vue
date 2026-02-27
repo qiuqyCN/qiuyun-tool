@@ -104,7 +104,7 @@ const performSearch = () => {
 };
 
 // 防抖搜索
-let searchTimeout: NodeJS.Timeout | null = null;
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 const debouncedSearch = () => {
   if (searchTimeout) {
     clearTimeout(searchTimeout);
@@ -155,7 +155,10 @@ const handleKeydown = (e: KeyboardEvent) => {
         selectedIndex.value >= 0 &&
         selectedIndex.value < searchResults.value.length
       ) {
-        selectTool(searchResults.value[selectedIndex.value].tool);
+        const result = searchResults.value[selectedIndex.value];
+        if (result && result.tool) {
+          selectTool(result.tool);
+        }
       }
       break;
     case "Escape":
@@ -171,9 +174,8 @@ const scrollToSelected = () => {
     const container = resultsContainerRef.value;
     if (!container) return;
 
-    const selectedElement = container.querySelector(
-      `[data-index="${selectedIndex.value}"]`
-    ) as HTMLElement;
+    const selector = `[data-index="${selectedIndex.value}"]`;
+    const selectedElement = container.querySelector(selector) as HTMLElement | null;
     if (selectedElement) {
       selectedElement.scrollIntoView({ block: "nearest", behavior: "smooth" });
     }
