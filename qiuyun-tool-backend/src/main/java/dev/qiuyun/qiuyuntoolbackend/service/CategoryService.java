@@ -1,6 +1,8 @@
 package dev.qiuyun.qiuyuntoolbackend.service;
 
+import dev.qiuyun.qiuyuntoolbackend.payload.request.CategoryToolsRequest;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.CategoryResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.CategoryToolsResponse;
 
 import java.util.List;
 
@@ -23,4 +25,9 @@ public interface CategoryService {
      * 根据ID获取分类
      */
     CategoryResponse getCategoryById(Long id);
+
+    /**
+     * 获取分类下的工具列表
+     */
+    CategoryToolsResponse getCategoryTools(String categoryCode, CategoryToolsRequest request);
 }

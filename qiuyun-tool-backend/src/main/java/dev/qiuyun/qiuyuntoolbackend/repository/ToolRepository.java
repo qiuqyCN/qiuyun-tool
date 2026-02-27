@@ -93,4 +93,10 @@ public interface ToolRepository extends JpaRepository<Tool, Long> {
      */
     @Query("SELECT COUNT(t) FROM Tool t WHERE t.isActive = true AND t.category.code = :categoryCode")
     Integer countByCategoryCodeAndIsActiveTrue(@Param("categoryCode") String categoryCode);
+
+    /**
+     * 根据分类code查询启用的工具（分页）
+     */
+    @Query("SELECT t FROM Tool t WHERE t.isActive = true AND t.category.code = :categoryCode")
+    Page<Tool> findByCategoryCodeAndIsActiveTrue(@Param("categoryCode") String categoryCode, Pageable pageable);
 }
