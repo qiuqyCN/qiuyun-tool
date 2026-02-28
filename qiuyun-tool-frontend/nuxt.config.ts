@@ -10,7 +10,7 @@ export default defineNuxtConfig({
       tailwindcss() as any,
     ],
   },
-  modules: ['shadcn-nuxt', '@nuxtjs/color-mode'],
+  modules: ['shadcn-nuxt', '@nuxtjs/color-mode', '@pinia/nuxt'],
   colorMode: {
     classSuffix: ''
   },

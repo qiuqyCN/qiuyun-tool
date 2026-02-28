@@ -2,8 +2,9 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useToolStore } from '@/stores/toolStore'
+import type { ToolResponse } from '@/composables/useApi'
 
-import { useApi, type CategoryResponse, type CategoryToolsResponse, type ToolResponse, type StatsResponse } from '@/composables/useApi'
 import {
   ArrowRight,
   Binary,
@@ -41,7 +42,15 @@ import {
   Wrench
 } from 'lucide-vue-next'
 
-const api = useApi()
+// SEO 配置
+useSeoMeta({
+  title: '秋云工具 - 程序员必备工具箱',
+  description: '高效、简洁、实用的在线工具集合，助力开发者提升工作效率。提供JSON格式化、代码压缩、正则测试等开发常用工具。',
+  keywords: '在线工具,开发工具,JSON格式化,代码压缩,正则测试,程序员工具'
+})
+
+// 使用 Pinia Store
+const toolStore = useToolStore()
 
 // 当前选中的 tab
 const activeTab = ref('hot')
@@ -49,26 +58,53 @@ const activeTab = ref('hot')
 // 是否登录（模拟）
 const isLoggedIn = ref(false)
 
-// 加载状态
-const loading = ref(true)
-const error = ref<string | null>(null)
+// SSR：在服务端获取数据
+// 注意：useAsyncData 会在服务端和客户端都执行，但会避免重复请求
+const { data: storeData, pending, error } = await useAsyncData('tool-store-init', async () => {
+  // 如果 store 已经有数据，直接返回
+  if (toolStore.initialized && toolStore.tools.length > 0) {
+    return {
+      categories: toolStore.categories,
+      tools: toolStore.tools
+    }
+  }
 
-// 首页数据
-const categories = ref<CategoryResponse[]>([])
-const hotTools = ref<ToolResponse[]>([])
-const newTools = ref<ToolResponse[]>([])
-const categoryTools = ref<CategoryToolsResponse[]>([])
-const stats = ref<StatsResponse>({
-  totalTools: 0,
-  dailyActiveUsers: 0,
-  monthlyVisits: 0
+  // 否则调用 initialize 获取数据
+  await toolStore.initialize()
+  return {
+    categories: toolStore.categories,
+    tools: toolStore.tools
+  }
+}, {
+  // 服务端渲染时使用
+  server: true,
+  // 客户端不重新获取（由 store 控制）
+  default: () => ({
+    categories: [],
+    tools: []
+  })
 })
+
+// 计算属性：从 store 获取数据
+const categories = computed(() => toolStore.categories)
+const hotTools = computed(() => toolStore.hotTools)
+const newTools = computed(() => toolStore.newTools)
+const categoryTools = computed(() => toolStore.categoryTools)
+const loading = computed(() => toolStore.loading || pending.value)
+const storeError = computed(() => toolStore.error || error.value)
+
+// 统计数据（从 store 计算）
+const stats = computed(() => ({
+  totalTools: toolStore.totalTools,
+  monthlyNewTools: toolStore.monthlyNewTools,
+  totalVisits: toolStore.totalVisits
+}))
 
 // 获取最近访问的工具（从 localStorage 读取）
 const recentTools = computed(() => {
   if (import.meta.client) {
     const recentIds = JSON.parse(localStorage.getItem('recentTools') || '[]') as string[]
-    return hotTools.value.filter((t: ToolResponse) => recentIds.includes(t.code))
+    return toolStore.tools.filter((t: ToolResponse) => recentIds.includes(t.code))
       .slice(0, 8)
   }
   return []
@@ -78,34 +114,11 @@ const recentTools = computed(() => {
 const favoriteTools = computed(() => {
   if (!isLoggedIn.value) return []
   // 模拟收藏数据
-  return hotTools.value.filter((t: ToolResponse) => t.tags.includes('热门')).slice(0, 8)
+  return toolStore.hotTools.filter((t: ToolResponse) => t.tags.includes('热门')).slice(0, 8)
 })
 
-// 获取首页数据
-const fetchHomeData = async () => {
-  try {
-    loading.value = true
-    error.value = null
-    const data = await api.getHomeData()
-    categories.value = data.categories
-    hotTools.value = data.hotTools
-    newTools.value = data.newTools
-    categoryTools.value = data.categoryTools
-    if (data.stats) {
-      stats.value = data.stats
-    }
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : '获取数据失败'
-    console.error('获取首页数据失败:', err)
-  } finally {
-    loading.value = false
-  }
-}
-
-// 页面加载时获取数据
-onMounted(() => {
-  fetchHomeData()
-})
+// 所有工具（用于搜索）
+const allTools = computed(() => toolStore.tools)
 
 // 格式化访问数
 const formatVisits = (visits: number) => {
@@ -171,27 +184,19 @@ const handleSearch = (query: string) => {
   }
 }
 
-// 获取分类下的工具数量（现在直接从后端数据获取）
+// 获取分类下的工具数量（从工具列表计算）
 const getToolCountByCategory = (categoryCode: string) => {
-  const category = categories.value.find((c: CategoryResponse) => c.code === categoryCode)
-  return category?.toolCount || 0
+  return toolStore.tools.filter((t: ToolResponse) => t.category === categoryCode).length
 }
-
-// 收集所有工具用于搜索（从分类工具中获取所有工具）
-const allTools = computed<ToolResponse[]>(() => {
-  const tools = new Map<string, ToolResponse>()
-  
-  // 从分类工具中获取所有工具（已包含全部工具）
-  categoryTools.value.forEach(ct => {
-    ct.tools.forEach(tool => tools.set(tool.code, tool))
-  })
-  
-  return Array.from(tools.values())
-})
 
 // 处理工具选择
 const handleToolSelect = (tool: ToolResponse) => {
   navigateTo(`/tool/${tool.code}`)
+}
+
+// 重新加载数据
+const reloadData = () => {
+  toolStore.initialize()
 }
 </script>
 
@@ -377,9 +382,9 @@ const handleToolSelect = (tool: ToolResponse) => {
         </div>
         
         <!-- 错误状态 -->
-        <div v-else-if="error" class="text-center py-12">
-          <p class="text-red-500 mb-4">{{ error }}</p>
-          <Button @click="fetchHomeData">重新加载</Button>
+        <div v-else-if="storeError" class="text-center py-12">
+          <p class="text-red-500 mb-4">{{ storeError }}</p>
+          <Button @click="reloadData">重新加载</Button>
         </div>
         
         <!-- 分类卡片网格 -->
@@ -409,7 +414,7 @@ const handleToolSelect = (tool: ToolResponse) => {
               
               <!-- 工具数量 -->
               <span class="text-xs text-muted-foreground">
-                {{ category.toolCount }} 个工具
+                {{ getToolCountByCategory(category.code) }} 个工具
               </span>
               
               <!-- 悬停指示器 -->
@@ -429,7 +434,7 @@ const handleToolSelect = (tool: ToolResponse) => {
           <div class="mb-6">
             <h2 class="text-xl font-bold text-foreground mb-2">{{ categoryTool.categoryName }}</h2>
             <p class="text-sm text-muted-foreground">
-              {{ categories.find((c: CategoryResponse) => c.code === categoryTool.categoryCode)?.description || '' }}
+              {{ categories.find((c) => c.code === categoryTool.categoryCode)?.description || '' }}
             </p>
           </div>
           

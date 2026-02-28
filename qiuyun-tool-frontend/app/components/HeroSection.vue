@@ -3,7 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Sparkles, Loader2 } from "lucide-vue-next";
-import type { ToolResponse, StatsResponse } from "@/composables/useApi";
+import type { ToolResponse } from "@/composables/useApi";
+
+// 统计数据接口
+interface Stats {
+  totalTools: number;
+  monthlyNewTools: number;
+  totalVisits: number;
+}
 
 interface SearchResult {
   tool: ToolResponse;
@@ -13,7 +20,7 @@ interface SearchResult {
 const props = defineProps<{
   tools: ToolResponse[];
   loading?: boolean;
-  stats?: StatsResponse;
+  stats?: Stats;
 }>();
 
 const emit = defineEmits<{
@@ -58,7 +65,10 @@ const calculateRelevance = (tool: ToolResponse, query: string): number => {
   if (lowerTags.some((tag) => tag === lowerQuery)) {
     score += 50;
     hasMatch = true;
-  } 
+  } else if (lowerTags.some((tag) => tag.includes(lowerQuery))) {
+    score += 30;
+    hasMatch = true;
+  }
 
   // 描述包含
   if (lowerDesc.includes(lowerQuery)) {
@@ -72,7 +82,7 @@ const calculateRelevance = (tool: ToolResponse, query: string): number => {
   }
 
   // 访问量加成（热门工具优先）- 只在有匹配时添加
-  score += Math.min(tool.visits / 10000, 10);
+  score += Math.min((tool.visits || 0) / 10000, 10);
 
   return score;
 };
@@ -414,12 +424,12 @@ onUnmounted(() => {
             <span>实用工具</span>
           </div>
            <div class="flex items-center gap-2">
-            <span class="font-semibold text-foreground">{{ formatNumber(props.stats?.dailyActiveUsers || 0) }}</span>
-            <span>日活用户</span>
+            <span class="font-semibold text-foreground">{{ formatNumber(props.stats?.monthlyNewTools || 0) }}</span>
+            <span>本月新增</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="font-semibold text-foreground">{{ formatNumber(props.stats?.monthlyVisits || 0) }}</span>
-            <span>月使用量</span>
+            <span class="font-semibold text-foreground">{{ formatNumber(props.stats?.totalVisits || 0) }}</span>
+            <span>总使用量</span>
           </div>
         </div>
       </div>

@@ -36,7 +36,6 @@ export interface CategoryResponse {
   name: string
   icon: string
   description: string
-  toolCount: number
 }
 
 // 工具响应类型 - 对应后端 ToolResponse
@@ -52,45 +51,23 @@ export interface ToolResponse {
   rating: number
   reviewCount: number
   tags: string[]
+  createdAt: string // ISO 8601 格式日期字符串
 }
-
-// 分类工具列表响应类型 - 对应后端 HomeDataResponse.CategoryToolsResponse
-export interface CategoryToolsResponse {
-  categoryCode: string
-  categoryName: string
-  tools: ToolResponse[]
-}
-
-// 统计数据响应类型
-export interface StatsResponse {
-  totalTools: number
-  dailyActiveUsers: number
-  monthlyVisits: number
-}
-
-// 首页数据响应类型 - 对应后端 HomeDataResponse
-export interface HomeDataResponse {
-  categories: CategoryResponse[]
-  hotTools: ToolResponse[]
-  newTools: ToolResponse[]
-  categoryTools: CategoryToolsResponse[]
-  stats: StatsResponse
-}
-
-// 为了保持向后兼容，保留旧名称作为别名
-export type Category = CategoryResponse
-export type Tool = ToolResponse
-export type CategoryTools = CategoryToolsResponse
-export type HomeData = HomeDataResponse
 
 // API 方法
 export function useApi() {
-  // 获取首页数据
-  const getHomeData = async (): Promise<HomeDataResponse> => {
-    return fetchApi<HomeDataResponse>('/home')
+  // 获取所有分类列表
+  const getCategories = async (): Promise<CategoryResponse[]> => {
+    return fetchApi<CategoryResponse[]>('/store/categories')
+  }
+
+  // 获取所有工具列表
+  const getTools = async (): Promise<ToolResponse[]> => {
+    return fetchApi<ToolResponse[]>('/store/tools')
   }
 
   return {
-    getHomeData,
+    getCategories,
+    getTools,
   }
 }

@@ -19,5 +19,4 @@ public class CategoryResponse {
     private String name;
     private String icon;
     private String description;
-    private Integer toolCount;
 }
