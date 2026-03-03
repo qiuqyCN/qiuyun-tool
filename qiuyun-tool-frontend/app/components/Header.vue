@@ -22,11 +22,35 @@ import {
   Grid3X3,
   CreditCard,
   Trophy,
-  Github
+  Github,
+  FileText,
+  Star,
+  History,
+  Bell
 } from 'lucide-vue-next'
+import { useUserStore } from '@/stores/userStore'
 
 const colorMode = useColorMode()
 const isMobileMenuOpen = ref(false)
+const userStore = useUserStore()
+
+// 弹窗状态
+const authDialogOpen = ref(false)
+const authDialogTab = ref<'login' | 'register'>('login')
+
+// 打开登录弹窗
+const openLoginDialog = () => {
+  authDialogTab.value = 'login'
+  authDialogOpen.value = true
+  isMobileMenuOpen.value = false
+}
+
+// 打开注册弹窗
+const openRegisterDialog = () => {
+  authDialogTab.value = 'register'
+  authDialogOpen.value = true
+  isMobileMenuOpen.value = false
+}
 
 // 滚动状态
 const isScrolled = ref(false)
@@ -45,14 +69,6 @@ onMounted(() => {
   })
 })
 
-// 模拟用户登录状态
-const isLoggedIn = ref(false)
-const user = ref({
-  name: '张三',
-  avatar: '',
-  membership: '包年会员'
-})
-
 const navItems = [
   { name: '首页', path: '/', icon: Home },
   { name: '分类', path: '/category', icon: Grid3X3 },
@@ -64,8 +80,14 @@ const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
 }
 
-const logout = () => {
-  isLoggedIn.value = false
+const logout = async () => {
+  await userStore.logout()
+  navigateTo('/')
+}
+
+// 获取用户头像显示文字
+const getAvatarText = (name: string) => {
+  return name ? name.charAt(0).toUpperCase() : 'U'
 }
 </script>
 
@@ -126,27 +148,54 @@ const logout = () => {
         </Button>
 
         <!-- Desktop User Menu -->
-        <div class="hidden md:flex items-center gap-2">
-          <template v-if="isLoggedIn">
+        <div class="hidden md:flex items-center gap-6">
+          <template v-if="userStore.isLoggedIn">
+            <!-- 通知图标 -->
+            <Button variant="ghost" size="icon" class="h-9 w-9 relative">
+              <Bell class="h-5 w-5" />
+              <span class="sr-only">通知</span>
+              <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </Button>
+
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
-                <Button variant="ghost" class="relative h-9 w-9 rounded-full">
-                  <div class="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
-                    {{ user.name.charAt(0) }}
+                <Button variant="ghost" class="relative h-9 w-9 rounded-full p-0">
+                  <img 
+                    v-if="userStore.currentUser?.avatar" 
+                    :src="userStore.currentUser.avatar" 
+                    :alt="userStore.currentUser.nickname"
+                    class="h-9 w-9 rounded-full object-cover"
+                  />
+                  <div 
+                    v-else 
+                    class="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium"
+                  >
+                    {{ getAvatarText(userStore.currentUser?.nickname || userStore.currentUser?.username || '') }}
                   </div>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent class="w-56" align="end">
-                <div class="flex items-center gap-2 p-2">
-                  <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
-                    {{ user.name.charAt(0) }}
+              <DropdownMenuContent class="w-64" align="end">
+                <!-- 用户信息头部 -->
+                <div class="flex items-center gap-3 p-3 border-b border-border/40">
+                  <img 
+                    v-if="userStore.currentUser?.avatar" 
+                    :src="userStore.currentUser.avatar" 
+                    :alt="userStore.currentUser.nickname"
+                    class="h-10 w-10 rounded-full object-cover"
+                  />
+                  <div 
+                    v-else 
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium"
+                  >
+                    {{ getAvatarText(userStore.currentUser?.nickname || userStore.currentUser?.username || '') }}
                   </div>
-                  <div class="flex flex-col">
-                    <span class="text-sm font-medium">{{ user.name }}</span>
-                    <span class="text-xs text-muted-foreground">{{ user.membership }}</span>
+                  <div class="flex flex-col min-w-0">
+                    <span class="text-sm font-medium truncate">{{ userStore.currentUser?.nickname || userStore.currentUser?.username }}</span>
+                    <span class="text-xs text-muted-foreground">{{ userStore.currentUser?.email }}</span>
                   </div>
                 </div>
-                <DropdownMenuSeparator />
+
+                <!-- 菜单项 -->
                 <DropdownMenuItem as-child>
                   <NuxtLink to="/user" class="cursor-pointer">
                     <User class="mr-2 h-4 w-4" />
@@ -160,13 +209,33 @@ const logout = () => {
                   </NuxtLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem as-child>
-                  <NuxtLink to="/pricing" class="cursor-pointer">
-                    <Crown class="mr-2 h-4 w-4" />
-                    会员中心
+                  <NuxtLink to="/user/history" class="cursor-pointer">
+                    <History class="mr-2 h-4 w-4" />
+                    最近使用
+                  </NuxtLink>
+                </DropdownMenuItem>
+                <DropdownMenuItem as-child>
+                  <NuxtLink to="/user/reviews" class="cursor-pointer">
+                    <Star class="mr-2 h-4 w-4" />
+                    我的评价
                   </NuxtLink>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem @click="logout" class="cursor-pointer">
+                <DropdownMenuItem as-child>
+                  <NuxtLink to="/pricing" class="cursor-pointer">
+                    <Crown class="mr-2 h-4 w-4" />
+                    <span v-if="userStore.isVip" class="text-yellow-500">VIP会员</span>
+                    <span v-else>开通会员</span>
+                  </NuxtLink>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem as-child>
+                  <NuxtLink to="/user/settings" class="cursor-pointer">
+                    <Settings class="mr-2 h-4 w-4" />
+                    账号设置
+                  </NuxtLink>
+                </DropdownMenuItem>
+                <DropdownMenuItem @click="logout" class="cursor-pointer text-destructive focus:text-destructive">
                   <LogOut class="mr-2 h-4 w-4" />
                   退出登录
                 </DropdownMenuItem>
@@ -174,11 +243,11 @@ const logout = () => {
             </DropdownMenu>
           </template>
           <template v-else>
-            <Button variant="ghost" as-child>
-              <NuxtLink to="/login"><span class="text-sm font-medium">登录</span></NuxtLink>
+            <Button variant="ghost" class="cursor-pointer" @click="openLoginDialog">
+              <span class="text-sm font-medium">登录</span>
             </Button>
-            <Button as-child>
-              <NuxtLink to="/register"><span class="text-sm font-medium">注册</span></NuxtLink>
+            <Button class="cursor-pointer" @click="openRegisterDialog">
+              <span class="text-sm font-medium">注册</span>
             </Button>
           </template>
         </div>
@@ -214,38 +283,98 @@ const logout = () => {
           {{ item.name }}
         </NuxtLink>
         <div class="border-t border-border/40 my-2"></div>
-        <template v-if="isLoggedIn">
+        <template v-if="userStore.isLoggedIn">
+          <div class="flex items-center gap-3 px-3 py-2">
+            <img 
+              v-if="userStore.currentUser?.avatar" 
+              :src="userStore.currentUser.avatar" 
+              class="h-8 w-8 rounded-full object-cover"
+            />
+            <div 
+              v-else 
+              class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium"
+            >
+              {{ getAvatarText(userStore.currentUser?.nickname || userStore.currentUser?.username || '') }}
+            </div>
+            <div class="flex flex-col">
+              <span class="text-sm font-medium">{{ userStore.currentUser?.nickname || userStore.currentUser?.username }}</span>
+              <span class="text-xs text-muted-foreground">{{ userStore.currentUser?.email }}</span>
+            </div>
+          </div>
           <NuxtLink 
             to="/user" 
-            class="px-3 py-2 text-sm font-medium text-muted-foreground rounded-md hover:bg-accent hover:text-accent-foreground"
+            class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground rounded-md hover:bg-accent hover:text-accent-foreground"
             @click="isMobileMenuOpen = false"
           >
+            <User class="w-4 h-4" />
             个人中心
           </NuxtLink>
+          <NuxtLink 
+            to="/user/favorites" 
+            class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground rounded-md hover:bg-accent hover:text-accent-foreground"
+            @click="isMobileMenuOpen = false"
+          >
+            <Heart class="w-4 h-4" />
+            我的收藏
+          </NuxtLink>
+          <NuxtLink 
+            to="/user/history" 
+            class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground rounded-md hover:bg-accent hover:text-accent-foreground"
+            @click="isMobileMenuOpen = false"
+          >
+            <History class="w-4 h-4" />
+            最近使用
+          </NuxtLink>
+          <NuxtLink 
+            to="/user/reviews" 
+            class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground rounded-md hover:bg-accent hover:text-accent-foreground"
+            @click="isMobileMenuOpen = false"
+          >
+            <Star class="w-4 h-4" />
+            我的评价
+          </NuxtLink>
+          <NuxtLink 
+            to="/pricing" 
+            class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground rounded-md hover:bg-accent hover:text-accent-foreground"
+            @click="isMobileMenuOpen = false"
+          >
+            <Crown class="w-4 h-4" />
+            {{ userStore.isVip ? 'VIP会员' : '开通会员' }}
+          </NuxtLink>
+          <NuxtLink 
+            to="/user/settings" 
+            class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground rounded-md hover:bg-accent hover:text-accent-foreground"
+            @click="isMobileMenuOpen = false"
+          >
+            <Settings class="w-4 h-4" />
+            账号设置
+          </NuxtLink>
           <button 
-            class="px-3 py-2 text-sm font-medium text-muted-foreground rounded-md hover:bg-accent hover:text-accent-foreground text-left"
+            class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-destructive rounded-md hover:bg-destructive/10 text-left"
             @click="logout(); isMobileMenuOpen = false"
           >
+            <LogOut class="w-4 h-4" />
             退出登录
           </button>
         </template>
         <template v-else>
-          <NuxtLink 
-            to="/login" 
-            class="px-3 py-2 text-sm font-medium text-muted-foreground rounded-md hover:bg-accent hover:text-accent-foreground"
-            @click="isMobileMenuOpen = false"
+          <button 
+            class="px-3 py-2 text-sm font-medium text-muted-foreground rounded-md hover:bg-accent hover:text-accent-foreground text-left cursor-pointer"
+            @click="openLoginDialog"
           >
             登录
-          </NuxtLink>
-          <NuxtLink 
-            to="/register" 
-            class="px-3 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md"
-            @click="isMobileMenuOpen = false"
+          </button>
+          <button 
+            class="px-3 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md text-left cursor-pointer"
+            @click="openRegisterDialog"
           >
             注册
-          </NuxtLink>
+          </button>
         </template>
       </nav>
     </div>
+
+    <!-- 登录/注册弹窗 -->
+    <AuthDialog v-model:open="authDialogOpen" :default-tab="authDialogTab" />
   </header>
 </template>

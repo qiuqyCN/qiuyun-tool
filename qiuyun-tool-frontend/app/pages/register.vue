@@ -2,185 +2,228 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { 
-  Wrench, 
-  Github, 
-  ArrowRight,
-  Eye,
-  EyeOff,
-  CheckCircle
-} from 'lucide-vue-next'
+import { useUserStore } from '@/stores/userStore'
+import { Loader2, CheckCircle } from 'lucide-vue-next'
 
-const name = ref('')
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
-const agreeTerms = ref(false)
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
+const userStore = useUserStore()
+const router = useRouter()
+
+const form = reactive({
+  username: '',
+  email: '',
+  password: '',
+  confirmPassword: ''
+})
+
+const errors = reactive({
+  username: '',
+  email: '',
+  password: '',
+  confirmPassword: ''
+})
+
 const isLoading = ref(false)
 const isSuccess = ref(false)
+const errorMessage = ref('')
 
-const handleSubmit = async () => {
-  if (password.value !== confirmPassword.value) {
-    alert('两次输入的密码不一致')
-    return
+const validateForm = () => {
+  let isValid = true
+  errors.username = ''
+  errors.email = ''
+  errors.password = ''
+  errors.confirmPassword = ''
+
+  if (!form.username.trim()) {
+    errors.username = '请输入用户名'
+    isValid = false
+  } else if (form.username.length < 3) {
+    errors.username = '用户名长度不能少于3位'
+    isValid = false
   }
-  
-  isLoading.value = true
-  // 模拟注册
-  await new Promise(resolve => setTimeout(resolve, 1500))
-  isLoading.value = false
-  isSuccess.value = true
-  
-  // 注册成功后跳转
-  setTimeout(() => {
-    navigateTo('/login')
-  }, 2000)
+
+  if (!form.email.trim()) {
+    errors.email = '请输入邮箱'
+    isValid = false
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    errors.email = '请输入有效的邮箱地址'
+    isValid = false
+  }
+
+  if (!form.password) {
+    errors.password = '请输入密码'
+    isValid = false
+  } else if (form.password.length < 6) {
+    errors.password = '密码长度不能少于6位'
+    isValid = false
+  }
+
+  if (!form.confirmPassword) {
+    errors.confirmPassword = '请确认密码'
+    isValid = false
+  } else if (form.password !== form.confirmPassword) {
+    errors.confirmPassword = '两次输入的密码不一致'
+    isValid = false
+  }
+
+  return isValid
 }
+
+const handleRegister = async () => {
+  if (!validateForm()) return
+
+  isLoading.value = true
+  errorMessage.value = ''
+
+  try {
+    const result = await userStore.register(
+      form.username,
+      form.email,
+      form.password,
+      form.confirmPassword
+    )
+
+    if (result.success) {
+      isSuccess.value = true
+      // 3秒后跳转到登录页
+      setTimeout(() => {
+        router.push('/login')
+      }, 3000)
+    } else {
+      errorMessage.value = result.message || '注册失败'
+    }
+  } catch (error: any) {
+    errorMessage.value = error.message || '注册失败，请稍后重试'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 如果已登录，跳转到首页
+onMounted(() => {
+  if (userStore.isLoggedIn) {
+    router.push('/')
+  }
+})
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-muted/30 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen bg-background flex items-center justify-center px-4">
     <div class="w-full max-w-md space-y-8">
-      <!-- Success State -->
-      <div v-if="isSuccess" class="text-center py-12">
-        <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-          <CheckCircle class="w-10 h-10 text-green-600" />
-        </div>
-        <h2 class="text-2xl font-bold text-foreground mb-2">注册成功！</h2>
-        <p class="text-muted-foreground mb-6">欢迎加入秋云工具，正在跳转到登录页面...</p>
+      <!-- Header -->
+      <div class="text-center">
+        <h1 class="text-3xl font-bold text-foreground">创建账户</h1>
+        <p class="mt-2 text-muted-foreground">
+          注册一个新账户开始使用
+        </p>
       </div>
 
       <!-- Register Form -->
-      <template v-else>
-        <!-- Logo -->
-        <div class="text-center">
-          <NuxtLink to="/" class="inline-flex items-center justify-center gap-2">
-            <div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-              <Wrench class="w-7 h-7 text-primary-foreground" />
-            </div>
-          </NuxtLink>
-          <h2 class="mt-6 text-3xl font-bold text-foreground">创建账号</h2>
-          <p class="mt-2 text-sm text-muted-foreground">
-            已有账号？
-            <NuxtLink to="/login" class="font-medium text-primary hover:underline">
-              立即登录
-            </NuxtLink>
+      <div class="bg-card border border-border rounded-xl p-8 shadow-sm">
+        <!-- Success State -->
+        <div v-if="isSuccess" class="text-center py-8">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle class="w-8 h-8 text-green-600" />
+          </div>
+          <h2 class="text-xl font-semibold text-foreground mb-2">注册成功！</h2>
+          <p class="text-muted-foreground mb-4">您的账户已创建成功</p>
+          <p class="text-sm text-muted-foreground">
+            {{ 3 }} 秒后自动跳转到登录页...
           </p>
-        </div>
-
-        <!-- Social Login -->
-        <div class="grid grid-cols-2 gap-3">
-          <Button variant="outline" class="w-full">
-            <Github class="w-4 h-4 mr-2" />
-            GitHub
-          </Button>
-          <Button variant="outline" class="w-full">
-            <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
-            </svg>
-            Google
+          <Button class="mt-4" @click="router.push('/login')">
+            立即登录
           </Button>
         </div>
 
-        <div class="relative">
+        <form v-else @submit.prevent="handleRegister" class="space-y-6">
+          <!-- Error Message -->
+          <div v-if="errorMessage" class="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">
+            {{ errorMessage }}
+          </div>
+
+          <!-- Username -->
+          <div class="space-y-2">
+            <Label for="username">用户名</Label>
+            <Input
+              id="username"
+              v-model="form.username"
+              type="text"
+              placeholder="请输入用户名"
+              :class="{ 'border-destructive': errors.username }"
+            />
+            <p v-if="errors.username" class="text-sm text-destructive">{{ errors.username }}</p>
+          </div>
+
+          <!-- Email -->
+          <div class="space-y-2">
+            <Label for="email">邮箱</Label>
+            <Input
+              id="email"
+              v-model="form.email"
+              type="email"
+              placeholder="请输入邮箱"
+              :class="{ 'border-destructive': errors.email }"
+            />
+            <p v-if="errors.email" class="text-sm text-destructive">{{ errors.email }}</p>
+          </div>
+
+          <!-- Password -->
+          <div class="space-y-2">
+            <Label for="password">密码</Label>
+            <Input
+              id="password"
+              v-model="form.password"
+              type="password"
+              placeholder="请输入密码（至少6位）"
+              :class="{ 'border-destructive': errors.password }"
+            />
+            <p v-if="errors.password" class="text-sm text-destructive">{{ errors.password }}</p>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="space-y-2">
+            <Label for="confirmPassword">确认密码</Label>
+            <Input
+              id="confirmPassword"
+              v-model="form.confirmPassword"
+              type="password"
+              placeholder="请再次输入密码"
+              :class="{ 'border-destructive': errors.confirmPassword }"
+            />
+            <p v-if="errors.confirmPassword" class="text-sm text-destructive">{{ errors.confirmPassword }}</p>
+          </div>
+
+          <!-- Submit Button -->
+          <Button type="submit" class="w-full" :disabled="isLoading">
+            <Loader2 v-if="isLoading" class="mr-2 h-4 w-4 animate-spin" />
+            {{ isLoading ? '注册中...' : '注册' }}
+          </Button>
+        </form>
+
+        <!-- Divider -->
+        <div v-if="!isSuccess" class="relative my-6">
           <div class="absolute inset-0 flex items-center">
             <span class="w-full border-t border-border" />
           </div>
           <div class="relative flex justify-center text-xs uppercase">
-            <span class="bg-muted/30 px-2 text-muted-foreground">或者使用邮箱注册</span>
+            <span class="bg-card px-2 text-muted-foreground">或者</span>
           </div>
         </div>
 
-        <!-- Form -->
-        <form class="space-y-4" @submit.prevent="handleSubmit">
-          <div class="space-y-2">
-            <Label for="name">用户名</Label>
-            <Input 
-              id="name" 
-              v-model="name"
-              type="text" 
-              placeholder="请输入用户名"
-              required
-            />
-          </div>
+        <!-- Login Link -->
+        <div v-if="!isSuccess" class="text-center text-sm">
+          <span class="text-muted-foreground">已有账户？</span>
+          <NuxtLink to="/login" class="text-primary hover:underline font-medium">
+            立即登录
+          </NuxtLink>
+        </div>
+      </div>
 
-          <div class="space-y-2">
-            <Label for="email">邮箱</Label>
-            <Input 
-              id="email" 
-              v-model="email"
-              type="email" 
-              placeholder="name@example.com"
-              required
-            />
-          </div>
-
-          <div class="space-y-2">
-            <Label for="password">密码</Label>
-            <div class="relative">
-              <Input 
-                id="password" 
-                v-model="password"
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="请输入密码（至少6位）"
-                minlength="6"
-                required
-              />
-              <button
-                type="button"
-                @click="showPassword = !showPassword"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <Eye v-if="!showPassword" class="w-4 h-4" />
-                <EyeOff v-else class="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          <div class="space-y-2">
-            <Label for="confirmPassword">确认密码</Label>
-            <div class="relative">
-              <Input 
-                id="confirmPassword" 
-                v-model="confirmPassword"
-                :type="showConfirmPassword ? 'text' : 'password'"
-                placeholder="请再次输入密码"
-                required
-              />
-              <button
-                type="button"
-                @click="showConfirmPassword = !showConfirmPassword"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <Eye v-if="!showConfirmPassword" class="w-4 h-4" />
-                <EyeOff v-else class="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          <div class="flex items-start space-x-2">
-            <Checkbox id="terms" v-model:checked="agreeTerms" class="mt-1" />
-            <Label for="terms" class="text-sm font-normal leading-relaxed">
-              我已阅读并同意
-              <NuxtLink to="/terms" class="text-primary hover:underline">服务条款</NuxtLink>
-              和
-              <NuxtLink to="/privacy" class="text-primary hover:underline">隐私政策</NuxtLink>
-            </Label>
-          </div>
-
-          <Button 
-            type="submit" 
-            class="w-full" 
-            :disabled="isLoading || !agreeTerms"
-          >
-            {{ isLoading ? '注册中...' : '创建账号' }}
-            <ArrowRight v-if="!isLoading" class="w-4 h-4 ml-2" />
-          </Button>
-        </form>
-      </template>
+      <!-- Back to Home -->
+      <div class="text-center">
+        <NuxtLink to="/" class="text-sm text-muted-foreground hover:text-foreground">
+          ← 返回首页
+        </NuxtLink>
+      </div>
     </div>
   </div>
 </template>

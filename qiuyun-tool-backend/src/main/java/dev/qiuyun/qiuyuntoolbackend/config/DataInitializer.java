@@ -3,12 +3,15 @@ package dev.qiuyun.qiuyuntoolbackend.config;
 import dev.qiuyun.qiuyuntoolbackend.entity.Category;
 import dev.qiuyun.qiuyuntoolbackend.entity.Tag;
 import dev.qiuyun.qiuyuntoolbackend.entity.Tool;
+import dev.qiuyun.qiuyuntoolbackend.entity.User;
 import dev.qiuyun.qiuyuntoolbackend.repository.CategoryRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.TagRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.ToolRepository;
+import dev.qiuyun.qiuyuntoolbackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +32,8 @@ public class DataInitializer implements CommandLineRunner {
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
     private final ToolRepository toolRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -49,6 +54,9 @@ public class DataInitializer implements CommandLineRunner {
 
         // 初始化工具
         initTools(categories, tags);
+
+        // 初始化用户数据
+        initUsers();
 
         log.info("数据初始化完成！");
     }
@@ -405,5 +413,57 @@ public class DataInitializer implements CommandLineRunner {
         );
 
         toolRepository.saveAll(tools);
+    }
+
+    /**
+     * 初始化用户数据
+     */
+    private void initUsers() {
+        log.info("初始化用户数据...");
+
+        // 创建普通用户
+        User normalUser = User.builder()
+                .username("user")
+                .email("user@example.com")
+                .password(passwordEncoder.encode("123456"))
+                .nickname("普通用户")
+                .avatar("https://api.dicebear.com/9.x/dylan/svg?seed=user")
+                .isVip(false)
+                .status(1)
+                .build();
+        normalUser.addRole("USER");
+
+        // 创建VIP用户
+        User vipUser = User.builder()
+                .username("vip")
+                .email("vip@example.com")
+                .password(passwordEncoder.encode("123456"))
+                .nickname("VIP用户")
+                .avatar("https://api.dicebear.com/9.x/dylan/svg?seed=vip")
+                .isVip(true)
+                .status(1)
+                .build();
+        vipUser.addRole("USER");
+        vipUser.addRole("VIP");
+
+        // 创建管理员用户
+        User adminUser = User.builder()
+                .username("admin")
+                .email("admin@example.com")
+                .password(passwordEncoder.encode("123456"))
+                .nickname("管理员")
+                .avatar("https://api.dicebear.com/9.x/dylan/svg?seed=admin")
+                .isVip(true)
+                .status(1)
+                .build();
+        adminUser.addRole("USER");
+        adminUser.addRole("ADMIN");
+
+        userRepository.saveAll(Arrays.asList(normalUser, vipUser, adminUser));
+
+        log.info("用户数据初始化完成，共创建 {} 个用户", 3);
+        log.info("普通用户: user/123456");
+        log.info("VIP用户: vip/123456");
+        log.info("管理员: admin/123456");
     }
 }
