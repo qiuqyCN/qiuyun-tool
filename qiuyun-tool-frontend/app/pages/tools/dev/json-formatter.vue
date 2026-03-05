@@ -1,6 +1,29 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { AlertCircle, CheckCircle, Copy, Download } from 'lucide-vue-next'
+import { AlertCircle, CheckCircle, Copy, Download, Check } from 'lucide-vue-next'
+
+// JSON操作类型枚举
+enum JsonOperation {
+  FORMAT = 'format',
+  COMPRESS = 'compress',
+  ESCAPE = 'escape',
+  UNESCAPE = 'unescape'
+}
+
+// Toast 提示状态
+const toast = ref({
+  show: false,
+  message: ''
+})
+
+// 显示提示
+const showToast = (message: string) => {
+  toast.value.message = message
+  toast.value.show = true
+  setTimeout(() => {
+    toast.value.show = false
+  }, 2000)
+}
 
 // 工具信息
 const toolInfo = {
@@ -64,7 +87,7 @@ const relatedTools = [
 ]
 
 // 状态
-const activeTab = ref('format')
+const activeTab = ref<JsonOperation>(JsonOperation.FORMAT)
 const inputJson = ref('')
 const outputJson = ref('')
 const error = ref('')
@@ -150,9 +173,14 @@ const clearInput = () => {
 }
 
 // 复制结果
-const copyOutput = () => {
+const copyOutput = async () => {
   if (outputJson.value) {
-    navigator.clipboard.writeText(outputJson.value)
+    try {
+      await navigator.clipboard.writeText(outputJson.value)
+      showToast('复制成功！')
+    } catch (err) {
+      showToast('复制失败，请手动复制')
+    }
   }
 }
 
@@ -172,16 +200,16 @@ const downloadOutput = () => {
 // 处理
 const handleProcess = () => {
   switch (activeTab.value) {
-    case 'format':
+    case JsonOperation.FORMAT:
       formatJson()
       break
-    case 'compress':
+    case JsonOperation.COMPRESS:
       compressJson()
       break
-    case 'escape':
+    case JsonOperation.ESCAPE:
       escapeJson()
       break
-    case 'unescape':
+    case JsonOperation.UNESCAPE:
       unescapeJson()
       break
   }
@@ -196,25 +224,25 @@ const handleProcess = () => {
       <Tabs v-model="activeTab" class="w-full">
         <TabsList class="w-full justify-start rounded-none border-b bg-muted/30 p-0">
           <TabsTrigger
-            value="format"
+            :value="JsonOperation.FORMAT"
             class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background px-6 py-3"
           >
             格式化
           </TabsTrigger>
           <TabsTrigger
-            value="compress"
+            :value="JsonOperation.COMPRESS"
             class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background px-6 py-3"
           >
             压缩
           </TabsTrigger>
           <TabsTrigger
-            value="escape"
+            :value="JsonOperation.ESCAPE"
             class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background px-6 py-3"
           >
             转义
           </TabsTrigger>
           <TabsTrigger
-            value="unescape"
+            :value="JsonOperation.UNESCAPE"
             class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background px-6 py-3"
           >
             去转义
@@ -222,7 +250,7 @@ const handleProcess = () => {
         </TabsList>
 
         <!-- 格式化 -->
-        <TabsContent value="format" class="m-0 p-6">
+        <TabsContent :value="JsonOperation.FORMAT" class="m-0 p-6">
           <div class="space-y-4">
             <div>
               <label class="text-sm font-medium mb-2 block">输入 JSON</label>
@@ -269,7 +297,7 @@ const handleProcess = () => {
         </TabsContent>
 
         <!-- 压缩 -->
-        <TabsContent value="compress" class="m-0 p-6">
+        <TabsContent :value="JsonOperation.COMPRESS" class="m-0 p-6">
           <div class="space-y-4">
             <div>
               <label class="text-sm font-medium mb-2 block">输入 JSON</label>
@@ -316,7 +344,7 @@ const handleProcess = () => {
         </TabsContent>
 
         <!-- 转义 -->
-        <TabsContent value="escape" class="m-0 p-6">
+        <TabsContent :value="JsonOperation.ESCAPE" class="m-0 p-6">
           <div class="space-y-4">
             <div>
               <label class="text-sm font-medium mb-2 block">输入 JSON</label>
@@ -363,7 +391,7 @@ const handleProcess = () => {
         </TabsContent>
 
         <!-- 去转义 -->
-        <TabsContent value="unescape" class="m-0 p-6">
+        <TabsContent :value="JsonOperation.UNESCAPE" class="m-0 p-6">
           <div class="space-y-4">
             <div>
               <label class="text-sm font-medium mb-2 block">输入转义后的 JSON 字符串</label>
@@ -410,5 +438,23 @@ const handleProcess = () => {
         </TabsContent>
       </Tabs>
     </div>
+
+    <!-- Toast 提示 -->
+    <Transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="transform translate-y-2 opacity-0"
+      enter-to-class="transform translate-y-0 opacity-100"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="transform translate-y-0 opacity-100"
+      leave-to-class="transform translate-y-2 opacity-0"
+    >
+      <div
+        v-if="toast.show"
+        class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 bg-foreground text-background rounded-lg shadow-lg"
+      >
+        <Check class="w-4 h-4 text-green-400" />
+        <span class="text-sm font-medium">{{ toast.message }}</span>
+      </div>
+    </Transition>
   </NuxtLayout>
 </template>

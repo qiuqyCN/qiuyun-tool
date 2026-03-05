@@ -6,6 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 工具执行请求
+ * @param <T> 工具特定的请求参数类型
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,7 +19,9 @@ public class ToolExecuteRequest<T> {
     @NotBlank(message = "工具ID不能为空")
     private String toolCode;
 
-    private String fileId;
-
+    /**
+     * 工具特定的请求参数
+     * 具体工具可以定义自己的参数类
+     */
     private T params;
 }

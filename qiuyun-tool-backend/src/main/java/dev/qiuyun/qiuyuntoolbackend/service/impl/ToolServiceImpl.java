@@ -8,6 +8,7 @@ import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutorRegistry;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
+import dev.qiuyun.qiuyuntoolbackend.payload.request.FileProcessRequest;
 import dev.qiuyun.qiuyuntoolbackend.payload.request.ToolExecuteRequest;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.FileUploadResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolExecuteResponse;
@@ -153,15 +154,20 @@ public class ToolServiceImpl implements ToolService {
     }
 
     private <T, R> ToolExecuteResponse<R> executeFileProcess(ToolTask task, ToolExecutor<T, R> executor, ToolExecuteRequest<T> request) {
-        if (request.getFileId() == null) {
-            throw new BusinessException("文件ID不能为空");
-        }
-
         try {
             task.setStatus(TaskStatus.PROCESSING);
             taskRepository.save(task);
 
             T params = request.getParams();
+
+            // 检查文件处理请求是否包含 fileId
+            if (params instanceof FileProcessRequest) {
+                FileProcessRequest fileRequest = (FileProcessRequest) params;
+                if (fileRequest.getFileId() == null || fileRequest.getFileId().trim().isEmpty()) {
+                    throw new BusinessException("文件ID不能为空");
+                }
+            }
+
             executor.validate(params);
 
             SseEmitter emitter = new SseEmitter(30 * 60 * 1000L);
