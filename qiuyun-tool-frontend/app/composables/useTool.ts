@@ -78,18 +78,18 @@ export function useTool() {
       `${config.public.apiBaseUrl}/tools/tasks/${taskId}/progress`
     )
 
-    eventSource.addEventListener('progress', (event) => {
+    eventSource.addEventListener('progress', (event: MessageEvent) => {
       const data = JSON.parse(event.data)
       callbacks.onProgress?.(data)
     })
 
-    eventSource.addEventListener('complete', (event) => {
+    eventSource.addEventListener('complete', (event: MessageEvent) => {
       const data = JSON.parse(event.data)
       callbacks.onComplete?.(data)
       eventSource.close()
     })
 
-    eventSource.addEventListener('error', (event) => {
+    eventSource.addEventListener('error', (event: MessageEvent) => {
       const data = event.data ? JSON.parse(event.data) : { message: '连接错误' }
       callbacks.onError?.(data.message || '连接错误')
       eventSource.close()

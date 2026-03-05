@@ -3,7 +3,6 @@ package dev.qiuyun.qiuyuntoolbackend.service;
 import dev.qiuyun.qiuyuntoolbackend.payload.request.ToolExecuteRequest;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.FileUploadResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolExecuteResponse;
-import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolProgress;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 

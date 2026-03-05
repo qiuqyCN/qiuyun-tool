@@ -15,7 +15,7 @@
             <p class="text-sm text-gray-500">{{ tool?.description }}</p>
           </div>
         </div>
-        <Badge v-if="tool?.priceMode === 'vip'" variant="secondary" class="bg-gradient-to-r from-amber-400 to-orange-500 text-white border-0">
+        <Badge v-if="tool?.priceMode === 'vip'" variant="secondary" class="bg-linear-to-r from-amber-400 to-orange-500 text-white border-0">
           <Icon name="lucide:crown" class="w-3 h-3 mr-1" />
           VIP
         </Badge>
@@ -119,7 +119,7 @@
         </div>
         <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
-            class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
+            class="h-full bg-linear-to-r from-indigo-500 to-purple-500 transition-all duration-300"
             :style="{ width: `${progress.percent}%` }"
           />
         </div>
@@ -153,7 +153,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { Tool, ToolType, TaskStatus } from '~/types/tool'
+import { TaskStatus } from '~/types/tool'
+import type { Tool, ToolType } from '~/types/tool'
 
 interface Props {
   tool: Tool | null
@@ -177,7 +178,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 
 // 执行状态
 const isLoading = ref(false)
-const status = ref<TaskStatus>('pending')
+const status = ref<TaskStatus>(TaskStatus.PENDING)
 const progress = ref<{ percent: number; message: string } | null>(null)
 const result = ref<any>(null)
 const error = ref('')
@@ -293,7 +294,7 @@ const setError = (newError: string) => {
 
 const reset = () => {
   isLoading.value = false
-  status.value = 'pending'
+  status.value = TaskStatus.PENDING
   progress.value = null
   result.value = null
   error.value = ''

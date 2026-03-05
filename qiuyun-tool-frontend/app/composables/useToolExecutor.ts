@@ -1,9 +1,9 @@
-import type {
-  ToolExecuteRequest,
-  ToolExecuteResponse,
-  ToolProgress,
+import {
+  type ToolExecuteRequest,
+  type ToolExecuteResponse,
+  type ToolProgress,
   TaskStatus,
-  ToolType
+  type ToolType
 } from '~/types/tool'
 
 export interface UseToolExecutorOptions<T = any, R = any> {
@@ -18,7 +18,7 @@ export function useToolExecutor<T = any, R = any>(options: UseToolExecutorOption
   const { executeTool, createProgressStream, cancelTask } = useTool()
 
   const taskId = ref<string>('')
-  const status = ref<TaskStatus>('pending')
+  const status = ref<TaskStatus>(TaskStatus.PENDING)
   const progress = ref<ToolProgress | null>(null)
   const result = ref<R | null>(null)
   const error = ref<string>('')
@@ -71,19 +71,19 @@ export function useToolExecutor<T = any, R = any>(options: UseToolExecutorOption
     eventSource = createProgressStream(tid, {
       onProgress: (p) => {
         progress.value = p
-        status.value = 'processing'
+        status.value = TaskStatus.PROCESSING
         options.onProgress?.(p)
       },
       onComplete: (p) => {
         progress.value = p
-        status.value = 'completed'
+        status.value = TaskStatus.COMPLETED
         isComplete.value = true
         isLoading.value = false
         result.value = p.data as R
         options.onSuccess?.(p.data as R)
       },
       onError: (msg) => {
-        status.value = 'failed'
+        status.value = TaskStatus.FAILED
         isLoading.value = false
         error.value = msg
         options.onError?.(msg)
@@ -93,11 +93,11 @@ export function useToolExecutor<T = any, R = any>(options: UseToolExecutorOption
 
   // 取消任务
   const cancel = async () => {
-    if (taskId.value && status.value === 'processing') {
+    if (taskId.value && status.value === TaskStatus.PROCESSING) {
       try {
         await cancelTask(taskId.value)
         eventSource?.close()
-        status.value = 'failed'
+        status.value = TaskStatus.FAILED
         isLoading.value = false
         error.value = '已取消'
       } catch (err) {

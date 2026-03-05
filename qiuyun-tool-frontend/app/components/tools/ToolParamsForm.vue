@@ -195,7 +195,7 @@ import { ref, watch, computed } from 'vue'
 
 export interface FieldOption {
   label: string
-  value: string | number | boolean
+  value: string | number
 }
 
 export interface FormField {
