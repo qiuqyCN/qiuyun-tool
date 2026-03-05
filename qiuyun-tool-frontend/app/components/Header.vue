@@ -148,7 +148,7 @@ const getAvatarText = (name: string) => {
         </Button>
 
         <!-- Desktop User Menu -->
-        <div class="hidden md:flex items-center gap-6">
+        <div class="hidden md:flex items-center gap-4">
           <template v-if="userStore.isLoggedIn">
             <!-- 通知图标 -->
             <Button variant="ghost" size="icon" class="h-9 w-9 relative">
@@ -164,11 +164,11 @@ const getAvatarText = (name: string) => {
                     v-if="userStore.currentUser?.avatar" 
                     :src="userStore.currentUser.avatar" 
                     :alt="userStore.currentUser.nickname"
-                    class="h-9 w-9 rounded-full object-cover"
+                    class="h-6 w-6 rounded-full object-cover"
                   />
                   <div 
                     v-else 
-                    class="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium"
+                    class="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium"
                   >
                     {{ getAvatarText(userStore.currentUser?.nickname || userStore.currentUser?.username || '') }}
                   </div>

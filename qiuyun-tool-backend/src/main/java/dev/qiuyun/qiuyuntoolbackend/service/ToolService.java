@@ -1,46 +1,29 @@
 package dev.qiuyun.qiuyuntoolbackend.service;
 
-import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.request.ToolExecuteRequest;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.FileUploadResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolExecuteResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolProgress;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.List;
+import java.io.InputStream;
 
-/**
- * 工具服务接口
- */
 public interface ToolService {
 
-    /**
-     * 获取所有工具
-     */
-    List<ToolResponse> getAllTools();
+    FileUploadResponse uploadFile(MultipartFile file, String toolCode);
 
-    /**
-     * 根据分类code获取工具
-     */
-    List<ToolResponse> getToolsByCategoryCode(String categoryCode);
+    InputStream getFileStream(String fileId);
 
-    /**
-     * 获取热门工具
-     */
-    List<ToolResponse> getHotTools();
+    void deleteFile(String fileId);
 
-    /**
-     * 获取最新工具
-     */
-    List<ToolResponse> getNewTools();
+    <T, R> ToolExecuteResponse<R> execute(ToolExecuteRequest<T> request, Long userId);
 
-    /**
-     * 搜索工具
-     */
-    List<ToolResponse> searchTools(String keyword);
+    ToolExecuteResponse<Object> getTaskStatus(String taskId);
 
-    /**
-     * 获取工具详情（根据code）
-     */
-    ToolResponse getToolByCode(String toolCode);
+    SseEmitter getProgressEmitter(String taskId);
 
-    /**
-     * 根据ID获取工具
-     */
-    ToolResponse getToolById(Long id);
+    String getDownloadUrl(String taskId);
+
+    void cancelTask(String taskId);
 }
