@@ -434,10 +434,10 @@ const switchCategory = (code: string) => {
 
           <!-- Grid View -->
           <div v-if="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            <NuxtLink 
-              v-for="tool in filteredTools" 
+            <NuxtLink
+              v-for="tool in filteredTools"
               :key="tool.id"
-              :to="`/tool/${tool.code}`"
+              :to="`/${tool.category}/${tool.code}`"
               class="group p-5 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
             >
               <!-- 工具头部：图标 + 标题 + 标签 -->
@@ -487,10 +487,10 @@ const switchCategory = (code: string) => {
 
           <!-- List View -->
           <div v-else class="space-y-3">
-            <NuxtLink 
-              v-for="tool in filteredTools" 
+            <NuxtLink
+              v-for="tool in filteredTools"
               :key="tool.id"
-              :to="`/tool/${tool.code}`"
+              :to="`/${tool.category}/${tool.code}`"
               class="group flex items-center gap-4 p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
             >
               <div class="w-14 h-14 rounded-xl bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0">

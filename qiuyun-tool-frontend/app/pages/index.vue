@@ -191,7 +191,7 @@ const getToolCountByCategory = (categoryCode: string) => {
 
 // 处理工具选择
 const handleToolSelect = (tool: ToolResponse) => {
-  navigateTo(`/tool/${tool.code}`)
+  navigateTo(`/${tool.category}/${tool.code}`)
 }
 
 // 重新加载数据
@@ -236,10 +236,10 @@ const reloadData = () => {
           <!-- 热门推荐 -->
           <TabsContent value="hot">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <NuxtLink 
-                v-for="tool in hotTools" 
+              <NuxtLink
+                v-for="tool in hotTools"
                 :key="tool.id"
-                :to="`/tool/${tool.code}`"
+                :to="`/${tool.category}/${tool.code}`"
                 class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
               >
                 <div class="flex items-start gap-3">
@@ -264,10 +264,10 @@ const reloadData = () => {
           <!-- 最近访问 -->
           <TabsContent value="recent">
             <div v-if="recentTools.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <NuxtLink 
-                v-for="tool in recentTools" 
+              <NuxtLink
+                v-for="tool in recentTools"
                 :key="tool.id"
-                :to="`/tool/${tool.code}`"
+                :to="`/${tool.category}/${tool.code}`"
                 class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
               >
                 <div class="flex items-start gap-3">
@@ -298,10 +298,10 @@ const reloadData = () => {
           <TabsContent value="favorite">
             <div v-if="isLoggedIn">
               <div v-if="favoriteTools.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <NuxtLink 
-                  v-for="tool in favoriteTools" 
+                <NuxtLink
+                  v-for="tool in favoriteTools"
                   :key="tool.id"
-                  :to="`/tool/${tool.code}`"
+                  :to="`/${tool.category}/${tool.code}`"
                   class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
                 >
                   <div class="flex items-start gap-3">
@@ -337,10 +337,10 @@ const reloadData = () => {
           <!-- 最新收录 -->
           <TabsContent value="new">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <NuxtLink 
-                v-for="tool in newTools" 
+              <NuxtLink
+                v-for="tool in newTools"
                 :key="tool.id"
-                :to="`/tool/${tool.code}`"
+                :to="`/${tool.category}/${tool.code}`"
                 class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
               >
                 <div class="flex items-start gap-3">
@@ -473,10 +473,10 @@ const reloadData = () => {
               <!-- Actions -->
               <div class="flex items-center justify-between">
                 <Button variant="ghost" size="sm" as-child>
-                  <NuxtLink :to="`/tool/${tool.code}`">查看详情</NuxtLink>
+                  <NuxtLink :to="`/${tool.category}/${tool.code}`">查看详情</NuxtLink>
                 </Button>
                 <Button size="sm" as-child>
-                  <NuxtLink :to="`/tool/${tool.code}`">
+                  <NuxtLink :to="`/${tool.category}/${tool.code}`">
                     立即访问
                     <ArrowRight class="w-3 h-3 ml-1" />
                   </NuxtLink>

@@ -153,7 +153,7 @@ const getToolIconComponent = (iconName: string) => {
             <NuxtLink
               v-for="item in rankingData"
               :key="item.tool.id"
-              :to="`/tool/${item.tool.id}`"
+              :to="`/${item.tool.category}/${item.tool.id}`"
               :class="[
                 'group flex items-center gap-4 p-4 rounded-xl border transition-all hover:shadow-lg',
                 getRankBgClass(item.rank)
@@ -206,7 +206,7 @@ const getToolIconComponent = (iconName: string) => {
             <NuxtLink
               v-for="item in rankingData"
               :key="item.tool.id"
-              :to="`/tool/${item.tool.id}`"
+              :to="`/${item.tool.category}/${item.tool.id}`"
               :class="[
                 'group flex items-center gap-4 p-4 rounded-xl border transition-all hover:shadow-lg',
                 getRankBgClass(item.rank)
@@ -259,7 +259,7 @@ const getToolIconComponent = (iconName: string) => {
             <NuxtLink
               v-for="item in rankingData"
               :key="item.tool.id"
-              :to="`/tool/${item.tool.id}`"
+              :to="`/${item.tool.category}/${item.tool.id}`"
               :class="[
                 'group flex items-center gap-4 p-4 rounded-xl border transition-all hover:shadow-lg',
                 getRankBgClass(item.rank)
