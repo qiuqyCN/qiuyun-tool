@@ -1,8 +1,8 @@
 package dev.qiuyun.qiuyuntoolbackend.service;
 
-import dev.qiuyun.qiuyuntoolbackend.dto.review.ReviewResponse;
-import dev.qiuyun.qiuyuntoolbackend.dto.review.ReviewStatsResponse;
-import dev.qiuyun.qiuyuntoolbackend.dto.review.SubmitReviewRequest;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.review.ReviewResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.review.ReviewStatsResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.request.review.SubmitReviewRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

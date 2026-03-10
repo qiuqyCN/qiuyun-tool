@@ -2,9 +2,9 @@ package dev.qiuyun.qiuyuntoolbackend.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.qiuyun.qiuyuntoolbackend.dto.review.ReviewResponse;
-import dev.qiuyun.qiuyuntoolbackend.dto.review.ReviewStatsResponse;
-import dev.qiuyun.qiuyuntoolbackend.dto.review.SubmitReviewRequest;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.review.ReviewResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.review.ReviewStatsResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.request.review.SubmitReviewRequest;
 import dev.qiuyun.qiuyuntoolbackend.entity.ToolReview;
 import dev.qiuyun.qiuyuntoolbackend.entity.ToolReviewLike;
 import dev.qiuyun.qiuyuntoolbackend.entity.User;

@@ -1,8 +1,8 @@
 package dev.qiuyun.qiuyuntoolbackend.controller;
 
-import dev.qiuyun.qiuyuntoolbackend.dto.review.ReviewResponse;
-import dev.qiuyun.qiuyuntoolbackend.dto.review.ReviewStatsResponse;
-import dev.qiuyun.qiuyuntoolbackend.dto.review.SubmitReviewRequest;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.review.ReviewResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.review.ReviewStatsResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.request.review.SubmitReviewRequest;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ApiResponse;
 import dev.qiuyun.qiuyuntoolbackend.security.CurrentUser;
 import dev.qiuyun.qiuyuntoolbackend.security.UserDetailsImpl;
