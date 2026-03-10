@@ -243,8 +243,15 @@ const reloadData = () => {
                 class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
               >
                 <div class="flex items-start gap-3">
-                  <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <component :is="getToolIconComponent(tool.icon)" class="w-6 h-6 text-primary" />
+                  <div
+                    class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
+                    :style="{ backgroundColor: tool.iconBgColor || 'hsl(var(--primary) / 0.1)' }"
+                  >
+                    <component
+                      :is="getToolIconComponent(tool.icon)"
+                      class="w-6 h-6"
+                      :style="{ color: tool.iconColor || 'hsl(var(--primary))' }"
+                    />
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
@@ -271,8 +278,15 @@ const reloadData = () => {
                 class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
               >
                 <div class="flex items-start gap-3">
-                  <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <component :is="getToolIconComponent(tool.icon)" class="w-6 h-6 text-primary" />
+                  <div
+                    class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
+                    :style="{ backgroundColor: tool.iconBgColor || 'hsl(var(--primary) / 0.1)' }"
+                  >
+                    <component
+                      :is="getToolIconComponent(tool.icon)"
+                      class="w-6 h-6"
+                      :style="{ color: tool.iconColor || 'hsl(var(--primary))' }"
+                    />
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
@@ -305,8 +319,15 @@ const reloadData = () => {
                   class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
                 >
                   <div class="flex items-start gap-3">
-                    <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <component :is="getToolIconComponent(tool.icon)" class="w-6 h-6 text-primary" />
+                    <div
+                      class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
+                      :style="{ backgroundColor: tool.iconBgColor || 'hsl(var(--primary) / 0.1)' }"
+                    >
+                      <component
+                        :is="getToolIconComponent(tool.icon)"
+                        class="w-6 h-6"
+                        :style="{ color: tool.iconColor || 'hsl(var(--primary))' }"
+                      />
                     </div>
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 mb-1">
@@ -344,8 +365,15 @@ const reloadData = () => {
                 class="group p-4 bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all"
               >
                 <div class="flex items-start gap-3">
-                  <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <component :is="getToolIconComponent(tool.icon)" class="w-6 h-6 text-primary" />
+                  <div
+                    class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
+                    :style="{ backgroundColor: tool.iconBgColor || 'hsl(var(--primary) / 0.1)' }"
+                  >
+                    <component
+                      :is="getToolIconComponent(tool.icon)"
+                      class="w-6 h-6"
+                      :style="{ color: tool.iconColor || 'hsl(var(--primary))' }"
+                    />
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
@@ -440,16 +468,23 @@ const reloadData = () => {
           
           <!-- Tools Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div 
-              v-for="tool in categoryTool.tools" 
+            <div
+              v-for="tool in categoryTool.tools"
               :key="tool.id"
               class="group bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all p-5"
             >
               <!-- Tool Header -->
               <div class="flex items-start justify-between mb-3">
                 <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <component :is="getToolIconComponent(tool.icon)" class="w-6 h-6 text-primary" />
+                  <div
+                    class="w-12 h-12 rounded-lg flex items-center justify-center"
+                    :style="{ backgroundColor: tool.iconBgColor || 'hsl(var(--primary) / 0.1)' }"
+                  >
+                    <component
+                      :is="getToolIconComponent(tool.icon)"
+                      class="w-6 h-6"
+                      :style="{ color: tool.iconColor || 'hsl(var(--primary))' }"
+                    />
                   </div>
                   <div>
                     <h3 class="font-semibold text-foreground">{{ tool.name }}</h3>

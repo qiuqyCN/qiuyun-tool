@@ -170,8 +170,15 @@ const getToolIconComponent = (iconName: string) => {
                 </span>
               </div>
 
-              <div class="w-14 h-14 rounded-xl bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
-                <component :is="getToolIconComponent(item.tool.icon)" class="w-7 h-7 text-primary" />
+              <div
+                class="w-14 h-14 rounded-xl flex items-center justify-center shrink-0"
+                :style="{ backgroundColor: item.tool.iconBgColor || 'hsl(var(--primary) / 0.1)' }"
+              >
+                <component
+                  :is="getToolIconComponent(item.tool.icon)"
+                  class="w-7 h-7"
+                  :style="{ color: item.tool.iconColor || 'hsl(var(--primary))' }"
+                />
               </div>
 
               <div class="flex-1 min-w-0">
@@ -200,7 +207,7 @@ const getToolIconComponent = (iconName: string) => {
             </NuxtLink>
           </div>
         </TabsContent>
-        
+
         <TabsContent value="weekly" class="mt-0">
           <div class="max-w-3xl mx-auto space-y-4">
             <NuxtLink
@@ -223,8 +230,15 @@ const getToolIconComponent = (iconName: string) => {
                 </span>
               </div>
 
-              <div class="w-14 h-14 rounded-xl bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
-                <component :is="getToolIconComponent(item.tool.icon)" class="w-7 h-7 text-primary" />
+              <div
+                class="w-14 h-14 rounded-xl flex items-center justify-center shrink-0"
+                :style="{ backgroundColor: item.tool.iconBgColor || 'hsl(var(--primary) / 0.1)' }"
+              >
+                <component
+                  :is="getToolIconComponent(item.tool.icon)"
+                  class="w-7 h-7"
+                  :style="{ color: item.tool.iconColor || 'hsl(var(--primary))' }"
+                />
               </div>
 
               <div class="flex-1 min-w-0">
@@ -276,8 +290,15 @@ const getToolIconComponent = (iconName: string) => {
                 </span>
               </div>
 
-              <div class="w-14 h-14 rounded-xl bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
-                <component :is="getToolIconComponent(item.tool.icon)" class="w-7 h-7 text-primary" />
+              <div
+                class="w-14 h-14 rounded-xl flex items-center justify-center shrink-0"
+                :style="{ backgroundColor: item.tool.iconBgColor || 'hsl(var(--primary) / 0.1)' }"
+              >
+                <component
+                  :is="getToolIconComponent(item.tool.icon)"
+                  class="w-7 h-7"
+                  :style="{ color: item.tool.iconColor || 'hsl(var(--primary))' }"
+                />
               </div>
 
               <div class="flex-1 min-w-0">

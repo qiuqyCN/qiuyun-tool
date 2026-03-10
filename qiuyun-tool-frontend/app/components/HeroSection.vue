@@ -2,8 +2,77 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Sparkles, Loader2 } from "lucide-vue-next";
+import {
+  Search,
+  Sparkles,
+  Loader2,
+  Braces,
+  FileJson,
+  Code2,
+  Image,
+  FileText,
+  Lock,
+  Type,
+  Calculator,
+  Wrench,
+  Settings,
+  Code,
+  Clock,
+  Binary,
+  ImageMinus,
+  ImagePlus,
+  FileEdit,
+  Hash,
+  Link,
+  GitCompare,
+  Text,
+  Dices,
+  QrCode,
+  FileType,
+  FileMinus,
+  Fingerprint,
+  Key,
+  Scale,
+} from "lucide-vue-next";
 import type { ToolResponse } from "@/types/api";
+
+// 工具图标映射表
+const toolIconMap: Record<string, any> = {
+  Braces,
+  FileJson,
+  Code2,
+  Search,
+  Image,
+  FileText,
+  Lock,
+  Type,
+  Calculator,
+  Wrench,
+  Settings,
+  Code,
+  Clock,
+  Binary,
+  ImageMinus,
+  ImagePlus,
+  FileEdit,
+  Hash,
+  Link,
+  GitCompare,
+  Text,
+  Dices,
+  QrCode,
+  FileType,
+  FileMinus,
+  Fingerprint,
+  Key,
+  Scale,
+};
+
+// 获取工具图标组件
+const getToolIconComponent = (iconName?: string) => {
+  if (!iconName) return Wrench;
+  return toolIconMap[iconName] || Wrench;
+};
 
 // 统计数据接口
 interface Stats {
@@ -317,18 +386,14 @@ onUnmounted(() => {
                 <div class="flex items-center gap-3">
                   <!-- Tool Icon -->
                   <div
-                    class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"
+                    class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                    :style="{ backgroundColor: result.tool.iconBgColor || 'hsl(var(--primary) / 0.1)' }"
                   >
                     <component
-                      :is="
-                        $slots[`icon-${result.tool.icon}`]
-                          ? $slots[`icon-${result.tool.icon}`]
-                          : 'span'
-                      "
-                      class="w-5 h-5 text-primary"
-                    >
-                      <span class="text-lg">🔧</span>
-                    </component>
+                      :is="getToolIconComponent(result.tool.icon)"
+                      class="w-5 h-5"
+                      :style="{ color: result.tool.iconColor || 'hsl(var(--primary))' }"
+                    />
                   </div>
 
                   <!-- Tool Info -->

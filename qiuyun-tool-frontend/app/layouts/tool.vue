@@ -218,11 +218,47 @@ import {
   Type,
   Calculator,
   Settings,
-  Sparkles
+  Sparkles,
+  Code,
+  Clock,
+  Binary,
+  ImageMinus,
+  ImagePlus,
+  FileEdit,
+  Hash,
+  Link,
+  GitCompare,
+  Text,
+  Dices
 } from 'lucide-vue-next'
 
-// 图标映射表
+// 图标映射表 - 支持 PascalCase (后端存储格式) 和 kebab-case
 const iconMap: Record<string, any> = {
+  // PascalCase (后端存储格式)
+  'Braces': Braces,
+  'FileJson': FileJson,
+  'Code2': Code2,
+  'Search': Search,
+  'Image': Image,
+  'FileText': FileText,
+  'Lock': Lock,
+  'Type': Type,
+  'Calculator': Calculator,
+  'Wrench': Wrench,
+  'Settings': Settings,
+  'Sparkles': Sparkles,
+  'Code': Code,
+  'Clock': Clock,
+  'Binary': Binary,
+  'ImageMinus': ImageMinus,
+  'ImagePlus': ImagePlus,
+  'FileEdit': FileEdit,
+  'Hash': Hash,
+  'Link': Link,
+  'GitCompare': GitCompare,
+  'Text': Text,
+  'Dices': Dices,
+  // kebab-case (兼容格式)
   'lucide:braces': Braces,
   'lucide:file-json': FileJson,
   'lucide:code-2': Code2,
@@ -235,13 +271,28 @@ const iconMap: Record<string, any> = {
   'lucide:wrench': Wrench,
   'lucide:settings': Settings,
   'lucide:sparkles': Sparkles,
+  'lucide:code': Code,
+  'lucide:clock': Clock,
+  'lucide:binary': Binary,
+  'lucide:image-minus': ImageMinus,
+  'lucide:image-plus': ImagePlus,
+  'lucide:file-edit': FileEdit,
+  'lucide:hash': Hash,
+  'lucide:link': Link,
+  'lucide:git-compare': GitCompare,
+  'lucide:text': Text,
+  'lucide:dices': Dices,
   'lucide:tool': Wrench
 }
 
 // 获取图标组件
 const getToolIcon = (iconName?: string) => {
   if (!iconName) return Wrench
-  return iconMap[iconName] || Wrench
+  // 直接匹配 PascalCase
+  if (iconMap[iconName]) return iconMap[iconName]
+  // 尝试转换为 kebab-case 匹配
+  const kebabName = 'lucide:' + iconName.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
+  return iconMap[kebabName] || Wrench
 }
 
 // Props - 只接收 toolCode，其他信息从 store 获取
