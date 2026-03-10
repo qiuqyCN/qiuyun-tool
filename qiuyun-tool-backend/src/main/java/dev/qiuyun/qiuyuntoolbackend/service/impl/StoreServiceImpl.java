@@ -1,6 +1,7 @@
 package dev.qiuyun.qiuyuntoolbackend.service.impl;
 
 import dev.qiuyun.qiuyuntoolbackend.entity.Category;
+import dev.qiuyun.qiuyuntoolbackend.entity.Tag;
 import dev.qiuyun.qiuyuntoolbackend.entity.Tool;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.CategoryResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolResponse;
@@ -66,12 +67,20 @@ public class StoreServiceImpl implements StoreService {
                 .description(tool.getDescription())
                 .category(tool.getCategory() != null ? tool.getCategory().getCode() : null)
                 .icon(tool.getIcon())
+                .iconColor(tool.getIconColor())
+                .iconBgColor(tool.getIconBgColor())
                 .isVip(tool.getIsVip())
+                .isHot(tool.getIsHot())
+                .priceMode(tool.getPriceMode())
                 .visits(tool.getVisitsCount())
+                .viewCount(tool.getViewCount())
+                .usageCount(tool.getUsageCount())
                 .rating(tool.getRating())
                 .reviewCount(tool.getReviewCount())
+                .favoriteCount(tool.getFavoriteCount())
+                .instructions(tool.getInstructions())
                 .tags(tool.getTags().stream()
-                        .map(tag -> tag.getName())
+                        .map(Tag::getName)
                         .collect(Collectors.toList()))
                 .createdAt(tool.getCreatedAt())
                 .build();

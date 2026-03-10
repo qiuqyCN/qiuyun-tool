@@ -1,5 +1,6 @@
 package dev.qiuyun.qiuyuntoolbackend.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.qiuyun.qiuyuntoolbackend.entity.ToolFile;
 import dev.qiuyun.qiuyuntoolbackend.entity.ToolTask;
 import dev.qiuyun.qiuyuntoolbackend.enums.TaskStatus;
@@ -19,6 +20,7 @@ import dev.qiuyun.qiuyuntoolbackend.service.FileStorageService;
 import dev.qiuyun.qiuyuntoolbackend.service.ToolService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ResolvableType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,6 +43,7 @@ public class ToolServiceImpl implements ToolService {
     private final ToolFileRepository fileRepository;
     private final FileStorageService fileStorageService;
     private final ToolExecutorRegistry executorRegistry;
+    private final ObjectMapper objectMapper;
 
     private final Map<String, SseEmitter> progressEmitters = new ConcurrentHashMap<>();
 
@@ -77,17 +80,19 @@ public class ToolServiceImpl implements ToolService {
         fileStorageService.deleteFile(fileId);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T, R> ToolExecuteResponse<R> execute(ToolExecuteRequest<T> request, Long userId) {
         String toolCode = request.getToolCode();
 
-        ToolExecutor<T, R> executor = (ToolExecutor<T, R>) executorRegistry.getExecutor(toolCode);
+        ToolExecutor<T, R> executor = executorRegistry.getExecutor(toolCode);
         if (executor == null) {
             throw new BusinessException("工具不存在: " + toolCode);
         }
 
         String taskId = UUID.randomUUID().toString();
+
+        // 转换参数为执行器需要的具体类型
+        T convertedParams = convertParams(request.getParams(), executor);
 
         ToolTask task = ToolTask.builder()
                 .taskId(taskId)
@@ -95,19 +100,56 @@ public class ToolServiceImpl implements ToolService {
                 .userId(userId)
                 .status(TaskStatus.PENDING)
                 .progress(0)
-                .inputParams(request.getParams())
+                .inputParams(convertedParams)
                 .build();
         taskRepository.save(task);
+
+        // 创建新的请求对象，使用转换后的参数
+        ToolExecuteRequest<T> convertedRequest = new ToolExecuteRequest<>();
+        convertedRequest.setToolCode(request.getToolCode());
+        convertedRequest.setParams(convertedParams);
 
         ToolType toolType = executor.getToolType();
 
         if (toolType == ToolType.INSTANT) {
-            return executeInstant(task, executor, request);
+            return executeInstant(task, executor, convertedRequest);
         } else if (toolType == ToolType.FILE_PROCESS) {
-            return executeFileProcess(task, executor, request);
+            return executeFileProcess(task, executor, convertedRequest);
         } else {
-            return executeAsync(task, executor, request);
+            return executeAsync(task, executor, convertedRequest);
         }
+    }
+
+    /**
+     * 将参数转换为执行器泛型需要的具体类型
+     */
+    @SuppressWarnings("unchecked")
+    private <T, R> T convertParams(Object params, ToolExecutor<T, R> executor) {
+        if (params == null) {
+            return null;
+        }
+
+        // 获取执行器的泛型参数类型
+        ResolvableType resolvableType = ResolvableType.forClass(executor.getClass()).as(ToolExecutor.class);
+        Class<?> requestType = resolvableType.getGeneric(0).resolve();
+
+        // 如果参数已经是目标类型，直接返回
+        if (requestType != null && requestType.isInstance(params)) {
+            return (T) params;
+        }
+
+        // 如果参数是 Map 类型，使用 ObjectMapper 转换
+        if (params instanceof java.util.Map && requestType != null) {
+            try {
+                return (T) objectMapper.convertValue(params, requestType);
+            } catch (Exception e) {
+                log.error("参数转换失败: {}", e.getMessage());
+                throw new BusinessException("参数格式错误: " + e.getMessage());
+            }
+        }
+
+        // 其他情况直接返回原参数
+        return (T) params;
     }
 
     private <T, R> ToolExecuteResponse<R> executeInstant(ToolTask task, ToolExecutor<T, R> executor, ToolExecuteRequest<T> request) {
@@ -144,11 +186,13 @@ public class ToolServiceImpl implements ToolService {
             task.setStatus(TaskStatus.FAILED);
             task.setErrorMessage(e.getMessage());
             taskRepository.save(task);
+            e.printStackTrace();
             throw e;
         } catch (Exception e) {
             task.setStatus(TaskStatus.FAILED);
             task.setErrorMessage("执行失败: " + e.getMessage());
             taskRepository.save(task);
+            e.printStackTrace();
             throw new BusinessException("执行失败: " + e.getMessage());
         }
     }
@@ -161,8 +205,7 @@ public class ToolServiceImpl implements ToolService {
             T params = request.getParams();
 
             // 检查文件处理请求是否包含 fileId
-            if (params instanceof FileProcessRequest) {
-                FileProcessRequest fileRequest = (FileProcessRequest) params;
+            if (params instanceof FileProcessRequest fileRequest) {
                 if (fileRequest.getFileId() == null || fileRequest.getFileId().trim().isEmpty()) {
                     throw new BusinessException("文件ID不能为空");
                 }
@@ -221,7 +264,7 @@ public class ToolServiceImpl implements ToolService {
     }
 
     @Async
-    private <T, R> void executeAsyncInternal(ToolTask task, ToolExecutor<T, R> executor, ToolExecuteRequest<T> request) {
+    protected <T, R> void executeAsyncInternal(ToolTask task, ToolExecutor<T, R> executor, ToolExecuteRequest<T> request) {
         SseEmitter emitter = progressEmitters.get(task.getTaskId());
         try {
             T params = request.getParams();

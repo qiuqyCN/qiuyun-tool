@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { AlertCircle, CheckCircle, Copy, Download, Check } from 'lucide-vue-next'
+import { AlertCircle, CheckCircle, Copy, Download, Check, Loader2 } from 'lucide-vue-next'
+import { useToolExecutor } from '~/composables/useToolExecutor'
+import { ToolType } from '~/types/tool'
 
 // JSON操作类型枚举
 enum JsonOperation {
@@ -8,6 +10,20 @@ enum JsonOperation {
   COMPRESS = 'compress',
   ESCAPE = 'escape',
   UNESCAPE = 'unescape'
+}
+
+// 请求参数类型
+interface JsonFormatParams {
+  operation: string
+  input: string
+}
+
+// 响应结果类型
+interface JsonFormatResult {
+  success: boolean
+  result: string
+  operation: string
+  errorMessage?: string
 }
 
 // Toast 提示状态
@@ -25,145 +41,55 @@ const showToast = (message: string) => {
   }, 2000)
 }
 
-// 工具信息
-const toolInfo = {
-  code: 'json-formatter',
-  name: 'JSON格式化',
-  description: 'JSON数据的格式化、压缩、转义等操作',
-  icon: 'lucide:braces',
-  iconColor: '#4F46E5',
-  iconBgColor: '#EEF2FF',
-  priceMode: 'free' as const,
-  isHot: true,
-  viewCount: 125432,
-  usageCount: 98765,
-  rating: 4.8,
-  favoriteCount: 1234,
-  reviewCount: 328,
-  instructions: `<ol class="list-decimal list-inside space-y-2">
-    <li><strong>格式化</strong>：将压缩的 JSON 数据转换为易读的格式，自动添加缩进和换行</li>
-    <li><strong>压缩</strong>：去除 JSON 中的空白字符，减小数据体积</li>
-    <li><strong>转义</strong>：将 JSON 字符串转义，适用于在代码中使用</li>
-    <li><strong>去转义</strong>：将转义后的 JSON 字符串还原为正常格式</li>
-    <li>支持复制结果到剪贴板或下载为 .json 文件</li>
-  </ol>`
-}
-
-// 分类信息
-const categoryInfo = {
-  code: 'dev',
-  name: '开发工具'
-}
-
-// 相关工具
-const relatedTools = [
-  {
-    code: 'json-to-yaml',
-    name: 'JSON转YAML',
-    description: '将JSON数据转换为YAML格式',
-    icon: 'lucide:file-json',
-    iconColor: '#7C3AED',
-    iconBgColor: '#F3E8FF',
-    categoryCode: 'dev'
-  },
-  {
-    code: 'code-beautify',
-    name: '代码美化',
-    description: 'HTML/CSS/JS代码格式化',
-    icon: 'lucide:code-2',
-    iconColor: '#059669',
-    iconBgColor: '#D1FAE5',
-    categoryCode: 'dev'
-  },
-  {
-    code: 'regex-tester',
-    name: '正则测试',
-    description: '在线正则表达式测试工具',
-    icon: 'lucide:search',
-    iconColor: '#DC2626',
-    iconBgColor: '#FEE2E2',
-    categoryCode: 'dev'
-  }
-]
-
 // 状态
 const activeTab = ref<JsonOperation>(JsonOperation.FORMAT)
 const inputJson = ref('')
 const outputJson = ref('')
 const error = ref('')
 
-// 格式化 JSON
-const formatJson = () => {
-  if (!inputJson.value.trim()) {
-    error.value = '请输入 JSON 数据'
-    return
-  }
-
-  try {
-    const parsed = JSON.parse(inputJson.value)
-    outputJson.value = JSON.stringify(parsed, null, 2)
-    error.value = ''
-  } catch (e) {
-    error.value = 'JSON 格式错误：' + (e as Error).message
-    outputJson.value = ''
-  }
-}
-
-// 压缩 JSON
-const compressJson = () => {
-  if (!inputJson.value.trim()) {
-    error.value = '请输入 JSON 数据'
-    return
-  }
-
-  try {
-    const parsed = JSON.parse(inputJson.value)
-    outputJson.value = JSON.stringify(parsed)
-    error.value = ''
-  } catch (e) {
-    error.value = 'JSON 格式错误：' + (e as Error).message
-    outputJson.value = ''
-  }
-}
-
-// 转义 JSON
-const escapeJson = () => {
-  if (!inputJson.value.trim()) {
-    error.value = '请输入 JSON 数据'
-    return
-  }
-
-  try {
-    const parsed = JSON.parse(inputJson.value)
-    const stringified = JSON.stringify(parsed)
-    outputJson.value = JSON.stringify(stringified)
-    error.value = ''
-  } catch (e) {
-    error.value = 'JSON 格式错误：' + (e as Error).message
-    outputJson.value = ''
-  }
-}
-
-// 去转义 JSON
-const unescapeJson = () => {
-  if (!inputJson.value.trim()) {
-    error.value = '请输入 JSON 数据'
-    return
-  }
-
-  try {
-    const unescaped = JSON.parse(inputJson.value)
-    if (typeof unescaped === 'string') {
-      outputJson.value = JSON.stringify(JSON.parse(unescaped), null, 2)
+// 使用工具执行器
+const { execute, isLoading } = useToolExecutor<JsonFormatParams, JsonFormatResult>({
+  toolCode: 'json-formatter',
+  toolType: ToolType.INSTANT,
+  onSuccess: (result) => {
+    if (result.success) {
+      outputJson.value = result.result
       error.value = ''
     } else {
-      error.value = '输入不是有效的转义 JSON 字符串'
+      error.value = result.errorMessage || '处理失败'
+      outputJson.value = ''
     }
-  } catch (e) {
-    error.value = '格式错误：' + (e as Error).message
+  },
+  onError: (err) => {
+    error.value = err
     outputJson.value = ''
   }
+})
+
+// 执行 JSON 处理
+const processJson = async (operation: JsonOperation) => {
+  if (!inputJson.value.trim()) {
+    error.value = '请输入 JSON 数据'
+    return
+  }
+
+  await execute({
+    operation,
+    input: inputJson.value
+  })
 }
+
+// 格式化 JSON
+const formatJson = () => processJson(JsonOperation.FORMAT)
+
+// 压缩 JSON
+const compressJson = () => processJson(JsonOperation.COMPRESS)
+
+// 转义 JSON
+const escapeJson = () => processJson(JsonOperation.ESCAPE)
+
+// 去转义 JSON
+const unescapeJson = () => processJson(JsonOperation.UNESCAPE)
 
 // 清空
 const clearInput = () => {
@@ -217,7 +143,7 @@ const handleProcess = () => {
 </script>
 
 <template>
-  <NuxtLayout name="tool" :tool="toolInfo" :category="categoryInfo" :related-tools="relatedTools" :tool-id="1">
+  <NuxtLayout name="tool" tool-code="json-formatter">
     <!-- 工具执行区域 -->
     <div class="border border-border/40 rounded-xl overflow-hidden">
       <!-- 工具 Tabs -->
@@ -262,11 +188,12 @@ const handleProcess = () => {
               />
             </div>
             <div class="flex items-center gap-2">
-              <Button @click="formatJson">
-                <CheckCircle class="w-4 h-4 mr-2" />
-                格式化
+              <Button @click="formatJson" :disabled="isLoading">
+                <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
+                <CheckCircle v-else class="w-4 h-4 mr-2" />
+                {{ isLoading ? '处理中...' : '格式化' }}
               </Button>
-              <Button variant="outline" @click="clearInput">清空</Button>
+              <Button variant="outline" @click="clearInput" :disabled="isLoading">清空</Button>
             </div>
             <div v-if="error" class="flex items-center gap-2 text-sm text-red-500">
               <AlertCircle class="w-4 h-4" />
@@ -309,11 +236,12 @@ const handleProcess = () => {
               />
             </div>
             <div class="flex items-center gap-2">
-              <Button @click="compressJson">
-                <CheckCircle class="w-4 h-4 mr-2" />
-                压缩
+              <Button @click="compressJson" :disabled="isLoading">
+                <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
+                <CheckCircle v-else class="w-4 h-4 mr-2" />
+                {{ isLoading ? '处理中...' : '压缩' }}
               </Button>
-              <Button variant="outline" @click="clearInput">清空</Button>
+              <Button variant="outline" @click="clearInput" :disabled="isLoading">清空</Button>
             </div>
             <div v-if="error" class="flex items-center gap-2 text-sm text-red-500">
               <AlertCircle class="w-4 h-4" />
@@ -356,11 +284,12 @@ const handleProcess = () => {
               />
             </div>
             <div class="flex items-center gap-2">
-              <Button @click="escapeJson">
-                <CheckCircle class="w-4 h-4 mr-2" />
-                转义
+              <Button @click="escapeJson" :disabled="isLoading">
+                <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
+                <CheckCircle v-else class="w-4 h-4 mr-2" />
+                {{ isLoading ? '处理中...' : '转义' }}
               </Button>
-              <Button variant="outline" @click="clearInput">清空</Button>
+              <Button variant="outline" @click="clearInput" :disabled="isLoading">清空</Button>
             </div>
             <div v-if="error" class="flex items-center gap-2 text-sm text-red-500">
               <AlertCircle class="w-4 h-4" />
@@ -403,11 +332,12 @@ const handleProcess = () => {
               />
             </div>
             <div class="flex items-center gap-2">
-              <Button @click="unescapeJson">
-                <CheckCircle class="w-4 h-4 mr-2" />
-                去转义
+              <Button @click="unescapeJson" :disabled="isLoading">
+                <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
+                <CheckCircle v-else class="w-4 h-4 mr-2" />
+                {{ isLoading ? '处理中...' : '去转义' }}
               </Button>
-              <Button variant="outline" @click="clearInput">清空</Button>
+              <Button variant="outline" @click="clearInput" :disabled="isLoading">清空</Button>
             </div>
             <div v-if="error" class="flex items-center gap-2 text-sm text-red-500">
               <AlertCircle class="w-4 h-4" />

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Sparkles, Loader2 } from "lucide-vue-next";
-import type { ToolResponse } from "@/composables/useApi";
+import type { ToolResponse } from "@/types/api";
 
 // 统计数据接口
 interface Stats {

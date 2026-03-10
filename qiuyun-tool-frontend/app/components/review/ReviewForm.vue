@@ -130,7 +130,7 @@ import EmojiPicker from './EmojiPicker.vue'
 import type { SubmitReviewRequest } from '~/types/review'
 
 interface Props {
-  toolId: number
+  toolId?: number
   isEdit?: boolean
   initialData?: {
     rating: number

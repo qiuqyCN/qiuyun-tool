@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToolStore } from '@/stores/toolStore'
-import type { ToolResponse } from '@/composables/useApi'
+import type { ToolResponse } from '@/types/api'
 
 import {
   ArrowRight,

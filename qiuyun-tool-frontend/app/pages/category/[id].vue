@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { useToolStore } from '@/stores/toolStore'
-import type { ToolResponse } from '@/composables/useApi'
+import type { ToolResponse } from '@/types/api'
 import { 
   Search, 
   Grid3X3, 

@@ -1,13 +1,8 @@
 import type { Review, ReviewStats, SubmitReviewRequest } from '~/types/review'
+import type { ApiResponse } from '~/types/tool'
 
 export interface UseReviewOptions {
-  toolId: number
-}
-
-interface ApiResponse<T = any> {
-  code: number
-  message: string
-  data: T
+  toolId?: number
 }
 
 export function useReview(options: UseReviewOptions) {
@@ -27,6 +22,7 @@ export function useReview(options: UseReviewOptions) {
 
   // 获取评论列表
   const fetchReviews = async (reset = false) => {
+    if (!toolId) return
     if (loading.value) return
     if (reset) {
       page.value = 1
@@ -65,6 +61,7 @@ export function useReview(options: UseReviewOptions) {
 
   // 获取评论统计
   const fetchStats = async () => {
+    if (!toolId) return
     try {
       const response = await $api(`/reviews/tool/${toolId}/stats`, {
         method: 'GET'
@@ -79,6 +76,7 @@ export function useReview(options: UseReviewOptions) {
 
   // 提交评论
   const submitReview = async (data: SubmitReviewRequest) => {
+    if (!toolId) throw new Error('工具ID不能为空')
     const response = await $api('/reviews', {
       method: 'POST',
       body: {
@@ -98,6 +96,7 @@ export function useReview(options: UseReviewOptions) {
 
   // 编辑评论
   const editReview = async (reviewId: number, data: SubmitReviewRequest) => {
+    if (!toolId) throw new Error('工具ID不能为空')
     const response = await $api(`/reviews/${reviewId}`, {
       method: 'PUT',
       body: {
@@ -191,6 +190,7 @@ export function useReview(options: UseReviewOptions) {
 
   // 检查是否已评论
   const hasReviewed = async () => {
+    if (!toolId) return false
     try {
       const response = await $api(`/reviews/tool/${toolId}/has-reviewed`, {
         method: 'GET'

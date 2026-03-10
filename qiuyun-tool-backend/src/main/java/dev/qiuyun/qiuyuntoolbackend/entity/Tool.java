@@ -50,8 +50,20 @@ public class Tool {
     @Column(length = 50)
     private String icon;
 
+    @Column(name = "icon_color", length = 20)
+    private String iconColor;
+
+    @Column(name = "icon_bg_color", length = 20)
+    private String iconBgColor;
+
     @Column(name = "is_vip")
     private Boolean isVip;
+
+    @Column(name = "is_hot")
+    private Boolean isHot;
+
+    @Column(name = "price_mode", length = 10)
+    private String priceMode;
 
     @Column(name = "is_active")
     private Boolean isActive;
@@ -59,11 +71,23 @@ public class Tool {
     @Column(name = "visits_count")
     private Long visitsCount;
 
+    @Column(name = "view_count")
+    private Long viewCount;
+
+    @Column(name = "usage_count")
+    private Long usageCount;
+
     @Column(name = "rating")
     private BigDecimal rating;
 
     @Column(name = "review_count")
     private Integer reviewCount;
+
+    @Column(name = "favorite_count")
+    private Integer favoriteCount;
+
+    @Column(name = "instructions", length = 5000)
+    private String instructions;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

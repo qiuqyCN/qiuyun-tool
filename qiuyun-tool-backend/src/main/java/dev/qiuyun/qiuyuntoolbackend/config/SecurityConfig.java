@@ -49,6 +49,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/store/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tools/**").permitAll()
+                        // 工具执行接口 - 免费工具允许匿名执行
+                        .requestMatchers(HttpMethod.POST, "/api/tools/execute").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                         // 评论相关接口 - GET 请求公开，其他需要认证
                         .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()

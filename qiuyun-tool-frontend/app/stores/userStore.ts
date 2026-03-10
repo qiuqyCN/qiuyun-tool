@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { UserStatus } from '~/types/enums'
+import type { ApiResponse } from '~/types/tool'
 
 export interface UserInfo {
   id: number
@@ -18,13 +19,6 @@ export interface AuthState {
   refreshToken: string | null
   isAuthenticated: boolean
   isLoginModalVisible: boolean
-}
-
-// API 响应类型
-interface ApiResponse<T = any> {
-  code: number
-  message: string
-  data: T
 }
 
 interface LoginResponse {

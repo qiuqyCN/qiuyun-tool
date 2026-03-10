@@ -94,7 +94,7 @@ import { MessageSquare } from 'lucide-vue-next'
 import type { SubmitReviewRequest, ReviewSortType, Review } from '~/types/review'
 
 interface Props {
-  toolId: number
+  toolId?: number
 }
 
 const props = defineProps<Props>()

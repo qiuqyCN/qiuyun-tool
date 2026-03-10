@@ -160,18 +160,27 @@ public class DataInitializer implements CommandLineRunner {
         Category textCategory = categories.stream().filter(c -> c.getCode().equals("text")).findFirst().orElse(null);
         Category numberCategory = categories.stream().filter(c -> c.getCode().equals("number")).findFirst().orElse(null);
 
-        // 开发工具
+        // 开发工具 - 蓝色系
         Tool jsonFormatter = Tool.builder()
                 .code("json-formatter")
                 .name("JSON格式化")
                 .description("JSON数据的格式化、压缩、转义等操作")
                 .category(devCategory)
                 .icon("Braces")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#3B82F6")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(125432L)
                 .rating(BigDecimal.valueOf(4.8))
                 .reviewCount(328)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>格式化</strong>：将压缩的 JSON 数据转换为易读的格式，自动添加缩进和换行</li>\n" +
+                        "    <li><strong>压缩</strong>：去除 JSON 中的空白字符，减小数据体积</li>\n" +
+                        "    <li><strong>转义</strong>：将 JSON 字符串转义，适用于在代码中使用</li>\n" +
+                        "    <li><strong>去转义</strong>：将转义后的 JSON 字符串还原为正常格式</li>\n" +
+                        "    <li>支持复制结果到剪贴板或下载为 .json 文件</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>(Arrays.asList(hotTag, commonTag)))
                 .build();
 
@@ -181,11 +190,20 @@ public class DataInitializer implements CommandLineRunner {
                 .description("JSON与YAML格式互相转换")
                 .category(devCategory)
                 .icon("FileJson")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#6366F1")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(45678L)
                 .rating(BigDecimal.valueOf(4.6))
                 .reviewCount(128)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>JSON转YAML</strong>：将JSON格式的数据转换为YAML格式，便于配置文件编写</li>\n" +
+                        "    <li><strong>YAML转JSON</strong>：将YAML格式的数据转换为JSON格式，便于程序解析</li>\n" +
+                        "    <li>支持复杂的嵌套结构转换</li>\n" +
+                        "    <li>自动检测输入格式并进行相应转换</li>\n" +
+                        "    <li>支持复制结果或下载为文件</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>(Arrays.asList(devTag)))
                 .build();
 
@@ -195,11 +213,20 @@ public class DataInitializer implements CommandLineRunner {
                 .description("HTML/CSS/JavaScript代码格式化")
                 .category(devCategory)
                 .icon("Code2")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#8B5CF6")
                 .isVip(true)
                 .isActive(true)
                 .visitsCount(89321L)
                 .rating(BigDecimal.valueOf(4.7))
                 .reviewCount(256)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>HTML格式化</strong>：自动缩进和换行，使HTML结构清晰易读</li>\n" +
+                        "    <li><strong>CSS格式化</strong>：美化CSS样式代码，规范属性格式</li>\n" +
+                        "    <li><strong>JavaScript格式化</strong>：格式化JS代码，提高可读性</li>\n" +
+                        "    <li>支持代码压缩功能，减小文件体积</li>\n" +
+                        "    <li>支持语法高亮和错误检测</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>(Arrays.asList(vipTag)))
                 .build();
 
@@ -209,11 +236,20 @@ public class DataInitializer implements CommandLineRunner {
                 .description("在线正则表达式测试工具")
                 .category(devCategory)
                 .icon("Search")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#0EA5E9")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(67890L)
                 .rating(BigDecimal.valueOf(4.5))
                 .reviewCount(189)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>输入正则表达式</strong>：在正则输入框中填写要测试的正则表达式</li>\n" +
+                        "    <li><strong>输入测试文本</strong>：在文本框中输入需要匹配的测试内容</li>\n" +
+                        "    <li><strong>实时匹配</strong>：系统会实时显示匹配结果和高亮匹配内容</li>\n" +
+                        "    <li>支持常用正则表达式预设，一键使用</li>\n" +
+                        "    <li>显示匹配分组信息，方便提取数据</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>())
                 .build();
 
@@ -223,11 +259,20 @@ public class DataInitializer implements CommandLineRunner {
                 .description("Unix时间戳与日期时间互转")
                 .category(devCategory)
                 .icon("Clock")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#06B6D4")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(98765L)
                 .rating(BigDecimal.valueOf(4.9))
                 .reviewCount(412)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>时间戳转日期</strong>：输入Unix时间戳（秒或毫秒），转换为可读的日期时间</li>\n" +
+                        "    <li><strong>日期转时间戳</strong>：选择或输入日期时间，转换为Unix时间戳</li>\n" +
+                        "    <li>支持多种日期格式输出</li>\n" +
+                        "    <li>自动识别当前时区和UTC时间</li>\n" +
+                        "    <li>支持批量转换多个时间戳</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>(Arrays.asList(hotTag)))
                 .build();
 
@@ -237,26 +282,44 @@ public class DataInitializer implements CommandLineRunner {
                 .description("Base64编码和解码工具")
                 .category(devCategory)
                 .icon("Binary")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#14B8A6")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(76543L)
                 .rating(BigDecimal.valueOf(4.6))
                 .reviewCount(198)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>Base64编码</strong>：将普通文本转换为Base64编码格式</li>\n" +
+                        "    <li><strong>Base64解码</strong>：将Base64编码还原为原始文本</li>\n" +
+                        "    <li>支持URL安全的Base64编码</li>\n" +
+                        "    <li>支持处理中文字符，自动识别编码</li>\n" +
+                        "    <li>支持复制结果或下载为文件</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>())
                 .build();
 
-        // 图片工具
+        // 图片工具 - 绿色系
         Tool imageCompress = Tool.builder()
                 .code("image-compress")
                 .name("图片压缩")
                 .description("在线图片压缩，支持JPG/PNG/GIF")
                 .category(imageCategory)
                 .icon("ImageMinus")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#10B981")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(156789L)
                 .rating(BigDecimal.valueOf(4.7))
                 .reviewCount(523)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>上传图片</strong>：点击上传或拖拽图片文件到指定区域</li>\n" +
+                        "    <li><strong>选择压缩质量</strong>：调整压缩比例，平衡画质和文件大小</li>\n" +
+                        "    <li><strong>预览对比</strong>：查看压缩前后的画质对比</li>\n" +
+                        "    <li>支持JPG、PNG、GIF格式</li>\n" +
+                        "    <li>支持批量压缩多张图片</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>(Arrays.asList(hotTag, commonTag)))
                 .build();
 
@@ -266,11 +329,20 @@ public class DataInitializer implements CommandLineRunner {
                 .description("图片格式互相转换")
                 .category(imageCategory)
                 .icon("ImagePlus")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#22C55E")
                 .isVip(true)
                 .isActive(true)
                 .visitsCount(87654L)
                 .rating(BigDecimal.valueOf(4.5))
                 .reviewCount(234)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>上传图片</strong>：选择需要转换格式的图片文件</li>\n" +
+                        "    <li><strong>选择目标格式</strong>：选择要转换成的图片格式</li>\n" +
+                        "    <li><strong>开始转换</strong>：点击转换按钮，等待处理完成</li>\n" +
+                        "    <li>支持JPG、PNG、GIF、WebP、BMP等格式互转</li>\n" +
+                        "    <li>支持调整输出图片质量</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>(Arrays.asList(vipTag, imageTag)))
                 .build();
 
@@ -280,26 +352,44 @@ public class DataInitializer implements CommandLineRunner {
                 .description("图片转换为Base64编码")
                 .category(imageCategory)
                 .icon("Image")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#34D399")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(65432L)
                 .rating(BigDecimal.valueOf(4.4))
                 .reviewCount(156)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>上传图片</strong>：选择要转换的图片文件</li>\n" +
+                        "    <li><strong>自动转换</strong>：系统自动将图片转换为Base64编码</li>\n" +
+                        "    <li><strong>复制结果</strong>：一键复制Base64字符串</li>\n" +
+                        "    <li>支持生成Data URI格式，可直接用于CSS/HTML</li>\n" +
+                        "    <li>支持Base64转图片，还原原始图片</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>(Arrays.asList(imageTag)))
                 .build();
 
-        // 文档工具
+        // 文档工具 - 橙色系
         Tool pdfToWord = Tool.builder()
                 .code("pdf-to-word")
                 .name("PDF转Word")
                 .description("PDF文档转换为Word格式")
                 .category(docCategory)
                 .icon("FileText")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#F97316")
                 .isVip(true)
                 .isActive(true)
                 .visitsCount(234567L)
                 .rating(BigDecimal.valueOf(4.8))
                 .reviewCount(892)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>上传PDF</strong>：选择要转换的PDF文件</li>\n" +
+                        "    <li><strong>开始转换</strong>：点击转换按钮，等待处理完成</li>\n" +
+                        "    <li><strong>下载Word</strong>：转换完成后下载.docx文件</li>\n" +
+                        "    <li>保留原文档格式和排版</li>\n" +
+                        "    <li>支持多页PDF文档转换</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>(Arrays.asList(hotTag, vipTag, docTag)))
                 .build();
 
@@ -309,26 +399,44 @@ public class DataInitializer implements CommandLineRunner {
                 .description("在线Markdown编辑和预览")
                 .category(docCategory)
                 .icon("FileEdit")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#FB923C")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(45678L)
                 .rating(BigDecimal.valueOf(4.6))
                 .reviewCount(167)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>编辑Markdown</strong>：在左侧编辑器中输入Markdown语法</li>\n" +
+                        "    <li><strong>实时预览</strong>：右侧实时显示渲染后的效果</li>\n" +
+                        "    <li><strong>工具栏</strong>：使用工具栏快速插入常用格式</li>\n" +
+                        "    <li>支持导出为HTML或PDF</li>\n" +
+                        "    <li>支持语法高亮和表格编辑</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>(Arrays.asList(docTag)))
                 .build();
 
-        // 加密工具
+        // 加密工具 - 红色系
         Tool md5Encrypt = Tool.builder()
                 .code("md5-encrypt")
                 .name("MD5加密")
                 .description("MD5加密工具，支持32位/16位")
                 .category(cryptoCategory)
                 .icon("Hash")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#EF4444")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(112345L)
                 .rating(BigDecimal.valueOf(4.7))
                 .reviewCount(445)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>输入文本</strong>：在输入框中填写需要加密的文本</li>\n" +
+                        "    <li><strong>选择位数</strong>：选择32位或16位MD5加密</li>\n" +
+                        "    <li><strong>获取结果</strong>：系统自动生成MD5加密字符串</li>\n" +
+                        "    <li>支持大写和小写输出格式</li>\n" +
+                        "    <li>支持批量加密多个文本</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>(Arrays.asList(hotTag, commonTag)))
                 .build();
 
@@ -338,26 +446,44 @@ public class DataInitializer implements CommandLineRunner {
                 .description("URL编码和解码工具")
                 .category(cryptoCategory)
                 .icon("Link")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#F87171")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(56789L)
                 .rating(BigDecimal.valueOf(4.5))
                 .reviewCount(223)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>URL编码</strong>：将特殊字符转换为URL安全格式</li>\n" +
+                        "    <li><strong>URL解码</strong>：将编码后的URL还原为原始字符串</li>\n" +
+                        "    <li>自动识别编码/解码操作</li>\n" +
+                        "    <li>支持处理中文字符</li>\n" +
+                        "    <li>支持批量处理多个URL</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>())
                 .build();
 
-        // 文本工具
+        // 文本工具 - 紫色系
         Tool textCompare = Tool.builder()
                 .code("text-compare")
                 .name("文本对比")
                 .description("文本差异对比工具")
                 .category(textCategory)
                 .icon("GitCompare")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#A855F7")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(34567L)
                 .rating(BigDecimal.valueOf(4.4))
                 .reviewCount(98)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>输入原文本</strong>：在左侧输入框中填写原始文本</li>\n" +
+                        "    <li><strong>输入对比文本</strong>：在右侧输入框中填写对比文本</li>\n" +
+                        "    <li><strong>查看差异</strong>：系统自动高亮显示差异部分</li>\n" +
+                        "    <li>支持行级和字符级对比</li>\n" +
+                        "    <li>支持忽略空格和大小写选项</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>())
                 .build();
 
@@ -367,26 +493,44 @@ public class DataInitializer implements CommandLineRunner {
                 .description("统计文本字数、字符数、行数")
                 .category(textCategory)
                 .icon("Text")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#C084FC")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(78901L)
                 .rating(BigDecimal.valueOf(4.6))
                 .reviewCount(234)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>输入文本</strong>：在文本框中输入或粘贴需要统计的内容</li>\n" +
+                        "    <li><strong>实时统计</strong>：系统自动显示字数、字符数、行数</li>\n" +
+                        "    <li><strong>详细数据</strong>：查看中文字数、英文单词数、标点符号等</li>\n" +
+                        "    <li>支持统计选中内容的字数</li>\n" +
+                        "    <li>支持清空和复制文本</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>(Arrays.asList(commonTag)))
                 .build();
 
-        // 数字工具
+        // 数字工具 - 琥珀色系
         Tool hexConverter = Tool.builder()
                 .code("hex-converter")
                 .name("进制转换")
                 .description("二进制、八进制、十进制、十六进制互转")
                 .category(numberCategory)
                 .icon("Binary")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#F59E0B")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(67890L)
                 .rating(BigDecimal.valueOf(4.5))
                 .reviewCount(156)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>输入数值</strong>：在输入框中填写要转换的数字</li>\n" +
+                        "    <li><strong>选择进制</strong>：选择输入数字的当前进制</li>\n" +
+                        "    <li><strong>查看结果</strong>：自动显示其他进制的转换结果</li>\n" +
+                        "    <li>支持二进制、八进制、十进制、十六进制互转</li>\n" +
+                        "    <li>支持批量转换多个数值</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>())
                 .build();
 
@@ -396,11 +540,20 @@ public class DataInitializer implements CommandLineRunner {
                 .description("生成随机数、随机密码")
                 .category(numberCategory)
                 .icon("Dices")
+                .iconColor("#FFFFFF")
+                .iconBgColor("#FBBF24")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(89012L)
                 .rating(BigDecimal.valueOf(4.7))
                 .reviewCount(267)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>设置范围</strong>：输入最小值和最大值</li>\n" +
+                        "    <li><strong>生成数量</strong>：选择要生成的随机数个数</li>\n" +
+                        "    <li><strong>点击生成</strong>：获取随机数结果</li>\n" +
+                        "    <li>支持生成随机密码，可设置长度和字符类型</li>\n" +
+                        "    <li>支持生成不重复的随机数</li>\n" +
+                        "  </ol>")
                 .tags(new HashSet<>(Arrays.asList(hotTag)))
                 .build();
 

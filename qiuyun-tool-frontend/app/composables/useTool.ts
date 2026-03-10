@@ -2,7 +2,8 @@ import type {
   ToolExecuteRequest,
   ToolExecuteResponse,
   FileUploadResponse,
-  ToolProgress
+  ToolProgress,
+  ApiResponse
 } from '~/types/tool'
 
 export function useTool() {
@@ -35,10 +36,11 @@ export function useTool() {
   const executeTool = async <T = any, R = any>(
     request: ToolExecuteRequest<T>
   ): Promise<ToolExecuteResponse<R>> => {
-    return await $api('/tools/execute', {
+    const response = await $api<ApiResponse<ToolExecuteResponse<R>>>('/tools/execute', {
       method: 'POST',
       body: request
     })
+    return response.data
   }
 
   // 获取任务状态

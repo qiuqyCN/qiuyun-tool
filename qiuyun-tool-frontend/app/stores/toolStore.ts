@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { CategoryResponse, ToolResponse } from '~/composables/useApi'
+import type { CategoryResponse, ToolResponse, ApiResponse } from '~/types/api'
 
 export interface ToolState {
   categories: CategoryResponse[]
@@ -102,20 +102,16 @@ export const useToolStore = defineStore('tool', {
 
       try {
         const config = useRuntimeConfig()
-        const baseUrl = config.public.apiBaseUrl as string
 
-        // 并行获取分类和工具数据
-        const [categoriesRes, toolsRes] = await Promise.all([
-          fetch(`${baseUrl}/store/categories`),
-          fetch(`${baseUrl}/store/tools`)
+        // 使用 $fetch 替代原生 fetch，支持 SSR
+        const [categoriesData, toolsData]: [ApiResponse, ApiResponse] = await Promise.all([
+          $fetch('/store/categories', {
+            baseURL: config.public.apiBaseUrl
+          }),
+          $fetch('/store/tools', {
+            baseURL: config.public.apiBaseUrl
+          })
         ])
-
-        if (!categoriesRes.ok || !toolsRes.ok) {
-          throw new Error('获取数据失败')
-        }
-
-        const categoriesData = await categoriesRes.json()
-        const toolsData = await toolsRes.json()
 
         if (categoriesData.code === 200) {
           this.categories = categoriesData.data || []

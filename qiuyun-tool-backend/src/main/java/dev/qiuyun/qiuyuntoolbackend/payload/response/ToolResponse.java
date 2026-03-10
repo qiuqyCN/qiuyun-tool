@@ -24,10 +24,18 @@ public class ToolResponse {
     private String description;
     private String category;
     private String icon;
+    private String iconColor;
+    private String iconBgColor;
     private Boolean isVip;
+    private Boolean isHot;
+    private String priceMode;
     private Long visits;
+    private Long viewCount;
+    private Long usageCount;
     private BigDecimal rating;
     private Integer reviewCount;
+    private Integer favoriteCount;
+    private String instructions;
     private List<String> tags;
     private LocalDateTime createdAt;
 }

@@ -13,6 +13,14 @@ export enum TaskStatus {
   FAILED = 'failed'
 }
 
+// 统一API响应包装类
+export interface ApiResponse<T = any> {
+  code: number
+  message: string
+  data: T
+  timestamp: number
+}
+
 // 工具执行请求
 export interface ToolExecuteRequest<T = any> {
   toolCode: string

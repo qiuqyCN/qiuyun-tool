@@ -116,7 +116,7 @@
               <NuxtLink
                 v-for="related in relatedTools"
                 :key="related.code"
-                :to="`/${related.categoryCode}/${related.code}`"
+                :to="`/${related.category}/${related.code}`"
                 class="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors group"
               >
                 <div
@@ -191,8 +191,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, h } from 'vue'
+import { ref, computed, h, onMounted } from 'vue'
 import { useUserStore } from '~/stores/userStore'
+import { useToolStore } from '~/stores/toolStore'
 import ToolReviews from '~/components/review/ToolReviews.vue'
 import {
   ChevronRight,
@@ -243,47 +244,44 @@ const getToolIcon = (iconName?: string) => {
   return iconMap[iconName] || Wrench
 }
 
-// Props
-interface ToolInfo {
-  code: string
-  name: string
-  description: string
-  icon?: string
-  iconColor?: string
-  iconBgColor?: string
-  priceMode: 'free' | 'vip'
-  isHot?: boolean
-  viewCount: number
-  usageCount: number
-  rating: number
-  favoriteCount: number
-  reviewCount: number
-  instructions?: string
-}
-
-interface CategoryInfo {
-  code: string
-  name: string
-}
-
-interface RelatedTool {
-  code: string
-  name: string
-  description: string
-  icon?: string
-  iconColor?: string
-  iconBgColor?: string
-  categoryCode: string
-}
-
+// Props - 只接收 toolCode，其他信息从 store 获取
 const props = defineProps<{
-  tool: ToolInfo
-  category: CategoryInfo
-  relatedTools?: RelatedTool[]
-  toolId?: number
+  toolCode: string
 }>()
 
+// Store
 const userStore = useUserStore()
+const toolStore = useToolStore()
+
+// SSR：确保 store 已初始化（服务端渲染时获取数据）
+await useAsyncData('tool-layout-init', async () => {
+  if (!toolStore.initialized || toolStore.tools.length === 0) {
+    await toolStore.initialize()
+  }
+  return true
+}, {
+  server: true
+})
+
+// 从 store 获取工具信息
+const tool = computed(() => toolStore.getToolByCode(props.toolCode))
+
+// 从 store 获取分类信息
+const category = computed(() => {
+  if (!tool.value) return null
+  return toolStore.categories.find(cat => cat.code === tool.value?.category)
+})
+
+// 工具ID
+const toolId = computed(() => tool.value?.id)
+
+// 相关工具（同分类的其他工具，排除当前工具）
+const relatedTools = computed(() => {
+  if (!tool.value) return []
+  return toolStore.tools
+    .filter(t => t.category === tool.value?.category && t.code !== props.toolCode)
+    .slice(0, 5)
+})
 
 // 收藏
 const isFavorite = ref(false)
@@ -299,7 +297,7 @@ const toggleFavorite = () => {
 // 分享
 const shareTool = async () => {
   const url = window.location.href
-  const title = props.tool?.name || '秋云工具'
+  const title = tool.value?.name || '秋云工具'
 
   if (navigator.share) {
     try {
@@ -339,7 +337,4 @@ const submitFeedback = async () => {
   feedbackType.value = ''
   feedbackContent.value = ''
 }
-
-// 相关工具
-const relatedTools = computed(() => props.relatedTools || [])
 </script>
