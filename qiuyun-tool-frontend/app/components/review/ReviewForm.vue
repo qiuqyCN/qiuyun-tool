@@ -9,11 +9,11 @@
       <label class="block text-sm font-medium text-muted-foreground mb-2">评分</label>
       <div class="flex items-center gap-3">
         <StarRating
-          :rating="form.rating"
+          :rating="form.rating || 0"
           :readonly="false"
           @change="form.rating = $event"
         />
-        <span v-if="form.rating > 0" class="text-sm text-amber-500">{{ ratingText }}</span>
+        <span v-if="(form.rating || 0) > 0" class="text-sm text-amber-500">{{ ratingText }}</span>
       </div>
     </div>
 
@@ -175,12 +175,12 @@ watch(() => props.initialData, (newData) => {
 // 评分文本
 const ratingText = computed(() => {
   const texts = ['', '非常差', '差', '一般', '好', '非常好']
-  return texts[form.rating] || ''
+  return texts[form.rating || 0] || ''
 })
 
 // 是否可以提交
 const canSubmit = computed(() => {
-  return form.rating > 0 && form.content.trim().length > 0
+  return (form.rating || 0) > 0 && form.content.trim().length > 0
 })
 
 // 切换 emoji 选择器
