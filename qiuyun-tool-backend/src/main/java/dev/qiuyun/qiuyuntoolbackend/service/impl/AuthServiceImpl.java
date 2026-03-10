@@ -2,6 +2,7 @@ package dev.qiuyun.qiuyuntoolbackend.service.impl;
 
 import dev.qiuyun.qiuyuntoolbackend.entity.User;
 import dev.qiuyun.qiuyuntoolbackend.entity.UserRole;
+import dev.qiuyun.qiuyuntoolbackend.enums.UserStatus;
 import dev.qiuyun.qiuyuntoolbackend.payload.request.LoginRequest;
 import dev.qiuyun.qiuyuntoolbackend.payload.request.RegisterRequest;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.LoginResponse;
@@ -123,7 +124,7 @@ public class AuthServiceImpl implements AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getUsername())
                 .isVip(false)
-                .status(1)
+                .status(UserStatus.ENABLED)
                 .build();
 
         // 添加默认角色

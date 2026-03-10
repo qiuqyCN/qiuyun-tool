@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import type { UserStatus } from '~/types/enums'
 
 export interface UserInfo {
   id: number
@@ -7,6 +8,7 @@ export interface UserInfo {
   email: string
   avatar?: string
   isVip: boolean
+  status: UserStatus
   roles: string[]
 }
 
@@ -15,6 +17,7 @@ export interface AuthState {
   accessToken: string | null
   refreshToken: string | null
   isAuthenticated: boolean
+  isLoginModalVisible: boolean
 }
 
 // API 响应类型
@@ -39,7 +42,8 @@ export const useUserStore = defineStore('user', {
     user: null,
     accessToken: null,
     refreshToken: null,
-    isAuthenticated: false
+    isAuthenticated: false,
+    isLoginModalVisible: false
   }),
 
   getters: {
@@ -199,6 +203,11 @@ export const useUserStore = defineStore('user', {
       }
 
       return false
+    },
+
+    // 显示/隐藏登录弹窗
+    setLoginModalVisible(visible: boolean) {
+      this.isLoginModalVisible = visible
     }
   }
 })

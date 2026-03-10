@@ -4,6 +4,7 @@ import dev.qiuyun.qiuyuntoolbackend.entity.Category;
 import dev.qiuyun.qiuyuntoolbackend.entity.Tag;
 import dev.qiuyun.qiuyuntoolbackend.entity.Tool;
 import dev.qiuyun.qiuyuntoolbackend.entity.User;
+import dev.qiuyun.qiuyuntoolbackend.enums.UserStatus;
 import dev.qiuyun.qiuyuntoolbackend.repository.CategoryRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.TagRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.ToolRepository;
@@ -429,7 +430,7 @@ public class DataInitializer implements CommandLineRunner {
                 .nickname("普通用户")
                 .avatar("https://api.dicebear.com/9.x/dylan/svg?seed=user")
                 .isVip(false)
-                .status(1)
+                .status(UserStatus.ENABLED)
                 .build();
         normalUser.addRole("USER");
 
@@ -441,7 +442,7 @@ public class DataInitializer implements CommandLineRunner {
                 .nickname("VIP用户")
                 .avatar("https://api.dicebear.com/9.x/dylan/svg?seed=vip")
                 .isVip(true)
-                .status(1)
+                .status(UserStatus.ENABLED)
                 .build();
         vipUser.addRole("USER");
         vipUser.addRole("VIP");
@@ -454,7 +455,7 @@ public class DataInitializer implements CommandLineRunner {
                 .nickname("管理员")
                 .avatar("https://api.dicebear.com/9.x/dylan/svg?seed=admin")
                 .isVip(true)
-                .status(1)
+                .status(UserStatus.ENABLED)
                 .build();
         adminUser.addRole("USER");
         adminUser.addRole("ADMIN");

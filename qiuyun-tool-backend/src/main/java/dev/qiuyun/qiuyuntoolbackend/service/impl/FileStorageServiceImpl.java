@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -176,5 +178,63 @@ public class FileStorageServiceImpl implements FileStorageService {
             return "";
         }
         return fileName.substring(fileName.lastIndexOf("."));
+    }
+
+    @Value("${app.image.dir:${java.io.tmpdir}/qiuyun-images}")
+    private String imageDirPath;
+
+    @Value("${app.image.url-prefix:/api/images}")
+    private String imageUrlPrefix;
+
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
+
+    @Override
+    public String storeImage(MultipartFile file, Long userId) {
+        try {
+            // 创建图片存储目录
+            Path imageDir = Paths.get(imageDirPath);
+            if (!Files.exists(imageDir)) {
+                Files.createDirectories(imageDir);
+            }
+
+            // 生成文件名: 日期/用户ID_随机UUID.扩展名
+            String dateDir = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+            Path datePath = imageDir.resolve(dateDir);
+            if (!Files.exists(datePath)) {
+                Files.createDirectories(datePath);
+            }
+
+            String extension = getExtension(file.getOriginalFilename());
+            String fileName = String.format("%s_%s%s", userId, UUID.randomUUID().toString().substring(0, 8), extension);
+            Path targetPath = datePath.resolve(fileName);
+
+            // 保存文件
+            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+            // 返回相对路径
+            return dateDir + "/" + fileName;
+        } catch (IOException e) {
+            throw new BusinessException("保存图片失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public String getImageUrl(String fileName) {
+        if (fileName == null || fileName.isEmpty()) {
+            return "";
+        }
+        // 返回完整URL，包含baseUrl
+        return baseUrl + imageUrlPrefix + "/" + fileName;
+    }
+
+    @Override
+    public InputStream getImageStream(String fileName) {
+        try {
+            Path imagePath = Paths.get(imageDirPath).resolve(fileName);
+            return Files.newInputStream(imagePath);
+        } catch (IOException e) {
+            throw new BusinessException("读取图片失败: " + e.getMessage());
+        }
     }
 }

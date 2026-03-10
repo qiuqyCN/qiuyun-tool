@@ -1,5 +1,6 @@
 package dev.qiuyun.qiuyuntoolbackend.entity;
 
+import dev.qiuyun.qiuyuntoolbackend.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,9 +55,10 @@ public class User {
     @Column(name = "vip_expire_date")
     private LocalDateTime vipExpireDate;
 
+    @Enumerated(EnumType.ORDINAL)
     @Column
     @Builder.Default
-    private Integer status = 1; // 0-禁用，1-正常
+    private UserStatus status = UserStatus.ENABLED;
 
     @Column(name = "last_login_time")
     private LocalDateTime lastLoginTime;
@@ -91,7 +93,7 @@ public class User {
      * 检查用户是否有效
      */
     public boolean isEnabled() {
-        return status != null && status == 1;
+        return status != null && status.isEnabled();
     }
 
     /**

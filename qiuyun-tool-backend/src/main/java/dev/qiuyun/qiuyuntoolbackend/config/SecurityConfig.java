@@ -50,6 +50,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/store/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tools/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                        // 评论相关接口 - GET 请求公开，其他需要认证
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
+                        // 图片访问公开
+                        .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
                         // 其他需要认证
                         .anyRequest().authenticated()
                 )

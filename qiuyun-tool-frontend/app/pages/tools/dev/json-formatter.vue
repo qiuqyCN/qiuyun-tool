@@ -217,7 +217,7 @@ const handleProcess = () => {
 </script>
 
 <template>
-  <NuxtLayout name="tool" :tool="toolInfo" :category="categoryInfo" :related-tools="relatedTools">
+  <NuxtLayout name="tool" :tool="toolInfo" :category="categoryInfo" :related-tools="relatedTools" :tool-id="1">
     <!-- 工具执行区域 -->
     <div class="border border-border/40 rounded-xl overflow-hidden">
       <!-- 工具 Tabs -->

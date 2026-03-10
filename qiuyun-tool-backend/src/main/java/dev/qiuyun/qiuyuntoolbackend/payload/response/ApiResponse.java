@@ -17,12 +17,14 @@ public class ApiResponse<T> {
     private Integer code;
     private String message;
     private T data;
+    private Long timestamp;
 
     public static <T> ApiResponse<T> success(T data) {
         return ApiResponse.<T>builder()
                 .code(200)
                 .message("success")
                 .data(data)
+                .timestamp(System.currentTimeMillis())
                 .build();
     }
 
@@ -34,6 +36,7 @@ public class ApiResponse<T> {
         return ApiResponse.<T>builder()
                 .code(500)
                 .message(message)
+                .timestamp(System.currentTimeMillis())
                 .build();
     }
 
@@ -41,6 +44,7 @@ public class ApiResponse<T> {
         return ApiResponse.<T>builder()
                 .code(code)
                 .message(message)
+                .timestamp(System.currentTimeMillis())
                 .build();
     }
 }

@@ -1,5 +1,6 @@
 package dev.qiuyun.qiuyuntoolbackend.payload.response;
 
+import dev.qiuyun.qiuyuntoolbackend.enums.UserStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -21,7 +22,7 @@ public class UserResponse {
     private String phone;
     private Boolean isVip;
     private LocalDateTime vipExpireDate;
-    private Integer status;
+    private UserStatus status;
     private List<String> roles;
     private LocalDateTime lastLoginTime;
     private LocalDateTime createdAt;
