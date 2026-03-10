@@ -56,6 +56,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
                         // 图片访问公开
                         .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
+                        // 排行榜接口 - GET 请求公开
+                        .requestMatchers(HttpMethod.GET, "/api/rankings/**").permitAll()
+                        // 收藏接口 - 检查收藏状态公开，其他需要认证
+                        .requestMatchers(HttpMethod.GET, "/api/favorites/check/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/favorites/count/**").permitAll()
                         // 其他需要认证
                         .anyRequest().authenticated()
                 )

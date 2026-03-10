@@ -72,6 +72,7 @@
             variant="outline"
             size="icon"
             :class="isFavorite ? 'text-red-500' : ''"
+            :disabled="favoriteLoading"
             @click="toggleFavorite"
           >
             <Heart class="w-4 h-4" :class="isFavorite ? 'fill-current' : ''" />
@@ -336,14 +337,66 @@ const relatedTools = computed(() => {
 
 // 收藏
 const isFavorite = ref(false)
-const toggleFavorite = () => {
+const favoriteLoading = ref(false)
+
+// 获取收藏状态
+const fetchFavoriteStatus = async () => {
+  if (!toolId.value) return
+
+  try {
+    const { $api } = useNuxtApp()
+    const response = await $api(`/favorites/check/${toolId.value}`)
+
+    if (response.code === 200) {
+      isFavorite.value = response.data.isFavorite
+    }
+  } catch (error) {
+    console.error('获取收藏状态失败:', error)
+  }
+}
+
+// 切换收藏状态
+const toggleFavorite = async () => {
   if (!userStore.isLoggedIn) {
-    // 显示登录弹窗
+    userStore.setLoginModalVisible(true)
     return
   }
-  isFavorite.value = !isFavorite.value
-  // TODO: 调用API
+
+  if (!toolId.value || favoriteLoading.value) return
+
+  favoriteLoading.value = true
+  try {
+    const { $api } = useNuxtApp()
+    const response = await $api(`/favorites/toggle/${toolId.value}`, {
+      method: 'POST'
+    })
+
+    if (response.code === 200) {
+      isFavorite.value = response.data.isFavorite
+      // 更新工具的收藏数
+      if (tool.value) {
+        tool.value.favoriteCount = response.data.favoriteCount
+      }
+    } else if (response.code === 401) {
+      userStore.setLoginModalVisible(true)
+    }
+  } catch (error: any) {
+    if (error.response?.status === 401) {
+      userStore.setLoginModalVisible(true)
+    } else {
+      console.error('切换收藏状态失败:', error)
+    }
+  } finally {
+    favoriteLoading.value = false
+  }
 }
+
+// 页面加载时获取收藏状态
+onMounted(() => {
+  if (userStore.isLoggedIn && toolId.value) {
+    fetchFavoriteStatus()
+  }
+})
 
 // 分享
 const shareTool = async () => {

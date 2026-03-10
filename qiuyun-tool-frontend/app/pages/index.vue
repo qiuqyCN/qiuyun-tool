@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToolStore } from '@/stores/toolStore'
+import { useUserStore } from '@/stores/userStore'
 import type { ToolResponse } from '@/types/api'
 
 import {
@@ -55,8 +56,9 @@ const toolStore = useToolStore()
 // 当前选中的 tab
 const activeTab = ref('hot')
 
-// 是否登录（模拟）
-const isLoggedIn = ref(false)
+// 用户Store
+const userStore = useUserStore()
+const isLoggedIn = computed(() => userStore.isLoggedIn)
 
 // SSR：在服务端获取数据
 // 注意：useAsyncData 会在服务端和客户端都执行，但会避免重复请求
@@ -110,11 +112,42 @@ const recentTools = computed(() => {
   return []
 })
 
-// 获取收藏的工具（模拟数据）
-const favoriteTools = computed(() => {
-  if (!isLoggedIn.value) return []
-  // 模拟收藏数据
-  return toolStore.hotTools.filter((t: ToolResponse) => t.tags.includes('热门')).slice(0, 8)
+// 获取收藏的工具
+const favoriteTools = ref<ToolResponse[]>([])
+const favoriteLoading = ref(false)
+
+const fetchFavoriteTools = async () => {
+  if (!isLoggedIn.value) return
+
+  favoriteLoading.value = true
+  try {
+    const { $api } = useNuxtApp()
+    const response = await $api('/favorites', {
+      params: { page: 0, size: 8 }
+    })
+
+    if (response.code === 200) {
+      favoriteTools.value = response.data.content || []
+    }
+  } catch (error) {
+    console.error('获取收藏工具失败:', error)
+  } finally {
+    favoriteLoading.value = false
+  }
+}
+
+// 监听登录状态和tab切换，获取收藏数据
+watch([isLoggedIn, activeTab], () => {
+  if (isLoggedIn.value && activeTab.value === 'favorite') {
+    fetchFavoriteTools()
+  }
+})
+
+// 页面加载时如果已登录且选中收藏tab，获取数据
+onMounted(() => {
+  if (isLoggedIn.value && activeTab.value === 'favorite') {
+    fetchFavoriteTools()
+  }
 })
 
 // 所有工具（用于搜索）
@@ -351,7 +384,7 @@ const reloadData = () => {
             <div v-else class="text-center py-16">
               <Heart class="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
               <p class="text-muted-foreground mb-4">登录后可查看收藏工具</p>
-              <Button @click="navigateTo('/login')">去登录</Button>
+              <Button @click="userStore.setLoginModalVisible(true)">去登录</Button>
             </div>
           </TabsContent>
 

@@ -171,9 +171,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#DBEAFE")
                 .isVip(false)
                 .isActive(true)
-                .visitsCount(125432L)
-                .rating(BigDecimal.valueOf(4.8))
-                .reviewCount(328)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>格式化</strong>：将压缩的 JSON 数据转换为易读的格式，自动添加缩进和换行</li>\n" +
                         "    <li><strong>压缩</strong>：去除 JSON 中的空白字符，减小数据体积</li>\n" +
@@ -194,9 +197,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#E0E7FF")
                 .isVip(false)
                 .isActive(true)
-                .visitsCount(45678L)
-                .rating(BigDecimal.valueOf(4.6))
-                .reviewCount(128)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>JSON转YAML</strong>：将JSON格式的数据转换为YAML格式，便于配置文件编写</li>\n" +
                         "    <li><strong>YAML转JSON</strong>：将YAML格式的数据转换为JSON格式，便于程序解析</li>\n" +
@@ -217,9 +223,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#EDE9FE")
                 .isVip(true)
                 .isActive(true)
-                .visitsCount(89321L)
-                .rating(BigDecimal.valueOf(4.7))
-                .reviewCount(256)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>HTML格式化</strong>：自动缩进和换行，使HTML结构清晰易读</li>\n" +
                         "    <li><strong>CSS格式化</strong>：美化CSS样式代码，规范属性格式</li>\n" +
@@ -240,9 +249,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#E0F2FE")
                 .isVip(false)
                 .isActive(true)
-                .visitsCount(67890L)
-                .rating(BigDecimal.valueOf(4.5))
-                .reviewCount(189)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>输入正则表达式</strong>：在正则输入框中填写要测试的正则表达式</li>\n" +
                         "    <li><strong>输入测试文本</strong>：在文本框中输入需要匹配的测试内容</li>\n" +
@@ -263,9 +275,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#CFFAFE")
                 .isVip(false)
                 .isActive(true)
-                .visitsCount(98765L)
-                .rating(BigDecimal.valueOf(4.9))
-                .reviewCount(412)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>时间戳转日期</strong>：输入Unix时间戳（秒或毫秒），转换为可读的日期时间</li>\n" +
                         "    <li><strong>日期转时间戳</strong>：选择或输入日期时间，转换为Unix时间戳</li>\n" +
@@ -286,9 +301,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#CCFBF1")
                 .isVip(false)
                 .isActive(true)
-                .visitsCount(76543L)
-                .rating(BigDecimal.valueOf(4.6))
-                .reviewCount(198)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>Base64编码</strong>：将普通文本转换为Base64编码格式</li>\n" +
                         "    <li><strong>Base64解码</strong>：将Base64编码还原为原始文本</li>\n" +
@@ -310,9 +328,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#D1FAE5")
                 .isVip(false)
                 .isActive(true)
-                .visitsCount(156789L)
-                .rating(BigDecimal.valueOf(4.7))
-                .reviewCount(523)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>上传图片</strong>：点击上传或拖拽图片文件到指定区域</li>\n" +
                         "    <li><strong>选择压缩质量</strong>：调整压缩比例，平衡画质和文件大小</li>\n" +
@@ -333,9 +354,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#DCFCE7")
                 .isVip(true)
                 .isActive(true)
-                .visitsCount(87654L)
-                .rating(BigDecimal.valueOf(4.5))
-                .reviewCount(234)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>上传图片</strong>：选择需要转换格式的图片文件</li>\n" +
                         "    <li><strong>选择目标格式</strong>：选择要转换成的图片格式</li>\n" +
@@ -356,9 +380,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#D1FAE5")
                 .isVip(false)
                 .isActive(true)
-                .visitsCount(65432L)
-                .rating(BigDecimal.valueOf(4.4))
-                .reviewCount(156)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>上传图片</strong>：选择要转换的图片文件</li>\n" +
                         "    <li><strong>自动转换</strong>：系统自动将图片转换为Base64编码</li>\n" +
@@ -380,9 +407,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#FFEDD5")
                 .isVip(true)
                 .isActive(true)
-                .visitsCount(234567L)
-                .rating(BigDecimal.valueOf(4.8))
-                .reviewCount(892)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>上传PDF</strong>：选择要转换的PDF文件</li>\n" +
                         "    <li><strong>开始转换</strong>：点击转换按钮，等待处理完成</li>\n" +
@@ -403,9 +433,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#FED7AA")
                 .isVip(false)
                 .isActive(true)
-                .visitsCount(45678L)
-                .rating(BigDecimal.valueOf(4.6))
-                .reviewCount(167)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>编辑Markdown</strong>：在左侧编辑器中输入Markdown语法</li>\n" +
                         "    <li><strong>实时预览</strong>：右侧实时显示渲染后的效果</li>\n" +
@@ -427,9 +460,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#FEE2E2")
                 .isVip(false)
                 .isActive(true)
-                .visitsCount(112345L)
-                .rating(BigDecimal.valueOf(4.7))
-                .reviewCount(445)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>输入文本</strong>：在输入框中填写需要加密的文本</li>\n" +
                         "    <li><strong>选择位数</strong>：选择32位或16位MD5加密</li>\n" +
@@ -450,9 +486,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#FECACA")
                 .isVip(false)
                 .isActive(true)
-                .visitsCount(56789L)
-                .rating(BigDecimal.valueOf(4.5))
-                .reviewCount(223)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>URL编码</strong>：将特殊字符转换为URL安全格式</li>\n" +
                         "    <li><strong>URL解码</strong>：将编码后的URL还原为原始字符串</li>\n" +
@@ -474,9 +513,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#F3E8FF")
                 .isVip(false)
                 .isActive(true)
-                .visitsCount(34567L)
-                .rating(BigDecimal.valueOf(4.4))
-                .reviewCount(98)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>输入原文本</strong>：在左侧输入框中填写原始文本</li>\n" +
                         "    <li><strong>输入对比文本</strong>：在右侧输入框中填写对比文本</li>\n" +
@@ -497,9 +539,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#EDE9FE")
                 .isVip(false)
                 .isActive(true)
-                .visitsCount(78901L)
-                .rating(BigDecimal.valueOf(4.6))
-                .reviewCount(234)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>输入文本</strong>：在文本框中输入或粘贴需要统计的内容</li>\n" +
                         "    <li><strong>实时统计</strong>：系统自动显示字数、字符数、行数</li>\n" +
@@ -521,9 +566,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#FEF3C7")
                 .isVip(false)
                 .isActive(true)
-                .visitsCount(67890L)
-                .rating(BigDecimal.valueOf(4.5))
-                .reviewCount(156)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>输入数值</strong>：在输入框中填写要转换的数字</li>\n" +
                         "    <li><strong>选择进制</strong>：选择输入数字的当前进制</li>\n" +
@@ -544,9 +592,12 @@ public class DataInitializer implements CommandLineRunner {
                 .iconBgColor("#FEF9C3")
                 .isVip(false)
                 .isActive(true)
-                .visitsCount(89012L)
-                .rating(BigDecimal.valueOf(4.7))
-                .reviewCount(267)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
                         "    <li><strong>设置范围</strong>：输入最小值和最大值</li>\n" +
                         "    <li><strong>生成数量</strong>：选择要生成的随机数个数</li>\n" +
