@@ -16,7 +16,20 @@ import java.time.LocalDateTime;
  * 工具评论实体
  */
 @Entity
-@Table(name = "tool_reviews")
+@Table(name = "tool_reviews", indexes = {
+        // 复合索引：查询工具评论列表（按时间排序）
+        // 覆盖场景：findReviewsByNewest - WHERE tool_id=? AND review_type=0 AND status=1 ORDER BY created_at DESC
+        @Index(name = "idx_tool_reviews_query", columnList = "tool_id, review_type, status, created_at"),
+        // 复合索引：查询工具评论列表（按热度排序）
+        // 覆盖场景：findReviewsByHot - WHERE tool_id=? AND review_type=0 AND status=1 ORDER BY like_count DESC
+        @Index(name = "idx_tool_reviews_hot", columnList = "tool_id, review_type, status, like_count"),
+        // 复合索引：查询评论的回复列表
+        // 覆盖场景：findReplies/findTopReplies - WHERE parent_id=? AND status=1 ORDER BY created_at ASC
+        @Index(name = "idx_replies", columnList = "parent_id, status, created_at"),
+        // 复合索引：检查用户是否已评论过某工具
+        // 覆盖场景：existsByToolIdAndUserIdAndReviewType - WHERE user_id=? AND tool_id=? AND review_type=?
+        @Index(name = "idx_user_review_check", columnList = "user_id, tool_id, review_type")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

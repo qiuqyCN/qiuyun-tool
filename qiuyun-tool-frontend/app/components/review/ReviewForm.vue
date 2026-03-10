@@ -51,35 +51,11 @@
     </div>
 
     <!-- Emoji 选择器弹窗 -->
-    <div
-      v-if="showEmojiPicker"
-      ref="emojiPickerRef"
-      class="mt-2 p-3 bg-popover border border-border rounded-xl shadow-lg relative z-50"
-    >
-      <!-- Emoji 分类标签 -->
-      <div class="flex gap-1 mb-3 border-b border-border pb-2">
-        <button
-          v-for="category in emojiCategories"
-          :key="category.name"
-          class="px-3 py-1 text-sm rounded-md transition-colors"
-          :class="currentEmojiCategory === category.name ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'"
-          @click="currentEmojiCategory = category.name"
-        >
-          {{ category.icon }}
-        </button>
-      </div>
-      <!-- Emoji 网格 -->
-      <div class="grid grid-cols-10 gap-1 max-h-48 overflow-y-auto">
-        <button
-          v-for="emoji in currentEmojis"
-          :key="emoji"
-          class="p-1.5 text-xl hover:bg-muted rounded-md transition-colors flex items-center justify-center"
-          @click="insertEmoji(emoji)"
-        >
-          {{ emoji }}
-        </button>
-      </div>
-    </div>
+    <EmojiPicker
+      v-model="showEmojiPicker"
+      class-name="mt-2"
+      @select="insertEmoji"
+    />
 
     <!-- 底部工具栏（Bilibili风格） -->
     <div class="flex items-center justify-between mt-3">
@@ -149,18 +125,9 @@
 
 <script setup lang="ts">
 import { Smile, X, Image as ImageIcon } from 'lucide-vue-next'
-import { onClickOutside } from '@vueuse/core'
 import StarRating from './StarRating.vue'
+import EmojiPicker from './EmojiPicker.vue'
 import type { SubmitReviewRequest } from '~/types/review'
-
-// Emoji 分类
-const emojiCategories = [
-  { name: '小黄脸', icon: '😀', emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐', '😕', '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣', '😞', '😓', '😩', '😫', '🥱', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡', '👹', '👺', '👻', '👽', '👾', '🤖', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾'] },
-  { name: '手势', icon: '👍', emojis: ['👍', '👎', '👏', '🙌', '🤝', '🤞', '✌️', '🤟', '🤘', '👌', '🤏', '👈', '👉', '👆', '👇', '☝️', '✋', '🤚', '🖐️', '🖖', '👋', '🤙', '💪', '🦾', '🖕', '✍️', '🤳', '💅', '🦵', '🦿', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸'] },
-  { name: '爱心', icon: '❤️', emojis: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️', '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️', '❎', '🌐', '💠', 'Ⓜ️', '🌀', '💤', '🏧', '🚾', '♿', '🅿️', '🈳', '🈂', '🛂', '🛃', '🛄', '🛅', '🛗', '🚹', '🚺', '🚼', '⚧', '🚻', '🚮', '🎦', '📶', '🈁', '🔣', 'ℹ️', '🔤', '🔡', '🔠', '🆖', '🆗', '🆙', '🆒', '🆕', '🆓', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔢', '#️⃣', '*️⃣', '⏏️', '▶️', '⏸️', '⏯️', '⏹️', '⏺️', '⏭️', '⏮️', '⏩', '⏪', '⏫', '⏬', '◀️', '🔼', '🔽', '➡️', '⬅️', '⬆️', '⬇️', '↗️', '↘️', '↙️', '↖️', '↕️', '↔️', '↪️', '↩️', '⤴️', '⤵️', '🔀', '🔁', '🔂', '🔄', '🔃', '🎵', '🎶', '➕', '➖', '➗', '✖️', '💲', '💱', '™️', '©️', '®️', '〰️', '➰', '➿', '🔚', '🔙', '🔛', '🔝', '🔜', '✔️', '☑️', '🔘', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🔺', '🔻', '🔸', '🔹', '🔶', '🔷', '🔳', '🔲', '▪️', '▫️', '◾', '◽', '◼️', '◻️', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '⬛', '⬜', '🟫', '🔈', '🔇', '🔉', '🔊', '🔔', '🔕', '📣', '📢', '💬', '💭', '🗯️', '♠️', '♣️', '♥️', '♦️', '🃏', '🎴', '🀄', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛', '🕜', '🕝', '🕞', '🕟', '🕠', '🕡', '🕢', '🕣', '🕤', '🕥', '🕦', '🕧'] },
-  { name: '动物', icon: '🐱', emojis: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🕷️', '🕸️', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🦙', '🐐', '🦌', '🐕', '🐩', '🦮', '🐕‍🦺', '🐈', '🐈‍⬛', '🐓', '🦃', '🦚', '🦜', '🦢', '🦩', '🕊️', '🐇', '🦝', '🦨', '🦡', '🦦', '🦥', '🐁', '🐀', '🐿️', '🦔'] },
-  { name: '食物', icon: '🍎', emojis: ['🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍈', '🍒', '🍑', '🍍', '🥝', '🥑', '🍅', '🍆', '🥒', '🥕', '🌽', '🌶️', '🥬', '🥦', '🧄', '🧅', '🍄', '🥜', '🌰', '🍞', '🥐', '🥖', '🥨', '🥯', '🥞', '🧇', '🧀', '🍖', '🍗', '🥩', '🥓', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🌯', '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🥣', '🥗', '🍿', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🍡', '🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼', '🥛', '☕', '🍵', '🧃', '🥤', '🍶', '🍺', '🍻', '🥂', '🍷', '🥃', '🍸', '🍹', '🧉', '🍾', '🧊', '🥄', '🍴', '🍽️', '🥣', '🥡', '🥢', '🧂'] },
-]
 
 interface Props {
   toolId: number
@@ -185,28 +152,15 @@ const emit = defineEmits<{
 const { $api } = useNuxtApp()
 const toast = useToast()
 const fileInput = ref<HTMLInputElement>()
-const emojiPickerRef = ref<HTMLElement>()
 const submitting = ref(false)
 const uploading = ref(false)
 const showEmojiPicker = ref(false)
-const currentEmojiCategory = ref('小黄脸')
-
-// 点击外部关闭 emoji 选择器
-onClickOutside(emojiPickerRef, () => {
-  showEmojiPicker.value = false
-})
 
 const form = reactive<SubmitReviewRequest & { imageUrls: string[] }>({
   rating: props.initialData?.rating || 0,
   content: props.initialData?.content || '',
   imageUrls: props.initialData?.imageUrls || [],
   toolId: props.toolId
-})
-
-// 当前分类的 emoji
-const currentEmojis = computed(() => {
-  const category = emojiCategories.find(c => c.name === currentEmojiCategory.value)
-  return category?.emojis || []
 })
 
 // 监听 initialData 变化（编辑时更新表单）
@@ -275,7 +229,7 @@ const handleFileChange = async (e: Event) => {
         continue
       }
 
-      // 上传图片到服务器
+      // 上传图片到服务器（临时上传）
       const formData = new FormData()
       formData.append('file', file)
 

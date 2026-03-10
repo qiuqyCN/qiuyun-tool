@@ -15,6 +15,7 @@ import dev.qiuyun.qiuyuntoolbackend.repository.ToolReviewLikeRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.ToolReviewRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.UserRepository;
 import dev.qiuyun.qiuyuntoolbackend.service.ReviewService;
+import dev.qiuyun.qiuyuntoolbackend.service.TempImageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +42,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ToolReviewRepository reviewRepository;
     private final ToolReviewLikeRepository likeRepository;
     private final UserRepository userRepository;
+    private final TempImageService tempImageService;
     private final ObjectMapper objectMapper;
 
     @Value("${app.base-url:http://localhost:8080}")
@@ -70,6 +72,10 @@ public class ReviewServiceImpl implements ReviewService {
                 .build();
 
         reviewRepository.save(review);
+
+        // 标记图片为已关联
+        tempImageService.markImagesAsLinked(request.getImageUrls());
+
         ReviewResponse response = convertToResponse(review, userId);
 
         // 查询并设置用户信息
@@ -105,11 +111,26 @@ public class ReviewServiceImpl implements ReviewService {
         if (request.getContent() != null) {
             review.setContent(request.getContent());
         }
-        if (request.getImageUrls() != null) {
-            review.setImageUrls(convertImageUrls(request.getImageUrls()));
+        
+        // 获取更新前的图片列表
+        List<String> oldImageUrls = parseImageUrls(review.getImageUrls());
+        // 获取新的图片列表（为空则表示全部删除）
+        List<String> newImageUrls = request.getImageUrls() != null ? request.getImageUrls() : List.of();
+        
+        // 更新图片
+        review.setImageUrls(convertImageUrls(newImageUrls));
+        reviewRepository.save(review);
+
+        // 标记新图片为已关联（可能已被定时任务删除，但不影响评论保存）
+        tempImageService.markImagesAsLinked(newImageUrls);
+        
+        // 处理被删除的图片：移除关联关系，让定时任务清理
+        for (String oldUrl : oldImageUrls) {
+            if (!newImageUrls.contains(oldUrl)) {
+                tempImageService.unlinkImage(oldUrl);
+            }
         }
 
-        reviewRepository.save(review);
         ReviewResponse response = convertToResponse(review, userId);
 
         // 查询并设置用户信息
@@ -195,6 +216,9 @@ public class ReviewServiceImpl implements ReviewService {
             if (user != null) {
                 response.setUserNickname(user.getNickname());
                 response.setUserAvatar(resolveAvatarUrl(user.getAvatar()));
+                response.setIsVip(user.getIsVip() != null && user.getIsVip());
+                response.setIsAdmin(user.getRoles().stream()
+                        .anyMatch(role -> "ADMIN".equals(role.getRole())));
             }
 
             // 设置点赞状态
@@ -220,6 +244,9 @@ public class ReviewServiceImpl implements ReviewService {
                             if (replyUser != null) {
                                 replyResponse.setUserNickname(replyUser.getNickname());
                                 replyResponse.setUserAvatar(resolveAvatarUrl(replyUser.getAvatar()));
+                                replyResponse.setIsVip(replyUser.getIsVip() != null && replyUser.getIsVip());
+                                replyResponse.setIsAdmin(replyUser.getRoles().stream()
+                                        .anyMatch(role -> "ADMIN".equals(role.getRole())));
                             }
                             return replyResponse;
                         })
@@ -250,6 +277,9 @@ public class ReviewServiceImpl implements ReviewService {
                     if (user != null) {
                         response.setUserNickname(user.getNickname());
                         response.setUserAvatar(resolveAvatarUrl(user.getAvatar()));
+                        response.setIsVip(user.getIsVip() != null && user.getIsVip());
+                        response.setIsAdmin(user.getRoles().stream()
+                                .anyMatch(role -> "ADMIN".equals(role.getRole())));
                     }
                     return response;
                 })
@@ -390,6 +420,22 @@ public class ReviewServiceImpl implements ReviewService {
         } catch (JsonProcessingException e) {
             log.warn("转换图片URL失败: {}", e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * 解析JSON字符串为图片URL列表
+     */
+    private List<String> parseImageUrls(String imageUrlsJson) {
+        if (imageUrlsJson == null || imageUrlsJson.isEmpty()) {
+            return List.of();
+        }
+        try {
+            return objectMapper.readValue(imageUrlsJson,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
+        } catch (JsonProcessingException e) {
+            log.warn("解析图片URL失败: {}", e.getMessage());
+            return List.of();
         }
     }
 

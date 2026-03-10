@@ -45,4 +45,10 @@ public interface FileStorageService {
      * 获取图片文件流
      */
     InputStream getImageStream(String fileName);
+
+    /**
+     * 删除图片
+     * @param imageUrl 图片URL
+     */
+    void deleteImage(String imageUrl);
 }

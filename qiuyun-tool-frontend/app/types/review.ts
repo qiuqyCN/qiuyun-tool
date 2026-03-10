@@ -18,6 +18,8 @@ export interface Review {
   replyCount: number
   isLiked: boolean
   isOwner: boolean
+  isAdmin?: boolean
+  isVip?: boolean
   reviewType: ReviewType
   status: ReviewStatus
   replies?: Review[]
@@ -40,7 +42,7 @@ export interface ReviewStats {
 // 提交评论请求
 export interface SubmitReviewRequest {
   toolId?: number
-  rating: number
+  rating?: number
   content: string
   parentId?: number
   imageUrls?: string[]

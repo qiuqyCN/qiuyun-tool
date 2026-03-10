@@ -24,6 +24,8 @@ public class ReviewResponse {
     private Integer replyCount;
     private Boolean isLiked;
     private Boolean isOwner;
+    private Boolean isAdmin;
+    private Boolean isVip;
     private ReviewType reviewType;
     private List<ReviewResponse> replies;
     private LocalDateTime createdAt;

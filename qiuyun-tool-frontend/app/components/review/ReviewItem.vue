@@ -6,7 +6,8 @@
       <div class="flex-1 flex flex-col">
         <div class="flex items-center gap-2">
           <span class="text-sm font-medium text-foreground">{{ review.userNickname || '用户' }}</span>
-          <span v-if="review.reviewType === ReviewType.REPLY" class="text-xs px-1.5 py-0.5 bg-primary/10 text-primary rounded">回复</span>
+          <span v-if="review.isAdmin" class="text-xs px-1.5 py-0.5 bg-red-500/10 text-red-500 rounded font-medium">管理员</span>
+          <span v-else-if="review.isVip" class="text-xs px-1.5 py-0.5 bg-amber-500/10 text-amber-500 rounded font-medium">VIP</span>
         </div>
         <span class="text-xs text-muted-foreground">{{ formatTime(review.createdAt) }}</span>
       </div>

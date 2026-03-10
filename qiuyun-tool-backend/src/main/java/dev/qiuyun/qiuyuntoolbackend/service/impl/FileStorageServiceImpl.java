@@ -237,4 +237,26 @@ public class FileStorageServiceImpl implements FileStorageService {
             throw new BusinessException("读取图片失败: " + e.getMessage());
         }
     }
+
+    @Override
+    public void deleteImage(String imageUrl) {
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            return;
+        }
+        try {
+            // 从URL中提取文件名
+            String fileName = imageUrl;
+            if (imageUrl.contains(imageUrlPrefix)) {
+                fileName = imageUrl.substring(imageUrl.indexOf(imageUrlPrefix) + imageUrlPrefix.length() + 1);
+            }
+            
+            Path imagePath = Paths.get(imageDirPath).resolve(fileName);
+            if (Files.exists(imagePath)) {
+                Files.delete(imagePath);
+                log.debug("删除图片成功: {}", imagePath);
+            }
+        } catch (IOException e) {
+            log.warn("删除图片失败: {}, 原因: {}", imageUrl, e.getMessage());
+        }
+    }
 }
