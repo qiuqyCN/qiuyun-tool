@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { AlertCircle, CheckCircle, Copy, Download, Check, Loader2 } from 'lucide-vue-next'
+import { AlertCircle, CheckCircle, Copy, Download, Check, Loader2, Braces } from 'lucide-vue-next'
 import { useToolExecutor } from '~/composables/useToolExecutor'
 import { ToolType } from '~/types/tool'
 
@@ -46,6 +46,22 @@ const activeTab = ref<JsonOperation>(JsonOperation.FORMAT)
 const inputJson = ref('')
 const outputJson = ref('')
 const error = ref('')
+
+// 操作标签
+const operationLabels: Record<JsonOperation, string> = {
+  [JsonOperation.FORMAT]: '格式化',
+  [JsonOperation.COMPRESS]: '压缩',
+  [JsonOperation.ESCAPE]: '转义',
+  [JsonOperation.UNESCAPE]: '去转义'
+}
+
+// 占位符
+const placeholders: Record<JsonOperation, string> = {
+  [JsonOperation.FORMAT]: '{\n  "name": "张三",\n  "age": 25,\n  "email": "zhangsan@example.com"\n}',
+  [JsonOperation.COMPRESS]: '{"name":"张三","age":25,"email":"zhangsan@example.com"}',
+  [JsonOperation.ESCAPE]: '{"name":"张三","age":25}',
+  [JsonOperation.UNESCAPE]: '"{\\"name\\":\\"张三\\",\\"age\\":25}"'
+}
 
 // 使用工具执行器
 const { execute, isLoading } = useToolExecutor<JsonFormatParams, JsonFormatResult>({
@@ -147,226 +163,100 @@ const handleProcess = () => {
     <!-- 工具执行区域 -->
     <div class="border border-border/40 rounded-xl overflow-hidden">
       <!-- 工具 Tabs -->
-      <Tabs v-model="activeTab" class="w-full">
-        <TabsList class="w-full justify-start rounded-none border-b bg-muted/30 p-0">
-          <TabsTrigger
-            :value="JsonOperation.FORMAT"
-            class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background px-6 py-3"
+      <div class="border-b bg-muted/30">
+        <div class="flex">
+          <button
+            v-for="(label, op) in operationLabels"
+            :key="op"
+            @click="activeTab = op as JsonOperation"
+            class="flex items-center gap-2 px-6 py-3 border-b-2 transition-colors"
+            :class="activeTab === op
+              ? 'border-primary bg-background text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground'"
           >
-            格式化
-          </TabsTrigger>
-          <TabsTrigger
-            :value="JsonOperation.COMPRESS"
-            class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background px-6 py-3"
-          >
-            压缩
-          </TabsTrigger>
-          <TabsTrigger
-            :value="JsonOperation.ESCAPE"
-            class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background px-6 py-3"
-          >
-            转义
-          </TabsTrigger>
-          <TabsTrigger
-            :value="JsonOperation.UNESCAPE"
-            class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background px-6 py-3"
-          >
-            去转义
-          </TabsTrigger>
-        </TabsList>
+            <Braces v-if="op === JsonOperation.FORMAT" class="w-4 h-4" />
+            <span v-else-if="op === JsonOperation.COMPRESS" class="w-4 h-4 text-xs font-bold">{}</span>
+            <span v-else-if="op === JsonOperation.ESCAPE" class="w-4 h-4 text-xs">\\</span>
+            <span v-else class="w-4 h-4 text-xs">/</span>
+            {{ label }}
+          </button>
+        </div>
+      </div>
 
-        <!-- 格式化 -->
-        <TabsContent :value="JsonOperation.FORMAT" class="m-0 p-6">
-          <div class="space-y-4">
-            <div>
-              <label class="text-sm font-medium mb-2 block">输入 JSON</label>
+      <!-- 编辑区域 -->
+      <div class="p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- 输入区域 -->
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-1 h-4 bg-primary rounded-full"></div>
+                <label class="text-sm font-medium">输入 JSON</label>
+              </div>
+              <div class="flex items-center gap-2">
+                <Button @click="handleProcess" :disabled="isLoading" size="sm" class="rounded-full px-4">
+                  <Loader2 v-if="isLoading" class="w-3 h-3 mr-1 animate-spin" />
+                  <CheckCircle v-else class="w-3 h-3 mr-1" />
+                  {{ isLoading ? '处理中...' : '执行' }}
+                </Button>
+                <button
+                  @click="clearInput"
+                  class="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors"
+                >
+                  清空
+                </button>
+              </div>
+            </div>
+            <div class="relative">
               <Textarea
                 v-model="inputJson"
-                placeholder="请输入要格式化的 JSON 数据...&#10;例如：{&quot;name&quot;:&quot;张三&quot;,&quot;age&quot;:25}"
-                rows="8"
-                class="font-mono text-sm"
-              />
-            </div>
-            <div class="flex items-center gap-2">
-              <Button @click="formatJson" :disabled="isLoading">
-                <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
-                <CheckCircle v-else class="w-4 h-4 mr-2" />
-                {{ isLoading ? '处理中...' : '格式化' }}
-              </Button>
-              <Button variant="outline" @click="clearInput" :disabled="isLoading">清空</Button>
-            </div>
-            <div v-if="error" class="flex items-center gap-2 text-sm text-red-500">
-              <AlertCircle class="w-4 h-4" />
-              {{ error }}
-            </div>
-            <div v-if="outputJson">
-              <div class="flex items-center justify-between mb-2">
-                <label class="text-sm font-medium">格式化结果</label>
-                <div class="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" @click="copyOutput">
-                    <Copy class="w-4 h-4 mr-1" />
-                    复制
-                  </Button>
-                  <Button variant="ghost" size="sm" @click="downloadOutput">
-                    <Download class="w-4 h-4 mr-1" />
-                    下载
-                  </Button>
-                </div>
-              </div>
-              <Textarea
-                v-model="outputJson"
-                rows="8"
-                class="font-mono text-sm bg-muted/30"
-                readonly
+                :placeholder="placeholders[activeTab]"
+                class="font-mono text-sm resize-none min-h-[400px] max-h-[600px] border-border/60 focus:border-primary"
               />
             </div>
           </div>
-        </TabsContent>
 
-        <!-- 压缩 -->
-        <TabsContent :value="JsonOperation.COMPRESS" class="m-0 p-6">
-          <div class="space-y-4">
-            <div>
-              <label class="text-sm font-medium mb-2 block">输入 JSON</label>
-              <Textarea
-                v-model="inputJson"
-                placeholder="请输入要压缩的 JSON 数据..."
-                rows="8"
-                class="font-mono text-sm"
-              />
-            </div>
-            <div class="flex items-center gap-2">
-              <Button @click="compressJson" :disabled="isLoading">
-                <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
-                <CheckCircle v-else class="w-4 h-4 mr-2" />
-                {{ isLoading ? '处理中...' : '压缩' }}
-              </Button>
-              <Button variant="outline" @click="clearInput" :disabled="isLoading">清空</Button>
-            </div>
-            <div v-if="error" class="flex items-center gap-2 text-sm text-red-500">
-              <AlertCircle class="w-4 h-4" />
-              {{ error }}
-            </div>
-            <div v-if="outputJson">
-              <div class="flex items-center justify-between mb-2">
-                <label class="text-sm font-medium">压缩结果</label>
-                <div class="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" @click="copyOutput">
-                    <Copy class="w-4 h-4 mr-1" />
-                    复制
-                  </Button>
-                  <Button variant="ghost" size="sm" @click="downloadOutput">
-                    <Download class="w-4 h-4 mr-1" />
-                    下载
-                  </Button>
-                </div>
+          <!-- 输出区域 -->
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-1 h-4 bg-green-500 rounded-full"></div>
+                <label class="text-sm font-medium">{{ operationLabels[activeTab] }}结果</label>
               </div>
-              <Textarea
-                v-model="outputJson"
-                rows="8"
-                class="font-mono text-sm bg-muted/30"
-                readonly
-              />
+              <div class="flex gap-1">
+                <button
+                  v-if="outputJson"
+                  @click="copyOutput"
+                  class="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"
+                >
+                  <Copy class="w-3 h-3" />
+                  复制
+                </button>
+                <button
+                  v-if="outputJson"
+                  @click="downloadOutput"
+                  class="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"
+                >
+                  <Download class="w-3 h-3" />
+                  下载
+                </button>
+              </div>
             </div>
+            <Textarea
+              v-model="outputJson"
+              readonly
+              class="font-mono text-sm resize-none bg-muted/20 min-h-[400px] max-h-[600px] border-border/60"
+              placeholder="处理结果将显示在这里..."
+            />
           </div>
-        </TabsContent>
+        </div>
 
-        <!-- 转义 -->
-        <TabsContent :value="JsonOperation.ESCAPE" class="m-0 p-6">
-          <div class="space-y-4">
-            <div>
-              <label class="text-sm font-medium mb-2 block">输入 JSON</label>
-              <Textarea
-                v-model="inputJson"
-                placeholder="请输入要转义的 JSON 数据..."
-                rows="8"
-                class="font-mono text-sm"
-              />
-            </div>
-            <div class="flex items-center gap-2">
-              <Button @click="escapeJson" :disabled="isLoading">
-                <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
-                <CheckCircle v-else class="w-4 h-4 mr-2" />
-                {{ isLoading ? '处理中...' : '转义' }}
-              </Button>
-              <Button variant="outline" @click="clearInput" :disabled="isLoading">清空</Button>
-            </div>
-            <div v-if="error" class="flex items-center gap-2 text-sm text-red-500">
-              <AlertCircle class="w-4 h-4" />
-              {{ error }}
-            </div>
-            <div v-if="outputJson">
-              <div class="flex items-center justify-between mb-2">
-                <label class="text-sm font-medium">转义结果</label>
-                <div class="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" @click="copyOutput">
-                    <Copy class="w-4 h-4 mr-1" />
-                    复制
-                  </Button>
-                  <Button variant="ghost" size="sm" @click="downloadOutput">
-                    <Download class="w-4 h-4 mr-1" />
-                    下载
-                  </Button>
-                </div>
-              </div>
-              <Textarea
-                v-model="outputJson"
-                rows="8"
-                class="font-mono text-sm bg-muted/30"
-                readonly
-              />
-            </div>
-          </div>
-        </TabsContent>
-
-        <!-- 去转义 -->
-        <TabsContent :value="JsonOperation.UNESCAPE" class="m-0 p-6">
-          <div class="space-y-4">
-            <div>
-              <label class="text-sm font-medium mb-2 block">输入转义后的 JSON 字符串</label>
-              <Textarea
-                v-model="inputJson"
-                placeholder="请输入要去除转义的 JSON 字符串..."
-                rows="8"
-                class="font-mono text-sm"
-              />
-            </div>
-            <div class="flex items-center gap-2">
-              <Button @click="unescapeJson" :disabled="isLoading">
-                <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
-                <CheckCircle v-else class="w-4 h-4 mr-2" />
-                {{ isLoading ? '处理中...' : '去转义' }}
-              </Button>
-              <Button variant="outline" @click="clearInput" :disabled="isLoading">清空</Button>
-            </div>
-            <div v-if="error" class="flex items-center gap-2 text-sm text-red-500">
-              <AlertCircle class="w-4 h-4" />
-              {{ error }}
-            </div>
-            <div v-if="outputJson">
-              <div class="flex items-center justify-between mb-2">
-                <label class="text-sm font-medium">去转义结果</label>
-                <div class="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" @click="copyOutput">
-                    <Copy class="w-4 h-4 mr-1" />
-                    复制
-                  </Button>
-                  <Button variant="ghost" size="sm" @click="downloadOutput">
-                    <Download class="w-4 h-4 mr-1" />
-                    下载
-                  </Button>
-                </div>
-              </div>
-              <Textarea
-                v-model="outputJson"
-                rows="8"
-                class="font-mono text-sm bg-muted/30"
-                readonly
-              />
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+        <!-- 错误提示 -->
+        <div v-if="error" class="mt-4 flex items-center gap-2 text-sm text-red-500 bg-red-50/80 p-3 rounded-lg border border-red-200">
+          <AlertCircle class="w-4 h-4 shrink-0" />
+          {{ error }}
+        </div>
+      </div>
     </div>
 
     <!-- Toast 提示 -->

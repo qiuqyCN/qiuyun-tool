@@ -247,12 +247,19 @@ const downloadOutput = () => {
                 <div class="w-1 h-4 bg-primary rounded-full"></div>
                 <label class="text-sm font-medium">输入 {{ languageLabels[activeLanguage] }}</label>
               </div>
-              <button
-                @click="clearInput"
-                class="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors"
-              >
-                清空
-              </button>
+              <div class="flex items-center gap-2">
+                <Button @click="processCode" :disabled="isLoading" size="sm" class="rounded-full px-4">
+                  <Loader2 v-if="isLoading" class="w-3 h-3 mr-1 animate-spin" />
+                  <CheckCircle v-else class="w-3 h-3 mr-1" />
+                  {{ isLoading ? '处理中...' : '执行' }}
+                </Button>
+                <button
+                  @click="clearInput"
+                  class="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors"
+                >
+                  清空
+                </button>
+              </div>
             </div>
             <div class="relative">
               <Textarea
@@ -297,17 +304,6 @@ const downloadOutput = () => {
               class="font-mono text-sm resize-none bg-muted/20 min-h-[400px] max-h-[600px] border-border/60"
               placeholder="处理结果将显示在这里..."
             />
-          </div>
-        </div>
-
-        <!-- 操作按钮 - 居中显示 -->
-        <div class="flex justify-center mt-6">
-          <div class="flex items-center gap-3 bg-muted/30 px-6 py-3 rounded-full">
-            <Button @click="processCode" :disabled="isLoading" size="lg" class="rounded-full px-8">
-              <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
-              <CheckCircle v-else class="w-4 h-4 mr-2" />
-              {{ isLoading ? '处理中...' : operationLabels[activeOperation] }}
-            </Button>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { AlertCircle, CheckCircle, Copy, Download, Check, Loader2, ArrowRightLeft } from 'lucide-vue-next'
+import { AlertCircle, CheckCircle, Copy, Download, Check, Loader2, ArrowRightLeft, FileJson, FileType } from 'lucide-vue-next'
 import { useToolExecutor } from '~/composables/useToolExecutor'
 import { ToolType } from '~/types/tool'
 
@@ -44,6 +44,42 @@ const activeTab = ref<ConvertOperation>(ConvertOperation.JSON_TO_YAML)
 const inputContent = ref('')
 const outputContent = ref('')
 const error = ref('')
+
+// 操作标签
+const operationLabels: Record<ConvertOperation, string> = {
+  [ConvertOperation.JSON_TO_YAML]: 'JSON → YAML',
+  [ConvertOperation.YAML_TO_JSON]: 'YAML → JSON'
+}
+
+// 占位符
+const placeholders: Record<ConvertOperation, string> = {
+  [ConvertOperation.JSON_TO_YAML]: `{
+  "name": "张三",
+  "age": 25,
+  "email": "zhangsan@example.com",
+  "address": {
+    "city": "北京",
+    "zipcode": "100000"
+  }
+}`,
+  [ConvertOperation.YAML_TO_JSON]: `name: 张三
+age: 25
+email: zhangsan@example.com
+address:
+  city: 北京
+  zipcode: "100000"`
+}
+
+// 输入输出标签
+const inputLabels: Record<ConvertOperation, string> = {
+  [ConvertOperation.JSON_TO_YAML]: '输入 JSON',
+  [ConvertOperation.YAML_TO_JSON]: '输入 YAML'
+}
+
+const outputLabels: Record<ConvertOperation, string> = {
+  [ConvertOperation.JSON_TO_YAML]: '输出 YAML',
+  [ConvertOperation.YAML_TO_JSON]: '输出 JSON'
+}
 
 // 使用工具执行器
 const { execute, isLoading } = useToolExecutor<ConvertParams, ConvertResult>({
@@ -136,23 +172,6 @@ const handleProcess = () => {
     convertYamlToJson()
   }
 }
-
-// 输入框占位符
-const inputPlaceholder = computed(() => {
-  return activeTab.value === ConvertOperation.JSON_TO_YAML
-    ? '请输入要转换的 JSON 数据...\n例如：\n{\n  "name": "张三",\n  "age": 25\n}'
-    : '请输入要转换的 YAML 数据...\n例如：\nname: 张三\nage: 25'
-})
-
-// 输入框标签
-const inputLabel = computed(() => {
-  return activeTab.value === ConvertOperation.JSON_TO_YAML ? '输入 JSON' : '输入 YAML'
-})
-
-// 输出框标签
-const outputLabel = computed(() => {
-  return activeTab.value === ConvertOperation.JSON_TO_YAML ? '输出 YAML' : '输出 JSON'
-})
 </script>
 
 <template>
@@ -160,137 +179,123 @@ const outputLabel = computed(() => {
     <!-- 工具执行区域 -->
     <div class="border border-border/40 rounded-xl overflow-hidden">
       <!-- 工具 Tabs -->
-      <Tabs v-model="activeTab" class="w-full">
-        <TabsList class="w-full justify-start rounded-none border-b bg-muted/30 p-0">
-          <TabsTrigger
-            :value="ConvertOperation.JSON_TO_YAML"
-            class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background px-6 py-3"
+      <div class="border-b bg-muted/30">
+        <div class="flex">
+          <button
+            v-for="(label, op) in operationLabels"
+            :key="op"
+            @click="activeTab = op as ConvertOperation"
+            class="flex items-center gap-2 px-6 py-3 border-b-2 transition-colors"
+            :class="activeTab === op
+              ? 'border-primary bg-background text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground'"
           >
-            JSON → YAML
-          </TabsTrigger>
-          <TabsTrigger
-            :value="ConvertOperation.YAML_TO_JSON"
-            class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background px-6 py-3"
-          >
-            YAML → JSON
-          </TabsTrigger>
-        </TabsList>
+            <FileJson v-if="op === ConvertOperation.JSON_TO_YAML" class="w-4 h-4" />
+            <FileType v-else class="w-4 h-4" />
+            {{ label }}
+          </button>
+        </div>
+      </div>
 
-        <!-- JSON转YAML -->
-        <TabsContent :value="ConvertOperation.JSON_TO_YAML" class="m-0 p-6">
-          <div class="space-y-4">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <!-- 输入区域 -->
-              <div>
-                <label class="text-sm font-medium mb-2 block">{{ inputLabel }}</label>
-                <Textarea
-                  v-model="inputContent"
-                  :placeholder="inputPlaceholder"
-                  rows="12"
-                  class="font-mono text-sm"
-                />
+      <!-- 编辑区域 -->
+      <div class="p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- 输入区域 -->
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-1 h-4 bg-primary rounded-full"></div>
+                <label class="text-sm font-medium">{{ inputLabels[activeTab] }}</label>
               </div>
-              <!-- 输出区域 -->
-              <div>
-                <label class="text-sm font-medium mb-2 block">{{ outputLabel }}</label>
-                <Textarea
-                  v-model="outputContent"
-                  readonly
-                  rows="12"
-                  class="font-mono text-sm bg-muted/30"
-                  placeholder="转换结果将显示在这里..."
-                />
+              <div class="flex items-center gap-2">
+                <Button @click="handleProcess" :disabled="isLoading" size="sm" class="rounded-full px-4">
+                  <Loader2 v-if="isLoading" class="w-3 h-3 mr-1 animate-spin" />
+                  <CheckCircle v-else class="w-3 h-3 mr-1" />
+                  {{ isLoading ? '转换中...' : '执行' }}
+                </Button>
+                <button
+                  @click="switchDirection"
+                  class="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"
+                >
+                  <ArrowRightLeft class="w-3 h-3" />
+                  切换
+                </button>
+                <button
+                  @click="clearInput"
+                  class="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors"
+                >
+                  清空
+                </button>
               </div>
             </div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <Button @click="convertJsonToYaml" :disabled="isLoading">
-                <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
-                <CheckCircle v-else class="w-4 h-4 mr-2" />
-                {{ isLoading ? '转换中...' : '开始转换' }}
-              </Button>
-              <Button variant="outline" @click="switchDirection">
-                <ArrowRightLeft class="w-4 h-4 mr-2" />
-                切换方向
-              </Button>
-              <Button variant="outline" @click="clearInput" :disabled="isLoading">清空</Button>
-              <Button variant="outline" @click="copyOutput" :disabled="!outputContent || isLoading">
-                <Copy class="w-4 h-4 mr-2" />
-                复制结果
-              </Button>
-              <Button variant="outline" @click="downloadOutput" :disabled="!outputContent || isLoading">
-                <Download class="w-4 h-4 mr-2" />
-                下载
-              </Button>
-            </div>
-            <div v-if="error" class="flex items-center gap-2 text-sm text-red-500">
-              <AlertCircle class="w-4 h-4" />
-              {{ error }}
+            <div class="relative">
+              <Textarea
+                v-model="inputContent"
+                :placeholder="placeholders[activeTab]"
+                class="font-mono text-sm resize-none min-h-[400px] max-h-[600px] border-border/60 focus:border-primary"
+              />
             </div>
           </div>
-        </TabsContent>
 
-        <!-- YAML转JSON -->
-        <TabsContent :value="ConvertOperation.YAML_TO_JSON" class="m-0 p-6">
-          <div class="space-y-4">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <!-- 输入区域 -->
-              <div>
-                <label class="text-sm font-medium mb-2 block">{{ inputLabel }}</label>
-                <Textarea
-                  v-model="inputContent"
-                  :placeholder="inputPlaceholder"
-                  rows="12"
-                  class="font-mono text-sm"
-                />
+          <!-- 输出区域 -->
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-1 h-4 bg-green-500 rounded-full"></div>
+                <label class="text-sm font-medium">{{ outputLabels[activeTab] }}</label>
               </div>
-              <!-- 输出区域 -->
-              <div>
-                <label class="text-sm font-medium mb-2 block">{{ outputLabel }}</label>
-                <Textarea
-                  v-model="outputContent"
-                  readonly
-                  rows="12"
-                  class="font-mono text-sm bg-muted/30"
-                  placeholder="转换结果将显示在这里..."
-                />
+              <div class="flex gap-1">
+                <button
+                  v-if="outputContent"
+                  @click="copyOutput"
+                  class="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"
+                >
+                  <Copy class="w-3 h-3" />
+                  复制
+                </button>
+                <button
+                  v-if="outputContent"
+                  @click="downloadOutput"
+                  class="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"
+                >
+                  <Download class="w-3 h-3" />
+                  下载
+                </button>
               </div>
             </div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <Button @click="convertYamlToJson" :disabled="isLoading">
-                <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
-                <CheckCircle v-else class="w-4 h-4 mr-2" />
-                {{ isLoading ? '转换中...' : '开始转换' }}
-              </Button>
-              <Button variant="outline" @click="switchDirection">
-                <ArrowRightLeft class="w-4 h-4 mr-2" />
-                切换方向
-              </Button>
-              <Button variant="outline" @click="clearInput" :disabled="isLoading">清空</Button>
-              <Button variant="outline" @click="copyOutput" :disabled="!outputContent || isLoading">
-                <Copy class="w-4 h-4 mr-2" />
-                复制结果
-              </Button>
-              <Button variant="outline" @click="downloadOutput" :disabled="!outputContent || isLoading">
-                <Download class="w-4 h-4 mr-2" />
-                下载
-              </Button>
-            </div>
-            <div v-if="error" class="flex items-center gap-2 text-sm text-red-500">
-              <AlertCircle class="w-4 h-4" />
-              {{ error }}
-            </div>
+            <Textarea
+              v-model="outputContent"
+              readonly
+              class="font-mono text-sm resize-none bg-muted/20 min-h-[400px] max-h-[600px] border-border/60"
+              placeholder="转换结果将显示在这里..."
+            />
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+
+        <!-- 错误提示 -->
+        <div v-if="error" class="mt-4 flex items-center gap-2 text-sm text-red-500 bg-red-50/80 p-3 rounded-lg border border-red-200">
+          <AlertCircle class="w-4 h-4 shrink-0" />
+          {{ error }}
+        </div>
+      </div>
     </div>
 
     <!-- Toast 提示 -->
-    <div
-      v-if="toast.show"
-      class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-50"
+    <Transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="transform translate-y-2 opacity-0"
+      enter-to-class="transform translate-y-0 opacity-100"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="transform translate-y-0 opacity-100"
+      leave-to-class="transform translate-y-2 opacity-0"
     >
-      <Check class="w-4 h-4" />
-      {{ toast.message }}
-    </div>
+      <div
+        v-if="toast.show"
+        class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 bg-foreground text-background rounded-lg shadow-lg"
+      >
+        <Check class="w-4 h-4 text-green-400" />
+        <span class="text-sm font-medium">{{ toast.message }}</span>
+      </div>
+    </Transition>
   </NuxtLayout>
 </template>
