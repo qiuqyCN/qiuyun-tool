@@ -1,6 +1,7 @@
 package dev.qiuyun.qiuyuntoolbackend.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -15,5 +16,10 @@ public class JacksonConfig {
     @Primary
     public ObjectMapper objectMapper() {
         return new ObjectMapper();
+    }
+
+    @Bean
+    public YAMLMapper yamlMapper() {
+        return new YAMLMapper();
     }
 }

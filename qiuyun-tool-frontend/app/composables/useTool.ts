@@ -40,6 +40,17 @@ export function useTool() {
       method: 'POST',
       body: request
     })
+
+    // 兼容全局异常结构：如果 code 不是 200，抛出错误
+    if (response.code !== 200) {
+      throw new Error(response.message || '执行失败')
+    }
+
+    // 兼容全局异常结构：如果 data 为 null，抛出错误
+    if (!response.data) {
+      throw new Error(response.message || '执行失败，返回数据为空')
+    }
+
     return response.data
   }
 
