@@ -158,6 +158,12 @@
             <artifactId>jsoup</artifactId>
             <version>1.17.2</version>
         </dependency>
+        <!-- Eclipse JDT for Java formatting -->
+        <dependency>
+            <groupId>org.eclipse.jdt</groupId>
+            <artifactId>org.eclipse.jdt.core</artifactId>
+            <version>3.35.0</version>
+        </dependency>
     </dependencies>
 
     <build>

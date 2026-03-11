@@ -238,38 +238,45 @@ const downloadOutput = () => {
       </div>
 
       <!-- 编辑区域 -->
-      <div class="p-6 space-y-4">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- 输入区域 -->
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <label class="text-sm font-medium">输入 {{ languageLabels[activeLanguage] }}</label>
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-1 h-4 bg-primary rounded-full"></div>
+                <label class="text-sm font-medium">输入 {{ languageLabels[activeLanguage] }}</label>
+              </div>
               <button
                 @click="clearInput"
-                class="text-xs text-muted-foreground hover:text-foreground"
+                class="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors"
               >
                 清空
               </button>
             </div>
-            <Textarea
-              v-model="inputCode"
-              :placeholder="currentPlaceholder"
-              rows="16"
-              class="font-mono text-sm resize-none"
-            />
+            <div class="relative">
+              <Textarea
+                v-model="inputCode"
+                :placeholder="currentPlaceholder"
+                class="font-mono text-sm resize-none min-h-[400px] max-h-[600px] border-border/60 focus:border-primary"
+              />
+            </div>
           </div>
 
           <!-- 输出区域 -->
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <label class="text-sm font-medium">
-                {{ operationLabels[activeOperation] }}结果
-              </label>
-              <div class="flex gap-2">
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-1 h-4 bg-green-500 rounded-full"></div>
+                <label class="text-sm font-medium">
+                  {{ operationLabels[activeOperation] }}结果
+                </label>
+              </div>
+              <div class="flex gap-1">
                 <button
                   v-if="outputCode"
                   @click="copyOutput"
-                  class="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                  class="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"
                 >
                   <Copy class="w-3 h-3" />
                   复制
@@ -277,7 +284,7 @@ const downloadOutput = () => {
                 <button
                   v-if="outputCode"
                   @click="downloadOutput"
-                  class="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                  class="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"
                 >
                   <Download class="w-3 h-3" />
                   下载
@@ -287,24 +294,25 @@ const downloadOutput = () => {
             <Textarea
               v-model="outputCode"
               readonly
-              rows="16"
-              class="font-mono text-sm resize-none bg-muted/30"
+              class="font-mono text-sm resize-none bg-muted/20 min-h-[400px] max-h-[600px] border-border/60"
               placeholder="处理结果将显示在这里..."
             />
           </div>
         </div>
 
-        <!-- 操作按钮 -->
-        <div class="flex items-center gap-3">
-          <Button @click="processCode" :disabled="isLoading" size="lg">
-            <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
-            <CheckCircle v-else class="w-4 h-4 mr-2" />
-            {{ isLoading ? '处理中...' : operationLabels[activeOperation] }}
-          </Button>
+        <!-- 操作按钮 - 居中显示 -->
+        <div class="flex justify-center mt-6">
+          <div class="flex items-center gap-3 bg-muted/30 px-6 py-3 rounded-full">
+            <Button @click="processCode" :disabled="isLoading" size="lg" class="rounded-full px-8">
+              <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
+              <CheckCircle v-else class="w-4 h-4 mr-2" />
+              {{ isLoading ? '处理中...' : operationLabels[activeOperation] }}
+            </Button>
+          </div>
         </div>
 
         <!-- 错误提示 -->
-        <div v-if="error" class="flex items-center gap-2 text-sm text-red-500 bg-red-50 p-3 rounded-md">
+        <div v-if="error" class="mt-4 flex items-center gap-2 text-sm text-red-500 bg-red-50/80 p-3 rounded-lg border border-red-200">
           <AlertCircle class="w-4 h-4 flex-shrink-0" />
           {{ error }}
         </div>

@@ -8,9 +8,12 @@ import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jdt.core.ToolFactory;
+import org.eclipse.jdt.core.formatter.CodeFormatter;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.text.edits.TextEdit;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.parser.Parser;
 import org.springframework.stereotype.Component;
 
 import javax.xml.transform.OutputKeys;
@@ -348,106 +351,32 @@ public class CodeBeautifyExecutor implements ToolExecutor<CodeBeautifyExecutor.C
                 .trim();
     }
 
-    // ==================== Java (使用自定义格式化器) ====================
+    // ==================== Java (使用 Eclipse JDT) ====================
 
     /**
-     * 格式化 Java 代码
-     * 使用自定义格式化器避免 Google Java Format 的模块访问问题
+     * 使用 Eclipse JDT 格式化 Java 代码
      */
-    private String formatJava(String java) {
-        StringBuilder formatted = new StringBuilder();
-        int indentLevel = 0;
-        boolean inString = false;
-        char stringChar = 0;
-        boolean inComment = false;
-        boolean inLineComment = false;
-        boolean inJavadoc = false;
-        char[] chars = java.toCharArray();
-
-        for (int i = 0; i < chars.length; i++) {
-            char c = chars[i];
-
-            // 处理字符串
-            if (!inComment && !inLineComment && !inJavadoc) {
-                if ((c == '"' || c == '\'') && (i == 0 || chars[i - 1] != '\\')) {
-                    if (!inString) {
-                        inString = true;
-                        stringChar = c;
-                    } else if (c == stringChar) {
-                        inString = false;
-                    }
-                }
+    private String formatJava(String javaCode) {
+        try {
+            CodeFormatter codeFormatter = ToolFactory.createCodeFormatter(null);
+            IDocument document = new org.eclipse.jface.text.Document(javaCode);
+            TextEdit edit = codeFormatter.format(
+                    CodeFormatter.K_COMPILATION_UNIT,
+                    javaCode,
+                    0,
+                    javaCode.length(),
+                    0,
+                    "\n"
+            );
+            if (edit != null) {
+                edit.apply(document);
+                return document.get();
             }
-
-            // 处理注释
-            if (!inString && !inComment && !inLineComment && !inJavadoc && i < chars.length - 1) {
-                if (chars[i] == '/' && chars[i + 1] == '*') {
-                    // 检查是否是 Javadoc
-                    if (i + 2 < chars.length && chars[i + 2] == '*') {
-                        inJavadoc = true;
-                        formatted.append("/**");
-                        i += 2;
-                    } else {
-                        inComment = true;
-                        formatted.append("/*");
-                        i++;
-                    }
-                    continue;
-                }
-                if (chars[i] == '/' && chars[i + 1] == '/') {
-                    inLineComment = true;
-                    formatted.append("//");
-                    i++;
-                    continue;
-                }
-            }
-
-            if ((inComment || inJavadoc) && i > 0 && chars[i - 1] == '*' && c == '/') {
-                if (inJavadoc) {
-                    inJavadoc = false;
-                    formatted.append("/").append("\n").append(getIndent(indentLevel));
-                } else {
-                    inComment = false;
-                    formatted.append("/").append("\n").append(getIndent(indentLevel));
-                }
-                continue;
-            }
-
-            if (inLineComment && c == '\n') {
-                inLineComment = false;
-                formatted.append("\n").append(getIndent(indentLevel));
-                continue;
-            }
-
-            if (inString || inComment || inLineComment || inJavadoc) {
-                formatted.append(c);
-                continue;
-            }
-
-            // 处理代码结构
-            if (c == '{' || c == '[') {
-                formatted.append(c);
-                indentLevel++;
-                formatted.append("\n").append(getIndent(indentLevel));
-            } else if (c == '}' || c == ']') {
-                indentLevel = Math.max(0, indentLevel - 1);
-                formatted.append("\n").append(getIndent(indentLevel)).append(c);
-            } else if (c == '(') {
-                formatted.append(c);
-            } else if (c == ')') {
-                formatted.append(c);
-            } else if (c == ';') {
-                formatted.append(";").append("\n").append(getIndent(indentLevel));
-            } else if (c == '\n' || c == '\r') {
-                // 跳过原始换行
-            } else if (!Character.isWhitespace(c)) {
-                formatted.append(c);
-            } else if (formatted.length() > 0 && !Character.isWhitespace(formatted.charAt(formatted.length() - 1))) {
-                formatted.append(' ');
-            }
+            return javaCode;
+        } catch (Exception e) {
+            log.error("Java格式化错误: {}", e.getMessage());
+            throw new BusinessException("Java格式化失败: " + e.getMessage());
         }
-
-        return formatted.toString().trim();
     }
 
     /**
