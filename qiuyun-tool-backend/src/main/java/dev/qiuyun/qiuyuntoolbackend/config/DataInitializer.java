@@ -216,7 +216,7 @@ public class DataInitializer implements CommandLineRunner {
         Tool codeBeautify = Tool.builder()
                 .code("code-beautify")
                 .name("代码美化")
-                .description("HTML/CSS/JavaScript代码格式化")
+                .description("HTML/CSS/JavaScript/Java/SQL/XML代码格式化")
                 .category(devCategory)
                 .icon("Code2")
                 .iconColor("#5B21B6")
