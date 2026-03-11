@@ -1,16 +1,21 @@
 package dev.qiuyun.qiuyuntoolbackend.executor.text;
 
+import dev.qiuyun.qiuyuntoolbackend.enums.CompareMode;
+import dev.qiuyun.qiuyuntoolbackend.enums.DiffType;
 import dev.qiuyun.qiuyuntoolbackend.enums.ToolType;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
+import dev.qiuyun.qiuyuntoolbackend.executor.AbstractToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
-import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
+import dev.qiuyun.qiuyuntoolbackend.executor.common.BaseToolResponse;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 文本对比工具执行器
@@ -18,7 +23,9 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.TextCompareRequest, TextCompareExecutor.TextCompareResponse> {
+public class TextCompareExecutor extends AbstractToolExecutor<TextCompareExecutor.TextCompareRequest, TextCompareExecutor.TextCompareResponse> {
+
+    private static final Set<String> VALID_MODES = Set.of(CompareMode.LINE.getCode(), CompareMode.CHAR.getCode());
 
     @Override
     public String getToolCode() {
@@ -32,9 +39,7 @@ public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.Tex
 
     @Override
     public void validate(TextCompareRequest request) throws BusinessException {
-        if (request == null) {
-            throw new BusinessException("请求不能为空");
-        }
+        validateNotNull(request, "请求");
         if (request.getOldText() == null) {
             request.setOldText("");
         }
@@ -44,61 +49,51 @@ public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.Tex
     }
 
     @Override
-    public TextCompareResponse execute(TextCompareRequest request, ToolContext context) throws BusinessException {
-        try {
-            String oldText = request.getOldText();
-            String newText = request.getNewText();
-            String mode = request.getMode() != null ? request.getMode() : "line";
+    protected TextCompareResponse doExecute(TextCompareRequest request, ToolContext context) throws Exception {
+        String oldText = request.getOldText();
+        String newText = request.getNewText();
+        String mode = request.getMode() != null ? request.getMode() : CompareMode.LINE.getCode();
 
-            TextCompareResponse response = new TextCompareResponse();
-            response.setSuccess(true);
-            response.setMode(mode);
+        TextCompareResponse response = new TextCompareResponse();
+        response.setSuccess(true);
+        response.setMode(mode);
 
-            // 计算统计信息
-            TextStats oldStats = calculateStats(oldText);
-            TextStats newStats = calculateStats(newText);
-            response.setOldStats(oldStats);
-            response.setNewStats(newStats);
+        // 计算统计信息
+        TextStats oldStats = calculateStats(oldText);
+        TextStats newStats = calculateStats(newText);
+        response.setOldStats(oldStats);
+        response.setNewStats(newStats);
 
-            // 执行对比
-            List<DiffLine> diffLines;
-            if ("char".equals(mode)) {
-                diffLines = compareByChar(oldText, newText);
-            } else {
-                diffLines = compareByLine(oldText, newText);
-            }
-
-            response.setDiffLines(diffLines);
-
-            // 计算差异统计
-            int added = 0, removed = 0, modified = 0;
-            for (DiffLine line : diffLines) {
-                switch (line.getType()) {
-                    case "added":
-                        added++;
-                        break;
-                    case "removed":
-                        removed++;
-                        break;
-                    case "modified":
-                        modified++;
-                        break;
-                }
-            }
-
-            DiffStats diffStats = new DiffStats();
-            diffStats.setAdded(added);
-            diffStats.setRemoved(removed);
-            diffStats.setModified(modified);
-            diffStats.setUnchanged(diffLines.size() - added - removed - modified);
-            response.setDiffStats(diffStats);
-
-            return response;
-
-        } catch (Exception e) {
-            log.error("文本对比错误: {}", e.getMessage());
-            throw new BusinessException("对比失败: " + e.getMessage());
+        // 执行对比
+        List<DiffLine> diffLines;
+        if (CompareMode.CHAR.getCode().equals(mode)) {
+            diffLines = compareByChar(oldText, newText);
+        } else {
+            diffLines = compareByLine(oldText, newText);
         }
+
+        response.setDiffLines(diffLines);
+
+        // 计算差异统计
+        int added = 0, removed = 0, modified = 0;
+        for (DiffLine line : diffLines) {
+            if (DiffType.ADDED.getCode().equals(line.getType())) {
+                added++;
+            } else if (DiffType.REMOVED.getCode().equals(line.getType())) {
+                removed++;
+            } else if (DiffType.MODIFIED.getCode().equals(line.getType())) {
+                modified++;
+            }
+        }
+
+        DiffStats diffStats = new DiffStats();
+        diffStats.setAdded(added);
+        diffStats.setRemoved(removed);
+        diffStats.setModified(modified);
+        diffStats.setUnchanged(diffLines.size() - added - removed - modified);
+        response.setDiffStats(diffStats);
+
+        return response;
     }
 
     @Override
@@ -106,10 +101,10 @@ public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.Tex
         return Map.of(
                 "name", "文本对比",
                 "description", "文本差异对比工具，支持行对比和字符对比",
-                "modes", new String[]{"line", "char"},
+                "modes", new String[]{CompareMode.LINE.getCode(), CompareMode.CHAR.getCode()},
                 "modeLabels", Map.of(
-                        "line", "行对比",
-                        "char", "字符对比"
+                        CompareMode.LINE.getCode(), CompareMode.LINE.getLabel(),
+                        CompareMode.CHAR.getCode(), CompareMode.CHAR.getLabel()
                 )
         );
     }
@@ -131,7 +126,7 @@ public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.Tex
             if (oldLine == null) {
                 // 新增行
                 DiffLine diff = new DiffLine();
-                diff.setType("added");
+                diff.setType(DiffType.ADDED.getCode());
                 diff.setNewLineNum(newIndex + 1);
                 diff.setNewContent(newLine);
                 result.add(diff);
@@ -139,7 +134,7 @@ public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.Tex
             } else if (newLine == null) {
                 // 删除行
                 DiffLine diff = new DiffLine();
-                diff.setType("removed");
+                diff.setType(DiffType.REMOVED.getCode());
                 diff.setOldLineNum(oldIndex + 1);
                 diff.setOldContent(oldLine);
                 result.add(diff);
@@ -147,7 +142,7 @@ public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.Tex
             } else if (oldLine.equals(newLine)) {
                 // 未变更
                 DiffLine diff = new DiffLine();
-                diff.setType("unchanged");
+                diff.setType(DiffType.UNCHANGED.getCode());
                 diff.setOldLineNum(oldIndex + 1);
                 diff.setNewLineNum(newIndex + 1);
                 diff.setOldContent(oldLine);
@@ -163,7 +158,7 @@ public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.Tex
                 if (oldMatch == -1 && newMatch == -1) {
                     // 修改行
                     DiffLine diff = new DiffLine();
-                    diff.setType("modified");
+                    diff.setType(DiffType.MODIFIED.getCode());
                     diff.setOldLineNum(oldIndex + 1);
                     diff.setNewLineNum(newIndex + 1);
                     diff.setOldContent(oldLine);
@@ -175,7 +170,7 @@ public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.Tex
                 } else if (oldMatch == -1 || (newMatch != -1 && newMatch - newIndex <= oldMatch - oldIndex)) {
                     // 删除行
                     DiffLine diff = new DiffLine();
-                    diff.setType("removed");
+                    diff.setType(DiffType.REMOVED.getCode());
                     diff.setOldLineNum(oldIndex + 1);
                     diff.setOldContent(oldLine);
                     result.add(diff);
@@ -183,7 +178,7 @@ public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.Tex
                 } else {
                     // 新增行
                     DiffLine diff = new DiffLine();
-                    diff.setType("added");
+                    diff.setType(DiffType.ADDED.getCode());
                     diff.setNewLineNum(newIndex + 1);
                     diff.setNewContent(newLine);
                     result.add(diff);
@@ -218,7 +213,7 @@ public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.Tex
         List<CharDiff> charDiffs = compareChars(oldText, newText);
 
         DiffLine diff = new DiffLine();
-        diff.setType("modified");
+        diff.setType(DiffType.MODIFIED.getCode());
         diff.setOldLineNum(1);
         diff.setNewLineNum(1);
         diff.setOldContent(oldText);
@@ -257,7 +252,7 @@ public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.Tex
         while (i > 0 || j > 0) {
             if (i > 0 && j > 0 && oldStr.charAt(i - 1) == newStr.charAt(j - 1)) {
                 CharDiff cd = new CharDiff();
-                cd.setType("unchanged");
+                cd.setType(DiffType.UNCHANGED.getCode());
                 cd.setOldChar(String.valueOf(oldStr.charAt(i - 1)));
                 cd.setNewChar(String.valueOf(newStr.charAt(j - 1)));
                 cd.setOldIndex(i - 1);
@@ -267,14 +262,14 @@ public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.Tex
                 j--;
             } else if (j > 0 && (i == 0 || dp[i][j - 1] >= dp[i - 1][j])) {
                 CharDiff cd = new CharDiff();
-                cd.setType("added");
+                cd.setType(DiffType.ADDED.getCode());
                 cd.setNewChar(String.valueOf(newStr.charAt(j - 1)));
                 cd.setNewIndex(j - 1);
                 temp.add(cd);
                 j--;
             } else {
                 CharDiff cd = new CharDiff();
-                cd.setType("removed");
+                cd.setType(DiffType.REMOVED.getCode());
                 cd.setOldChar(String.valueOf(oldStr.charAt(i - 1)));
                 cd.setOldIndex(i - 1);
                 temp.add(cd);
@@ -318,18 +313,15 @@ public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.Tex
         /**
          * 对比模式：line(行对比)、char(字符对比)
          */
-        private String mode = "line";
+        private String mode = CompareMode.LINE.getCode();
     }
 
     /**
      * 响应结果
      */
+    @EqualsAndHashCode(callSuper = true)
     @Data
-    public static class TextCompareResponse {
-        /**
-         * 是否成功
-         */
-        private boolean success;
+    public static class TextCompareResponse extends BaseToolResponse {
         /**
          * 对比模式
          */
@@ -350,10 +342,6 @@ public class TextCompareExecutor implements ToolExecutor<TextCompareExecutor.Tex
          * 差异行列表
          */
         private List<DiffLine> diffLines;
-        /**
-         * 错误信息
-         */
-        private String errorMessage;
     }
 
     /**

@@ -1,10 +1,15 @@
 package dev.qiuyun.qiuyuntoolbackend.executor.crypto;
 
+import dev.qiuyun.qiuyuntoolbackend.constant.ToolConstants;
+import dev.qiuyun.qiuyuntoolbackend.enums.OperationType;
 import dev.qiuyun.qiuyuntoolbackend.enums.ToolType;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
+import dev.qiuyun.qiuyuntoolbackend.executor.AbstractToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
-import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
+import dev.qiuyun.qiuyuntoolbackend.executor.common.BaseToolResponse;
+import dev.qiuyun.qiuyuntoolbackend.executor.common.InputOutputResult;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +19,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * URL编解码工具执行器
@@ -21,7 +27,9 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-public class UrlCodecExecutor implements ToolExecutor<UrlCodecExecutor.UrlCodecRequest, UrlCodecExecutor.UrlCodecResponse> {
+public class UrlCodecExecutor extends AbstractToolExecutor<UrlCodecExecutor.UrlCodecRequest, UrlCodecExecutor.UrlCodecResponse> {
+
+    private static final Set<String> VALID_OPERATIONS = Set.of(OperationType.ENCODE.getCode(), OperationType.DECODE.getCode());
 
     @Override
     public String getToolCode() {
@@ -35,61 +43,47 @@ public class UrlCodecExecutor implements ToolExecutor<UrlCodecExecutor.UrlCodecR
 
     @Override
     public void validate(UrlCodecRequest request) throws BusinessException {
-        if (request == null) {
-            throw new BusinessException("请求不能为空");
-        }
-        if (request.getOperation() == null || request.getOperation().trim().isEmpty()) {
-            throw new BusinessException("操作类型不能为空");
-        }
-        if (!"encode".equals(request.getOperation()) && !"decode".equals(request.getOperation())) {
-            throw new BusinessException("不支持的操作类型: " + request.getOperation());
-        }
-        if (request.getInput() == null || request.getInput().isEmpty()) {
-            throw new BusinessException("输入内容不能为空");
-        }
+        validateNotNull(request, "请求");
+        validateNotEmpty(request.getOperation(), "操作类型");
+        validateEnum(request.getOperation(), "操作类型", VALID_OPERATIONS);
+        validateNotEmpty(request.getInput(), "输入内容");
     }
 
     @Override
-    public UrlCodecResponse execute(UrlCodecRequest request, ToolContext context) throws BusinessException {
-        try {
-            String operation = request.getOperation();
-            String input = request.getInput();
-            String charset = request.getCharset() != null ? request.getCharset() : "UTF-8";
-            boolean encodeSpaceAsPlus = request.isEncodeSpaceAsPlus();
+    protected UrlCodecResponse doExecute(UrlCodecRequest request, ToolContext context) throws Exception {
+        String operation = request.getOperation();
+        String input = request.getInput();
+        String charset = request.getCharset() != null ? request.getCharset() : ToolConstants.DEFAULT_CHARSET;
+        boolean encodeSpaceAsPlus = request.isEncodeSpaceAsPlus();
 
-            UrlCodecResponse response = new UrlCodecResponse();
-            response.setSuccess(true);
-            response.setOperation(operation);
-            response.setCharset(charset);
+        UrlCodecResponse response = new UrlCodecResponse();
+        response.setSuccess(true);
+        response.setOperation(operation);
+        response.setCharset(charset);
 
-            // 处理多行输入（批量处理）
-            String[] lines = input.split("\\r?\\n");
-            List<UrlCodecResult> results = new ArrayList<>();
+        // 处理多行输入（批量处理）
+        String[] lines = input.split("\\r?\\n");
+        List<InputOutputResult> results = new ArrayList<>();
 
-            for (String line : lines) {
-                if (line.trim().isEmpty()) continue;
+        for (String line : lines) {
+            if (line.trim().isEmpty()) continue;
 
-                UrlCodecResult result = new UrlCodecResult();
-                result.setInput(line);
+            InputOutputResult result = new InputOutputResult();
+            result.setInput(line);
 
-                if ("encode".equals(operation)) {
-                    result.setOutput(urlEncode(line, charset, encodeSpaceAsPlus));
-                } else {
-                    result.setOutput(urlDecode(line, charset));
-                }
-
-                results.add(result);
+            if (OperationType.ENCODE.getCode().equals(operation)) {
+                result.setOutput(urlEncode(line, charset, encodeSpaceAsPlus));
+            } else {
+                result.setOutput(urlDecode(line, charset));
             }
 
-            response.setResults(results);
-            response.setCount(results.size());
-
-            return response;
-
-        } catch (Exception e) {
-            log.error("URL编解码错误: {}", e.getMessage());
-            throw new BusinessException("操作失败: " + e.getMessage());
+            results.add(result);
         }
+
+        response.setResults(results);
+        response.setCount(results.size());
+
+        return response;
     }
 
     @Override
@@ -97,12 +91,12 @@ public class UrlCodecExecutor implements ToolExecutor<UrlCodecExecutor.UrlCodecR
         return Map.of(
                 "name", "URL编解码",
                 "description", "URL编码和解码工具",
-                "operations", new String[]{"encode", "decode"},
+                "operations", new String[]{OperationType.ENCODE.getCode(), OperationType.DECODE.getCode()},
                 "operationLabels", Map.of(
-                        "encode", "编码 (Encode)",
-                        "decode", "解码 (Decode)"
+                        OperationType.ENCODE.getCode(), OperationType.ENCODE.getLabel(),
+                        OperationType.DECODE.getCode(), OperationType.DECODE.getLabel()
                 ),
-                "charsets", new String[]{"UTF-8", "GBK", "ISO-8859-1", "ASCII"},
+                "charsets", ToolConstants.COMMON_CHARSETS,
                 "features", new String[]{"encodeSpaceAsPlus", "batch"}
         );
     }
@@ -146,7 +140,7 @@ public class UrlCodecExecutor implements ToolExecutor<UrlCodecExecutor.UrlCodecR
         /**
          * 字符集：UTF-8、GBK、ISO-8859-1、ASCII
          */
-        private String charset = "UTF-8";
+        private String charset = ToolConstants.DEFAULT_CHARSET;
         /**
          * 是否将空格编码为+（否则编码为%20）
          */
@@ -156,12 +150,9 @@ public class UrlCodecExecutor implements ToolExecutor<UrlCodecExecutor.UrlCodecR
     /**
      * 响应结果
      */
+    @EqualsAndHashCode(callSuper = true)
     @Data
-    public static class UrlCodecResponse {
-        /**
-         * 是否成功
-         */
-        private boolean success;
+    public static class UrlCodecResponse extends BaseToolResponse {
         /**
          * 操作类型
          */
@@ -173,29 +164,10 @@ public class UrlCodecExecutor implements ToolExecutor<UrlCodecExecutor.UrlCodecR
         /**
          * 结果列表
          */
-        private List<UrlCodecResult> results;
+        private List<InputOutputResult> results;
         /**
          * 结果数量
          */
         private int count;
-        /**
-         * 错误信息
-         */
-        private String errorMessage;
-    }
-
-    /**
-     * 单个URL编解码结果
-     */
-    @Data
-    public static class UrlCodecResult {
-        /**
-         * 输入内容
-         */
-        private String input;
-        /**
-         * 输出内容
-         */
-        private String output;
     }
 }

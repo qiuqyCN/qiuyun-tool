@@ -313,7 +313,7 @@ const downloadOutput = () => {
 
         <!-- 错误提示 -->
         <div v-if="error" class="mt-4 flex items-center gap-2 text-sm text-red-500 bg-red-50/80 p-3 rounded-lg border border-red-200">
-          <AlertCircle class="w-4 h-4 flex-shrink-0" />
+          <AlertCircle class="w-4 h-4 shrink-0" />
           {{ error }}
         </div>
       </div>

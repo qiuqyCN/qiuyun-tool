@@ -1,16 +1,18 @@
 package dev.qiuyun.qiuyuntoolbackend.executor.number;
 
+import dev.qiuyun.qiuyuntoolbackend.constant.ToolConstants;
 import dev.qiuyun.qiuyuntoolbackend.enums.ToolType;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
+import dev.qiuyun.qiuyuntoolbackend.executor.AbstractToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
-import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
+import dev.qiuyun.qiuyuntoolbackend.executor.common.BaseToolResponse;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 随机数生成工具执行器
@@ -18,9 +20,11 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-public class RandomGeneratorExecutor implements ToolExecutor<RandomGeneratorExecutor.RandomGeneratorRequest, RandomGeneratorExecutor.RandomGeneratorResponse> {
+public class RandomGeneratorExecutor extends AbstractToolExecutor<RandomGeneratorExecutor.RandomGeneratorRequest, RandomGeneratorExecutor.RandomGeneratorResponse> {
 
     private final SecureRandom secureRandom = new SecureRandom();
+
+    private static final Set<String> VALID_TYPES = Set.of("integer", "float", "password", "string", "uuid", "boolean", "choice");
 
     @Override
     public String getToolCode() {
@@ -34,48 +38,37 @@ public class RandomGeneratorExecutor implements ToolExecutor<RandomGeneratorExec
 
     @Override
     public void validate(RandomGeneratorRequest request) throws BusinessException {
-        if (request == null) {
-            throw new BusinessException("请求不能为空");
-        }
-        if (request.getType() == null || request.getType().trim().isEmpty()) {
-            throw new BusinessException("生成类型不能为空");
-        }
+        validateNotNull(request, "请求");
+        validateNotEmpty(request.getType(), "生成类型");
+        validateEnum(request.getType(), "生成类型", VALID_TYPES);
 
         String type = request.getType();
-        if (!Arrays.asList("integer", "float", "password", "string", "uuid", "boolean", "choice").contains(type)) {
-            throw new BusinessException("不支持的生成类型: " + type);
-        }
 
         // 根据类型验证参数
         switch (type) {
             case "integer":
-                if (request.getMinValue() == null || request.getMaxValue() == null) {
-                    throw new BusinessException("整数随机数需要设置最小值和最大值");
-                }
+                validateNotNull(request.getMinValue(), "最小值");
+                validateNotNull(request.getMaxValue(), "最大值");
                 if (request.getMinValue() > request.getMaxValue()) {
                     throw new BusinessException("最小值不能大于最大值");
                 }
                 break;
             case "float":
-                if (request.getMinValue() == null || request.getMaxValue() == null) {
-                    throw new BusinessException("浮点数随机数需要设置最小值和最大值");
-                }
+                validateNotNull(request.getMinValue(), "最小值");
+                validateNotNull(request.getMaxValue(), "最大值");
                 if (request.getMinValue() > request.getMaxValue()) {
                     throw new BusinessException("最小值不能大于最大值");
                 }
-                if (request.getDecimalPlaces() == null || request.getDecimalPlaces() < 0 || request.getDecimalPlaces() > 10) {
-                    throw new BusinessException("小数位数必须在 0-10 之间");
-                }
+                validateNotNull(request.getDecimalPlaces(), "小数位数");
+                validateRange(request.getDecimalPlaces(), "小数位数", 0, 10);
                 break;
             case "password":
-                if (request.getLength() == null || request.getLength() < 1 || request.getLength() > 128) {
-                    throw new BusinessException("密码长度必须在 1-128 之间");
-                }
+                validateNotNull(request.getLength(), "密码长度");
+                validateRange(request.getLength(), "密码长度", 1, ToolConstants.MAX_PASSWORD_LENGTH);
                 break;
             case "string":
-                if (request.getLength() == null || request.getLength() < 1 || request.getLength() > 1000) {
-                    throw new BusinessException("字符串长度必须在 1-1000 之间");
-                }
+                validateNotNull(request.getLength(), "字符串长度");
+                validateRange(request.getLength(), "字符串长度", 1, ToolConstants.MAX_STRING_LENGTH);
                 break;
             case "choice":
                 if (request.getChoices() == null || request.getChoices().isEmpty()) {
@@ -85,57 +78,50 @@ public class RandomGeneratorExecutor implements ToolExecutor<RandomGeneratorExec
         }
 
         // 验证生成数量
-        if (request.getCount() == null || request.getCount() < 1 || request.getCount() > 100) {
-            throw new BusinessException("生成数量必须在 1-100 之间");
-        }
+        validateNotNull(request.getCount(), "生成数量");
+        validateRange(request.getCount(), "生成数量", 1, ToolConstants.MAX_RANDOM_COUNT);
     }
 
     @Override
-    public RandomGeneratorResponse execute(RandomGeneratorRequest request, ToolContext context) throws BusinessException {
-        try {
-            String type = request.getType();
-            int count = request.getCount();
+    protected RandomGeneratorResponse doExecute(RandomGeneratorRequest request, ToolContext context) throws Exception {
+        String type = request.getType();
+        int count = request.getCount();
 
-            RandomGeneratorResponse response = new RandomGeneratorResponse();
-            response.setSuccess(true);
-            response.setType(type);
-            response.setCount(count);
+        RandomGeneratorResponse response = new RandomGeneratorResponse();
+        response.setSuccess(true);
+        response.setType(type);
+        response.setCount(count);
 
-            List<String> results = new ArrayList<>();
+        List<String> results = new ArrayList<>();
 
-            for (int i = 0; i < count; i++) {
-                switch (type) {
-                    case "integer":
-                        results.add(generateInteger(request));
-                        break;
-                    case "float":
-                        results.add(generateFloat(request));
-                        break;
-                    case "password":
-                        results.add(generatePassword(request));
-                        break;
-                    case "string":
-                        results.add(generateString(request));
-                        break;
-                    case "uuid":
-                        results.add(generateUUID());
-                        break;
-                    case "boolean":
-                        results.add(generateBoolean());
-                        break;
-                    case "choice":
-                        results.add(generateChoice(request));
-                        break;
-                }
+        for (int i = 0; i < count; i++) {
+            switch (type) {
+                case "integer":
+                    results.add(generateInteger(request));
+                    break;
+                case "float":
+                    results.add(generateFloat(request));
+                    break;
+                case "password":
+                    results.add(generatePassword(request));
+                    break;
+                case "string":
+                    results.add(generateString(request));
+                    break;
+                case "uuid":
+                    results.add(generateUUID());
+                    break;
+                case "boolean":
+                    results.add(generateBoolean());
+                    break;
+                case "choice":
+                    results.add(generateChoice(request));
+                    break;
             }
-
-            response.setResults(results);
-            return response;
-
-        } catch (Exception e) {
-            log.error("随机数生成错误: {}", e.getMessage());
-            throw new BusinessException("生成失败: " + e.getMessage());
         }
+
+        response.setResults(results);
+        return response;
     }
 
     @Override
@@ -153,7 +139,7 @@ public class RandomGeneratorExecutor implements ToolExecutor<RandomGeneratorExec
                         "boolean", "随机布尔值",
                         "choice", "随机选择"
                 ),
-                "maxCount", 100,
+                "maxCount", ToolConstants.MAX_RANDOM_COUNT,
                 "passwordOptions", Map.of(
                         "uppercase", "大写字母 (A-Z)",
                         "lowercase", "小写字母 (a-z)",
@@ -288,7 +274,7 @@ public class RandomGeneratorExecutor implements ToolExecutor<RandomGeneratorExec
         /**
          * 生成数量
          */
-        private Integer count = 1;
+        private Integer count = ToolConstants.DEFAULT_RANDOM_COUNT;
         /**
          * 最小值（整数/浮点数）
          */
@@ -334,12 +320,9 @@ public class RandomGeneratorExecutor implements ToolExecutor<RandomGeneratorExec
     /**
      * 响应结果
      */
+    @EqualsAndHashCode(callSuper = true)
     @Data
-    public static class RandomGeneratorResponse {
-        /**
-         * 是否成功
-         */
-        private boolean success;
+    public static class RandomGeneratorResponse extends BaseToolResponse {
         /**
          * 生成类型
          */
@@ -352,9 +335,5 @@ public class RandomGeneratorExecutor implements ToolExecutor<RandomGeneratorExec
          * 生成结果列表
          */
         private List<String> results;
-        /**
-         * 错误信息
-         */
-        private String errorMessage;
     }
 }

@@ -4,9 +4,11 @@ import com.github.vertical_blank.sqlformatter.SqlFormatter;
 import com.github.vertical_blank.sqlformatter.core.FormatConfig;
 import dev.qiuyun.qiuyuntoolbackend.enums.ToolType;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
+import dev.qiuyun.qiuyuntoolbackend.executor.AbstractToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
-import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
+import dev.qiuyun.qiuyuntoolbackend.executor.common.BaseToolResponse;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jdt.core.ToolFactory;
 import org.eclipse.jdt.core.formatter.CodeFormatter;
@@ -24,6 +26,7 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 代码美化工具执行器
@@ -31,7 +34,10 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-public class CodeBeautifyExecutor implements ToolExecutor<CodeBeautifyExecutor.CodeBeautifyRequest, CodeBeautifyExecutor.CodeBeautifyResponse> {
+public class CodeBeautifyExecutor extends AbstractToolExecutor<CodeBeautifyExecutor.CodeBeautifyRequest, CodeBeautifyExecutor.CodeBeautifyResponse> {
+
+    private static final Set<String> VALID_LANGUAGES = Set.of("html", "css", "javascript", "java", "sql", "xml");
+    private static final Set<String> VALID_OPERATIONS = Set.of("format", "compress");
 
     @Override
     public String getToolCode() {
@@ -45,54 +51,33 @@ public class CodeBeautifyExecutor implements ToolExecutor<CodeBeautifyExecutor.C
 
     @Override
     public void validate(CodeBeautifyRequest request) throws BusinessException {
-        if (request == null || request.getInput() == null || request.getInput().trim().isEmpty()) {
-            throw new BusinessException("输入内容不能为空");
-        }
-        if (request.getLanguage() == null || request.getLanguage().trim().isEmpty()) {
-            throw new BusinessException("语言类型不能为空");
-        }
-        // 验证语言类型
-        if (!isValidLanguage(request.getLanguage())) {
-            throw new BusinessException("不支持的语言类型: " + request.getLanguage());
-        }
-        // 验证操作类型
-        if (request.getOperation() == null || request.getOperation().trim().isEmpty()) {
-            throw new BusinessException("操作类型不能为空");
-        }
-        if (!"format".equals(request.getOperation()) && !"compress".equals(request.getOperation())) {
-            throw new BusinessException("不支持的操作类型: " + request.getOperation());
-        }
+        validateNotNull(request, "请求");
+        validateNotEmpty(request.getInput(), "输入内容");
+        validateNotEmpty(request.getLanguage(), "语言类型");
+        validateEnum(request.getLanguage(), "语言类型", VALID_LANGUAGES);
+        validateNotEmpty(request.getOperation(), "操作类型");
+        validateEnum(request.getOperation(), "操作类型", VALID_OPERATIONS);
     }
 
     @Override
-    public CodeBeautifyResponse execute(CodeBeautifyRequest request, ToolContext context) throws BusinessException {
+    protected CodeBeautifyResponse doExecute(CodeBeautifyRequest request, ToolContext context) throws Exception {
         String input = request.getInput();
         String language = request.getLanguage();
         String operation = request.getOperation();
 
-        try {
-            String result;
-            if ("format".equals(operation)) {
-                result = formatCode(input, language);
-            } else if ("compress".equals(operation)) {
-                result = compressCode(input, language);
-            } else {
-                throw new BusinessException("不支持的操作类型: " + operation);
-            }
-
-            CodeBeautifyResponse response = new CodeBeautifyResponse();
-            response.setSuccess(true);
-            response.setResult(result);
-            response.setLanguage(language);
-            response.setOperation(operation);
-            return response;
-
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("代码处理错误: {}", e.getMessage());
-            throw new BusinessException("处理失败: " + e.getMessage());
+        String result;
+        if ("format".equals(operation)) {
+            result = formatCode(input, language);
+        } else {
+            result = compressCode(input, language);
         }
+
+        CodeBeautifyResponse response = new CodeBeautifyResponse();
+        response.setSuccess(true);
+        response.setResult(result);
+        response.setLanguage(language);
+        response.setOperation(operation);
+        return response;
     }
 
     @Override
@@ -115,11 +100,6 @@ public class CodeBeautifyExecutor implements ToolExecutor<CodeBeautifyExecutor.C
                         "compress", "压缩"
                 )
         );
-    }
-
-    private boolean isValidLanguage(String language) {
-        return "html".equals(language) || "css".equals(language) || "javascript".equals(language)
-                || "java".equals(language) || "sql".equals(language) || "xml".equals(language);
     }
 
     /**
@@ -477,12 +457,9 @@ public class CodeBeautifyExecutor implements ToolExecutor<CodeBeautifyExecutor.C
     /**
      * 响应结果
      */
+    @EqualsAndHashCode(callSuper = true)
     @Data
-    public static class CodeBeautifyResponse {
-        /**
-         * 是否成功
-         */
-        private boolean success;
+    public static class CodeBeautifyResponse extends BaseToolResponse {
         /**
          * 处理结果
          */
@@ -495,9 +472,5 @@ public class CodeBeautifyExecutor implements ToolExecutor<CodeBeautifyExecutor.C
          * 操作类型
          */
         private String operation;
-        /**
-         * 错误信息（失败时）
-         */
-        private String errorMessage;
     }
 }

@@ -2,9 +2,11 @@ package dev.qiuyun.qiuyuntoolbackend.executor.text;
 
 import dev.qiuyun.qiuyuntoolbackend.enums.ToolType;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
+import dev.qiuyun.qiuyuntoolbackend.executor.AbstractToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
-import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
+import dev.qiuyun.qiuyuntoolbackend.executor.common.BaseToolResponse;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +21,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-public class WordCountExecutor implements ToolExecutor<WordCountExecutor.WordCountRequest, WordCountExecutor.WordCountResponse> {
+public class WordCountExecutor extends AbstractToolExecutor<WordCountExecutor.WordCountRequest, WordCountExecutor.WordCountResponse> {
 
     @Override
     public String getToolCode() {
@@ -33,59 +35,51 @@ public class WordCountExecutor implements ToolExecutor<WordCountExecutor.WordCou
 
     @Override
     public void validate(WordCountRequest request) throws BusinessException {
-        if (request == null) {
-            throw new BusinessException("请求不能为空");
-        }
+        validateNotNull(request, "请求");
         if (request.getText() == null) {
             request.setText("");
         }
     }
 
     @Override
-    public WordCountResponse execute(WordCountRequest request, ToolContext context) throws BusinessException {
-        try {
-            String text = request.getText();
-            boolean includeSpaces = request.isIncludeSpaces();
+    protected WordCountResponse doExecute(WordCountRequest request, ToolContext context) throws Exception {
+        String text = request.getText();
+        boolean includeSpaces = request.isIncludeSpaces();
 
-            WordCountResponse response = new WordCountResponse();
-            response.setSuccess(true);
+        WordCountResponse response = new WordCountResponse();
+        response.setSuccess(true);
 
-            // 基础统计
-            BasicStats basicStats = calculateBasicStats(text, includeSpaces);
-            response.setBasicStats(basicStats);
+        // 基础统计
+        BasicStats basicStats = calculateBasicStats(text, includeSpaces);
+        response.setBasicStats(basicStats);
 
-            // 字符统计
-            CharStats charStats = calculateCharStats(text);
-            response.setCharStats(charStats);
+        // 字符统计
+        CharStats charStats = calculateCharStats(text);
+        response.setCharStats(charStats);
 
-            // 中文统计
-            ChineseStats chineseStats = calculateChineseStats(text);
-            response.setChineseStats(chineseStats);
+        // 中文统计
+        ChineseStats chineseStats = calculateChineseStats(text);
+        response.setChineseStats(chineseStats);
 
-            // 英文统计
-            EnglishStats englishStats = calculateEnglishStats(text);
-            response.setEnglishStats(englishStats);
+        // 英文统计
+        EnglishStats englishStats = calculateEnglishStats(text);
+        response.setEnglishStats(englishStats);
 
-            // 数字统计
-            NumberStats numberStats = calculateNumberStats(text);
-            response.setNumberStats(numberStats);
+        // 数字统计
+        NumberStats numberStats = calculateNumberStats(text);
+        response.setNumberStats(numberStats);
 
-            // 阅读时间估算
-            ReadingTime readingTime = calculateReadingTime(text);
-            response.setReadingTime(readingTime);
+        // 阅读时间估算
+        ReadingTime readingTime = calculateReadingTime(text);
+        response.setReadingTime(readingTime);
 
-            // 词频统计（前10个）
-            if (request.isShowWordFrequency()) {
-                List<WordFrequency> wordFrequencies = calculateWordFrequency(text);
-                response.setWordFrequencies(wordFrequencies);
-            }
-
-            return response;
-
-        } catch (Exception e) {
-            log.error("字数统计错误: {}", e.getMessage());
-            throw new BusinessException("统计失败: " + e.getMessage());
+        // 词频统计（前10个）
+        if (request.isShowWordFrequency()) {
+            List<WordFrequency> wordFrequencies = calculateWordFrequency(text);
+            response.setWordFrequencies(wordFrequencies);
         }
+
+        return response;
     }
 
     @Override
@@ -132,7 +126,7 @@ public class WordCountExecutor implements ToolExecutor<WordCountExecutor.WordCou
         stats.setSpaces(countMatches(text, " "));
 
         // 换行数
-        stats.setNewlines(countMatches(text, "\\n"));
+        stats.setNewlines(countMatches(text, "\n"));
 
         // 标点符号数
         String punctuation = "，。、；：？！\"'\"'（）【】《》…—·\\.,;:!?\"'()[]{}";
@@ -319,12 +313,9 @@ public class WordCountExecutor implements ToolExecutor<WordCountExecutor.WordCou
     /**
      * 响应结果
      */
+    @EqualsAndHashCode(callSuper = true)
     @Data
-    public static class WordCountResponse {
-        /**
-         * 是否成功
-         */
-        private boolean success;
+    public static class WordCountResponse extends BaseToolResponse {
         /**
          * 基础统计
          */
@@ -353,10 +344,6 @@ public class WordCountExecutor implements ToolExecutor<WordCountExecutor.WordCou
          * 词频统计
          */
         private List<WordFrequency> wordFrequencies;
-        /**
-         * 错误信息
-         */
-        private String errorMessage;
     }
 
     /**

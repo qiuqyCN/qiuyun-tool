@@ -1,14 +1,19 @@
 package dev.qiuyun.qiuyuntoolbackend.executor.crypto;
 
+import dev.qiuyun.qiuyuntoolbackend.constant.ToolConstants;
 import dev.qiuyun.qiuyuntoolbackend.enums.ToolType;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
+import dev.qiuyun.qiuyuntoolbackend.executor.AbstractToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
-import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
+import dev.qiuyun.qiuyuntoolbackend.executor.common.BaseToolResponse;
+import dev.qiuyun.qiuyuntoolbackend.executor.common.InputOutputResult;
+import dev.qiuyun.qiuyuntoolbackend.util.CharsetUtils;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -21,7 +26,10 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-public class Md5EncryptExecutor implements ToolExecutor<Md5EncryptExecutor.Md5Request, Md5EncryptExecutor.Md5Response> {
+public class Md5EncryptExecutor extends AbstractToolExecutor<Md5EncryptExecutor.Md5Request, Md5EncryptExecutor.Md5Response> {
+
+    @Autowired
+    private CharsetUtils charsetUtils;
 
     @Override
     public String getToolCode() {
@@ -35,49 +43,44 @@ public class Md5EncryptExecutor implements ToolExecutor<Md5EncryptExecutor.Md5Re
 
     @Override
     public void validate(Md5Request request) throws BusinessException {
-        if (request == null) {
-            throw new BusinessException("请求不能为空");
-        }
-        if (request.getInput() == null || request.getInput().isEmpty()) {
-            throw new BusinessException("输入内容不能为空");
-        }
+        validateNotNull(request, "请求");
+        validateNotEmpty(request.getInput(), "输入内容");
     }
 
     @Override
-    public Md5Response execute(Md5Request request, ToolContext context) throws BusinessException {
-        try {
-            String input = request.getInput();
-            int bitLength = request.getBitLength() != null ? request.getBitLength() : 32;
-            boolean uppercase = request.getUppercase() != null ? request.getUppercase() : false;
-            String charset = request.getCharset() != null ? request.getCharset() : "UTF-8";
+    protected Md5Response doExecute(Md5Request request, ToolContext context) throws Exception {
+        String input = request.getInput();
+        int bitLength = request.getBitLength() != null ? request.getBitLength() : ToolConstants.MD5_32BIT;
+        boolean uppercase = request.getUppercase() != null ? request.getUppercase() : false;
+        String charset = request.getCharset() != null ? request.getCharset() : ToolConstants.DEFAULT_CHARSET;
 
-            Md5Response response = new Md5Response();
-            response.setSuccess(true);
-            response.setBitLength(bitLength);
-            response.setUppercase(uppercase);
+        Md5Response response = new Md5Response();
+        response.setSuccess(true);
+        response.setBitLength(bitLength);
+        response.setUppercase(uppercase);
 
-            // 处理多行输入（批量加密）
-            String[] lines = input.split("\\r?\\n");
-            List<Md5Result> results = new ArrayList<>();
+        // 处理多行输入（批量加密）
+        String[] lines = input.split("\\r?\\n");
+        List<InputOutputResult> results = new ArrayList<>();
 
-            for (String line : lines) {
-                if (line.trim().isEmpty()) continue;
+        for (String line : lines) {
+            if (line.trim().isEmpty()) continue;
 
-                Md5Result result = new Md5Result();
-                result.setInput(line);
-                result.setOutput(encryptMd5(line, bitLength, uppercase, charset));
-                results.add(result);
-            }
-
-            response.setResults(results);
-            response.setCount(results.size());
-
-            return response;
-
-        } catch (Exception e) {
-            log.error("MD5加密错误: {}", e.getMessage());
-            throw new BusinessException("加密失败: " + e.getMessage());
+            InputOutputResult result = new InputOutputResult();
+            result.setInput(line);
+            result.setOutput(encryptMd5(line, bitLength, uppercase, charset));
+            results.add(result);
         }
+
+        response.setResults(results);
+        response.setCount(results.size());
+
+        return response;
+    }
+
+    @Override
+    protected String buildErrorMessage(Exception e) {
+        return "加密失败: " + e.getMessage();
     }
 
     @Override
@@ -85,8 +88,8 @@ public class Md5EncryptExecutor implements ToolExecutor<Md5EncryptExecutor.Md5Re
         return Map.of(
                 "name", "MD5加密",
                 "description", "MD5加密工具，支持32位/16位",
-                "bitLengths", new Integer[]{32, 16},
-                "charsets", new String[]{"UTF-8", "GBK", "ISO-8859-1", "ASCII"},
+                "bitLengths", new Integer[]{ToolConstants.MD5_32BIT, ToolConstants.MD5_16BIT},
+                "charsets", ToolConstants.COMMON_CHARSETS,
                 "features", new String[]{"uppercase", "lowercase", "batch"}
         );
     }
@@ -95,25 +98,10 @@ public class Md5EncryptExecutor implements ToolExecutor<Md5EncryptExecutor.Md5Re
      * MD5加密
      */
     private String encryptMd5(String input, int bitLength, boolean uppercase, String charset)
-            throws NoSuchAlgorithmException, java.io.UnsupportedEncodingException {
+            throws NoSuchAlgorithmException {
 
-        // 获取字节数组
-        byte[] inputBytes;
-        switch (charset.toUpperCase()) {
-            case "GBK":
-                inputBytes = input.getBytes("GBK");
-                break;
-            case "ISO-8859-1":
-                inputBytes = input.getBytes(StandardCharsets.ISO_8859_1);
-                break;
-            case "ASCII":
-                inputBytes = input.getBytes(StandardCharsets.US_ASCII);
-                break;
-            case "UTF-8":
-            default:
-                inputBytes = input.getBytes(StandardCharsets.UTF_8);
-                break;
-        }
+        // 使用 CharsetUtils 获取字节数组
+        byte[] inputBytes = charsetUtils.getBytes(input, charset);
 
         // MD5加密
         MessageDigest md = MessageDigest.getInstance("MD5");
@@ -132,18 +120,12 @@ public class Md5EncryptExecutor implements ToolExecutor<Md5EncryptExecutor.Md5Re
         String result = sb.toString();
 
         // 16位MD5（取中间16位）
-        if (bitLength == 16) {
+        if (bitLength == ToolConstants.MD5_16BIT) {
             result = result.substring(8, 24);
         }
 
         // 大小写转换
-        if (uppercase) {
-            result = result.toUpperCase();
-        } else {
-            result = result.toLowerCase();
-        }
-
-        return result;
+        return uppercase ? result.toUpperCase() : result.toLowerCase();
     }
 
     /**
@@ -158,7 +140,7 @@ public class Md5EncryptExecutor implements ToolExecutor<Md5EncryptExecutor.Md5Re
         /**
          * 位数：32或16
          */
-        private Integer bitLength = 32;
+        private Integer bitLength = ToolConstants.MD5_32BIT;
         /**
          * 是否大写输出
          */
@@ -166,18 +148,15 @@ public class Md5EncryptExecutor implements ToolExecutor<Md5EncryptExecutor.Md5Re
         /**
          * 字符集
          */
-        private String charset = "UTF-8";
+        private String charset = ToolConstants.DEFAULT_CHARSET;
     }
 
     /**
      * 响应结果
      */
     @Data
-    public static class Md5Response {
-        /**
-         * 是否成功
-         */
-        private boolean success;
+    @EqualsAndHashCode(callSuper = true)
+    public static class Md5Response extends BaseToolResponse {
         /**
          * 位数
          */
@@ -189,29 +168,10 @@ public class Md5EncryptExecutor implements ToolExecutor<Md5EncryptExecutor.Md5Re
         /**
          * 结果列表
          */
-        private List<Md5Result> results;
+        private List<InputOutputResult> results;
         /**
          * 结果数量
          */
         private int count;
-        /**
-         * 错误信息
-         */
-        private String errorMessage;
-    }
-
-    /**
-     * 单个MD5结果
-     */
-    @Data
-    public static class Md5Result {
-        /**
-         * 输入内容
-         */
-        private String input;
-        /**
-         * MD5结果
-         */
-        private String output;
     }
 }

@@ -2,9 +2,11 @@ package dev.qiuyun.qiuyuntoolbackend.executor.dev;
 
 import dev.qiuyun.qiuyuntoolbackend.enums.ToolType;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
+import dev.qiuyun.qiuyuntoolbackend.executor.AbstractToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
-import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
+import dev.qiuyun.qiuyuntoolbackend.executor.common.BaseToolResponse;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +24,7 @@ import java.util.regex.PatternSyntaxException;
  */
 @Slf4j
 @Component
-public class RegexTesterExecutor implements ToolExecutor<RegexTesterExecutor.RegexTesterRequest, RegexTesterExecutor.RegexTesterResponse> {
+public class RegexTesterExecutor extends AbstractToolExecutor<RegexTesterExecutor.RegexTesterRequest, RegexTesterExecutor.RegexTesterResponse> {
 
     @Override
     public String getToolCode() {
@@ -36,64 +38,57 @@ public class RegexTesterExecutor implements ToolExecutor<RegexTesterExecutor.Reg
 
     @Override
     public void validate(RegexTesterRequest request) throws BusinessException {
-        if (request == null) {
-            throw new BusinessException("请求不能为空");
-        }
-        if (request.getPattern() == null || request.getPattern().trim().isEmpty()) {
-            throw new BusinessException("正则表达式不能为空");
-        }
-        if (request.getText() == null) {
-            throw new BusinessException("测试文本不能为空");
-        }
+        validateNotNull(request, "请求");
+        validateNotEmpty(request.getPattern(), "正则表达式");
+        validateNotNull(request.getText(), "测试文本");
     }
 
     @Override
-    public RegexTesterResponse execute(RegexTesterRequest request, ToolContext context) throws BusinessException {
+    protected RegexTesterResponse doExecute(RegexTesterRequest request, ToolContext context) throws Exception {
         String pattern = request.getPattern();
         String text = request.getText();
         List<String> flags = request.getFlags() != null ? request.getFlags() : new ArrayList<>();
 
-        try {
-            // 构建正则表达式
-            int regexFlags = buildRegexFlags(flags);
-            Pattern compiledPattern = Pattern.compile(pattern, regexFlags);
-            Matcher matcher = compiledPattern.matcher(text);
+        // 构建正则表达式
+        int regexFlags = buildRegexFlags(flags);
+        Pattern compiledPattern = Pattern.compile(pattern, regexFlags);
+        Matcher matcher = compiledPattern.matcher(text);
 
-            // 执行匹配
-            List<MatchResult> matches = new ArrayList<>();
-            boolean isMatch = false;
+        // 执行匹配
+        List<MatchResult> matches = new ArrayList<>();
+        boolean isMatch = false;
 
-            if (request.isFindAll()) {
-                // 查找所有匹配
-                while (matcher.find()) {
-                    isMatch = true;
-                    matches.add(buildMatchResult(matcher, text));
-                }
-            } else {
-                // 只查找第一个匹配
-                if (matcher.find()) {
-                    isMatch = true;
-                    matches.add(buildMatchResult(matcher, text));
-                }
+        if (request.isFindAll()) {
+            // 查找所有匹配
+            while (matcher.find()) {
+                isMatch = true;
+                matches.add(buildMatchResult(matcher, text));
             }
-
-            // 构建响应
-            RegexTesterResponse response = new RegexTesterResponse();
-            response.setSuccess(true);
-            response.setIsMatch(isMatch);
-            response.setMatchCount(matches.size());
-            response.setMatches(matches);
-            response.setHighlightedText(buildHighlightedText(text, matches));
-
-            return response;
-
-        } catch (PatternSyntaxException e) {
-            log.error("正则表达式语法错误: {}", e.getMessage());
-            throw new BusinessException("正则表达式语法错误: " + e.getMessage());
-        } catch (Exception e) {
-            log.error("正则测试错误: {}", e.getMessage());
-            throw new BusinessException("测试失败: " + e.getMessage());
+        } else {
+            // 只查找第一个匹配
+            if (matcher.find()) {
+                isMatch = true;
+                matches.add(buildMatchResult(matcher, text));
+            }
         }
+
+        // 构建响应
+        RegexTesterResponse response = new RegexTesterResponse();
+        response.setSuccess(true);
+        response.setIsMatch(isMatch);
+        response.setMatchCount(matches.size());
+        response.setMatches(matches);
+        response.setHighlightedText(buildHighlightedText(text, matches));
+
+        return response;
+    }
+
+    @Override
+    protected String buildErrorMessage(Exception e) {
+        if (e instanceof PatternSyntaxException) {
+            return "正则表达式语法错误: " + e.getMessage();
+        }
+        return "测试失败: " + e.getMessage();
     }
 
     @Override
@@ -249,12 +244,9 @@ public class RegexTesterExecutor implements ToolExecutor<RegexTesterExecutor.Reg
     /**
      * 响应结果
      */
+    @EqualsAndHashCode(callSuper = true)
     @Data
-    public static class RegexTesterResponse {
-        /**
-         * 是否成功
-         */
-        private boolean success;
+    public static class RegexTesterResponse extends BaseToolResponse {
         /**
          * 是否匹配成功
          */
@@ -271,10 +263,6 @@ public class RegexTesterExecutor implements ToolExecutor<RegexTesterExecutor.Reg
          * 高亮显示的文本
          */
         private String highlightedText;
-        /**
-         * 错误信息
-         */
-        private String errorMessage;
     }
 
     /**

@@ -6,14 +6,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.qiuyun.qiuyuntoolbackend.enums.JsonOperation;
 import dev.qiuyun.qiuyuntoolbackend.enums.ToolType;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
+import dev.qiuyun.qiuyuntoolbackend.executor.AbstractToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
-import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
+import dev.qiuyun.qiuyuntoolbackend.executor.common.BaseToolResponse;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * JSON格式化工具执行器
@@ -22,9 +27,13 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JsonFormatterExecutor implements ToolExecutor<JsonFormatterExecutor.JsonFormatRequest, JsonFormatterExecutor.JsonFormatResponse> {
+public class JsonFormatterExecutor extends AbstractToolExecutor<JsonFormatterExecutor.JsonFormatRequest, JsonFormatterExecutor.JsonFormatResponse> {
 
     private final ObjectMapper objectMapper;
+
+    private static final Set<String> VALID_OPERATIONS = Stream.of(JsonOperation.values())
+            .map(JsonOperation::getCode)
+            .collect(Collectors.toSet());
 
     @Override
     public String getToolCode() {
@@ -38,55 +47,48 @@ public class JsonFormatterExecutor implements ToolExecutor<JsonFormatterExecutor
 
     @Override
     public void validate(JsonFormatRequest request) throws BusinessException {
-        if (request == null || request.getInput() == null || request.getInput().trim().isEmpty()) {
-            throw new BusinessException("输入内容不能为空");
-        }
-        if (request.getOperation() == null || request.getOperation().trim().isEmpty()) {
-            throw new BusinessException("操作类型不能为空");
-        }
-        // 验证操作类型
-        if (!JsonOperation.isValid(request.getOperation())) {
-            throw new BusinessException("不支持的操作类型: " + request.getOperation());
-        }
+        validateNotNull(request, "请求");
+        validateNotEmpty(request.getInput(), "输入内容");
+        validateNotEmpty(request.getOperation(), "操作类型");
+        validateEnum(request.getOperation(), "操作类型", VALID_OPERATIONS);
     }
 
     @Override
-    public JsonFormatResponse execute(JsonFormatRequest request, ToolContext context) throws BusinessException {
+    protected JsonFormatResponse doExecute(JsonFormatRequest request, ToolContext context) throws Exception {
         JsonOperation operation = JsonOperation.fromCode(request.getOperation());
         String input = request.getInput().trim();
 
-        try {
-            String result;
-            switch (operation) {
-                case FORMAT:
-                    result = formatJson(input);
-                    break;
-                case COMPRESS:
-                    result = compressJson(input);
-                    break;
-                case ESCAPE:
-                    result = escapeJson(input);
-                    break;
-                case UNESCAPE:
-                    result = unescapeJson(input);
-                    break;
-                default:
-                    throw new BusinessException("不支持的操作类型: " + request.getOperation());
-            }
-
-            JsonFormatResponse response = new JsonFormatResponse();
-            response.setSuccess(true);
-            response.setResult(result);
-            response.setOperation(operation.getCode());
-            return response;
-
-        } catch (JsonProcessingException e) {
-            log.error("JSON处理错误: {}", e.getMessage());
-            throw new BusinessException("JSON格式错误: " + e.getMessage());
-        } catch (Exception e) {
-            log.error("执行错误: {}", e.getMessage());
-            throw new BusinessException("处理失败: " + e.getMessage());
+        String result;
+        switch (operation) {
+            case FORMAT:
+                result = formatJson(input);
+                break;
+            case COMPRESS:
+                result = compressJson(input);
+                break;
+            case ESCAPE:
+                result = escapeJson(input);
+                break;
+            case UNESCAPE:
+                result = unescapeJson(input);
+                break;
+            default:
+                throw new BusinessException("不支持的操作类型: " + request.getOperation());
         }
+
+        JsonFormatResponse response = new JsonFormatResponse();
+        response.setSuccess(true);
+        response.setResult(result);
+        response.setOperation(operation.getCode());
+        return response;
+    }
+
+    @Override
+    protected String buildErrorMessage(Exception e) {
+        if (e instanceof JsonProcessingException) {
+            return "JSON格式错误: " + e.getMessage();
+        }
+        return "处理失败: " + e.getMessage();
     }
 
     @Override
@@ -168,12 +170,9 @@ public class JsonFormatterExecutor implements ToolExecutor<JsonFormatterExecutor
     /**
      * 响应结果
      */
+    @EqualsAndHashCode(callSuper = true)
     @Data
-    public static class JsonFormatResponse {
-        /**
-         * 是否成功
-         */
-        private boolean success;
+    public static class JsonFormatResponse extends BaseToolResponse {
         /**
          * 处理结果
          */
@@ -182,9 +181,5 @@ public class JsonFormatterExecutor implements ToolExecutor<JsonFormatterExecutor
          * 操作类型
          */
         private String operation;
-        /**
-         * 错误信息（失败时）
-         */
-        private String errorMessage;
     }
 }

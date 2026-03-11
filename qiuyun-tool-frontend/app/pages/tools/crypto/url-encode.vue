@@ -2,13 +2,11 @@
 import { ref, computed, watch } from 'vue'
 import { Link, Copy, Check, AlertCircle, Trash2, FileCode, FileText } from 'lucide-vue-next'
 import { useToolExecutor } from '~/composables/useToolExecutor'
+import { useToast } from '~/composables/useToast'
+import { useClipboard } from '~/composables/useClipboard'
 import { ToolType } from '~/types/tool'
-
-// 操作类型
-enum OperationType {
-  ENCODE = 'encode',
-  DECODE = 'decode'
-}
+import { CodecOperation } from '~/types/tool-common'
+import { CHARSET_OPTIONS } from '~/constants/tool'
 
 // 请求参数
 interface UrlCodecParams {
@@ -35,20 +33,16 @@ interface UrlCodecResponse {
 }
 
 // 状态
-const activeTab = ref<OperationType>(OperationType.ENCODE)
+const activeTab = ref<CodecOperation>(CodecOperation.ENCODE)
 const inputText = ref('')
 const charset = ref('UTF-8')
 const encodeSpaceAsPlus = ref(true)
 const results = ref<UrlCodecResult[]>([])
 const error = ref('')
 
-// Toast 提示
-const toast = ref({ show: false, message: '' })
-const showToast = (message: string) => {
-  toast.value.message = message
-  toast.value.show = true
-  setTimeout(() => toast.value.show = false, 2000)
-}
+// 使用通用 composables
+const { toast, showSuccess } = useToast()
+const { copy, copyMultiple } = useClipboard(showSuccess)
 
 // 使用工具执行器
 const { execute, isLoading } = useToolExecutor<UrlCodecParams, UrlCodecResponse>({
@@ -85,7 +79,7 @@ const processUrl = async () => {
 }
 
 // 切换操作
-const switchOperation = (op: OperationType) => {
+const switchOperation = (op: CodecOperation) => {
   activeTab.value = op
   // 如果有结果，交换输入输出
   if (results.value.length > 0 && results.value[0].output) {
@@ -97,25 +91,10 @@ const switchOperation = (op: OperationType) => {
   }
 }
 
-// 复制结果
-const copyResult = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text)
-    showToast('已复制到剪贴板')
-  } catch {
-    showToast('复制失败')
-  }
-}
-
 // 复制所有结果
 const copyAllResults = async () => {
-  const text = results.value.map(r => r.output).join('\n')
-  try {
-    await navigator.clipboard.writeText(text)
-    showToast('已复制所有结果')
-  } catch {
-    showToast('复制失败')
-  }
+  const texts = results.value.map(r => r.output)
+  await copyMultiple(texts, '已复制所有结果')
 }
 
 // 清空
@@ -125,17 +104,9 @@ const clearAll = () => {
   error.value = ''
 }
 
-// 字符集选项
-const charsetOptions = [
-  { value: 'UTF-8', label: 'UTF-8 (推荐)' },
-  { value: 'GBK', label: 'GBK (中文)' },
-  { value: 'ISO-8859-1', label: 'ISO-8859-1 (西欧)' },
-  { value: 'ASCII', label: 'ASCII' }
-]
-
 // 输入框占位符
 const inputPlaceholder = computed(() => {
-  return activeTab.value === OperationType.ENCODE
+  return activeTab.value === CodecOperation.ENCODE
     ? '输入要编码的文本或URL...\n例如: Hello World 或 https://example.com?key=中文'
     : '输入要解码的URL编码字符串...\n例如: Hello%20World'
 })
@@ -155,9 +126,9 @@ watch([inputText, charset, encodeSpaceAsPlus], () => {
       <div class="border-b bg-muted/20">
         <div class="flex">
           <button
-            @click="switchOperation(OperationType.ENCODE)"
+            @click="switchOperation(CodecOperation.ENCODE)"
             class="flex items-center gap-2 px-6 py-3 border-b-2 transition-colors"
-            :class="activeTab === OperationType.ENCODE
+            :class="activeTab === CodecOperation.ENCODE
               ? 'border-primary bg-background text-primary'
               : 'border-transparent text-muted-foreground hover:text-foreground'"
           >
@@ -165,9 +136,9 @@ watch([inputText, charset, encodeSpaceAsPlus], () => {
             编码 (Encode)
           </button>
           <button
-            @click="switchOperation(OperationType.DECODE)"
+            @click="switchOperation(CodecOperation.DECODE)"
             class="flex items-center gap-2 px-6 py-3 border-b-2 transition-colors"
-            :class="activeTab === OperationType.DECODE
+            :class="activeTab === CodecOperation.DECODE
               ? 'border-primary bg-background text-primary'
               : 'border-transparent text-muted-foreground hover:text-foreground'"
           >
@@ -187,7 +158,7 @@ watch([inputText, charset, encodeSpaceAsPlus], () => {
               v-model="charset"
               class="px-3 py-1.5 text-sm border rounded bg-background"
             >
-              <option v-for="opt in charsetOptions" :key="opt.value" :value="opt.value">
+              <option v-for="opt in CHARSET_OPTIONS" :key="opt.value" :value="opt.value">
                 {{ opt.label }}
               </option>
             </select>
@@ -195,7 +166,7 @@ watch([inputText, charset, encodeSpaceAsPlus], () => {
 
           <!-- 空格编码选项 -->
           <label
-            v-if="activeTab === OperationType.ENCODE"
+            v-if="activeTab === CodecOperation.ENCODE"
             class="flex items-center gap-2 text-sm cursor-pointer"
           >
             <input
@@ -222,7 +193,7 @@ watch([inputText, charset, encodeSpaceAsPlus], () => {
           <div class="flex items-center gap-2 mb-2">
             <div class="w-1 h-4 bg-primary rounded-full"></div>
             <label class="text-sm font-medium">
-              {{ activeTab === OperationType.ENCODE ? '输入文本' : '输入编码字符串' }}
+              {{ activeTab === CodecOperation.ENCODE ? '输入文本' : '输入编码字符串' }}
             </label>
             <span class="text-xs text-muted-foreground">(支持多行批量处理)</span>
           </div>
@@ -239,7 +210,7 @@ watch([inputText, charset, encodeSpaceAsPlus], () => {
           v-if="error"
           class="flex items-center gap-2 text-sm text-red-500 bg-red-50/80 p-3 rounded-lg border border-red-200"
         >
-          <AlertCircle class="w-4 h-4 flex-shrink-0" />
+          <AlertCircle class="w-4 h-4 shrink-0" />
           {{ error }}
         </div>
 
@@ -249,7 +220,7 @@ watch([inputText, charset, encodeSpaceAsPlus], () => {
             <div class="flex items-center gap-2">
               <div class="w-1 h-4 bg-green-500 rounded-full"></div>
               <label class="text-sm font-medium">
-                {{ activeTab === OperationType.ENCODE ? 'URL 编码结果' : '解码结果' }}
+                {{ activeTab === CodecOperation.ENCODE ? 'URL 编码结果' : '解码结果' }}
               </label>
               <span class="text-xs text-muted-foreground">({{ results.length }} 个)</span>
             </div>
@@ -275,11 +246,11 @@ watch([inputText, charset, encodeSpaceAsPlus], () => {
               </div>
               <div class="flex items-center gap-2">
                 <span class="text-xs text-muted-foreground">
-                  {{ activeTab === OperationType.ENCODE ? '编码:' : '解码:' }}
+                  {{ activeTab === CodecOperation.ENCODE ? '编码:' : '解码:' }}
                 </span>
                 <code class="text-sm font-mono bg-primary/5 text-primary px-2 py-0.5 rounded flex-1 break-all">{{ result.output }}</code>
                 <button
-                  @click="copyResult(result.output)"
+                  @click="copy(result.output)"
                   class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                   title="复制"
                 >
@@ -307,6 +278,7 @@ watch([inputText, charset, encodeSpaceAsPlus], () => {
     <div
       v-if="toast.show"
       class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-50"
+      :class="toast.type === 'error' ? 'bg-red-500' : toast.type === 'info' ? 'bg-blue-500' : 'bg-green-500'"
     >
       <Check class="w-4 h-4" />
       {{ toast.message }}

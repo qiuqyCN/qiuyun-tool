@@ -1,17 +1,22 @@
 package dev.qiuyun.qiuyuntoolbackend.executor.dev;
 
+import dev.qiuyun.qiuyuntoolbackend.constant.ToolConstants;
+import dev.qiuyun.qiuyuntoolbackend.enums.OperationType;
 import dev.qiuyun.qiuyuntoolbackend.enums.ToolType;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
+import dev.qiuyun.qiuyuntoolbackend.executor.AbstractToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
-import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
+import dev.qiuyun.qiuyuntoolbackend.executor.common.BaseToolResponse;
+import dev.qiuyun.qiuyuntoolbackend.util.CharsetUtils;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Base64编解码工具执行器
@@ -19,7 +24,12 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-public class Base64CodecExecutor implements ToolExecutor<Base64CodecExecutor.Base64Request, Base64CodecExecutor.Base64Response> {
+@RequiredArgsConstructor
+public class Base64CodecExecutor extends AbstractToolExecutor<Base64CodecExecutor.Base64Request, Base64CodecExecutor.Base64Response> {
+
+    private final CharsetUtils charsetUtils;
+
+    private static final Set<String> VALID_OPERATIONS = Set.of(OperationType.ENCODE.getCode(), OperationType.DECODE.getCode());
 
     @Override
     public String getToolCode() {
@@ -33,56 +43,45 @@ public class Base64CodecExecutor implements ToolExecutor<Base64CodecExecutor.Bas
 
     @Override
     public void validate(Base64Request request) throws BusinessException {
-        if (request == null) {
-            throw new BusinessException("请求不能为空");
-        }
-        if (request.getOperation() == null || request.getOperation().trim().isEmpty()) {
-            throw new BusinessException("操作类型不能为空");
-        }
-        if (!"encode".equals(request.getOperation()) && !"decode".equals(request.getOperation())) {
-            throw new BusinessException("不支持的操作类型: " + request.getOperation());
-        }
-        if (request.getInput() == null || request.getInput().isEmpty()) {
-            throw new BusinessException("输入内容不能为空");
-        }
+        validateNotNull(request, "请求");
+        validateNotEmpty(request.getOperation(), "操作类型");
+        validateEnum(request.getOperation(), "操作类型", VALID_OPERATIONS);
+        validateNotEmpty(request.getInput(), "输入内容");
     }
 
     @Override
-    public Base64Response execute(Base64Request request, ToolContext context) throws BusinessException {
+    protected Base64Response doExecute(Base64Request request, ToolContext context) throws Exception {
         String operation = request.getOperation();
         String input = request.getInput();
-        String charset = request.getCharset() != null ? request.getCharset() : "UTF-8";
+        String charset = request.getCharset() != null ? request.getCharset() : ToolConstants.DEFAULT_CHARSET;
         boolean urlSafe = request.isUrlSafe();
 
-        try {
-            Base64Response response = new Base64Response();
-            response.setSuccess(true);
-            response.setOperation(operation);
-            response.setInput(input);
+        Base64Response response = new Base64Response();
+        response.setSuccess(true);
+        response.setOperation(operation);
+        response.setInput(input);
 
-            if ("encode".equals(operation)) {
-                // Base64编码
-                String result = encodeBase64(input, charset, urlSafe);
-                response.setOutput(result);
-                response.setInputLength(input.length());
-                response.setOutputLength(result.length());
-            } else if ("decode".equals(operation)) {
-                // Base64解码
-                String result = decodeBase64(input, charset, urlSafe);
-                response.setOutput(result);
-                response.setInputLength(input.length());
-                response.setOutputLength(result.length());
-            }
-
-            return response;
-
-        } catch (IllegalArgumentException e) {
-            log.error("Base64解码错误: {}", e.getMessage());
-            throw new BusinessException("解码失败: 无效的Base64字符串");
-        } catch (Exception e) {
-            log.error("Base64编解码错误: {}", e.getMessage());
-            throw new BusinessException("操作失败: " + e.getMessage());
+        if (OperationType.ENCODE.getCode().equals(operation)) {
+            String result = encodeBase64(input, charset, urlSafe);
+            response.setOutput(result);
+            response.setInputLength(input.length());
+            response.setOutputLength(result.length());
+        } else if (OperationType.DECODE.getCode().equals(operation)) {
+            String result = decodeBase64(input, charset, urlSafe);
+            response.setOutput(result);
+            response.setInputLength(input.length());
+            response.setOutputLength(result.length());
         }
+
+        return response;
+    }
+
+    @Override
+    protected String buildErrorMessage(Exception e) {
+        if (e instanceof IllegalArgumentException) {
+            return "解码失败: 无效的Base64字符串";
+        }
+        return "操作失败: " + e.getMessage();
     }
 
     @Override
@@ -90,12 +89,12 @@ public class Base64CodecExecutor implements ToolExecutor<Base64CodecExecutor.Bas
         return Map.of(
                 "name", "Base64编解码",
                 "description", "Base64编码和解码工具",
-                "operations", new String[]{"encode", "decode"},
+                "operations", new String[]{OperationType.ENCODE.getCode(), OperationType.DECODE.getCode()},
                 "operationLabels", Map.of(
-                        "encode", "编码 (Encode)",
-                        "decode", "解码 (Decode)"
+                        OperationType.ENCODE.getCode(), OperationType.ENCODE.getLabel(),
+                        OperationType.DECODE.getCode(), OperationType.DECODE.getLabel()
                 ),
-                "charsets", new String[]{"UTF-8", "GBK", "ISO-8859-1", "ASCII"},
+                "charsets", ToolConstants.COMMON_CHARSETS,
                 "features", new String[]{"urlSafe", "lineBreak"}
         );
     }
@@ -104,28 +103,10 @@ public class Base64CodecExecutor implements ToolExecutor<Base64CodecExecutor.Bas
      * Base64编码
      */
     private String encodeBase64(String input, String charset, boolean urlSafe) {
-        byte[] inputBytes;
-        
-        // 根据字符集获取字节数组
-        switch (charset.toUpperCase()) {
-            case "GBK":
-                inputBytes = input.getBytes(java.nio.charset.Charset.forName("GBK"));
-                break;
-            case "ISO-8859-1":
-                inputBytes = input.getBytes(StandardCharsets.ISO_8859_1);
-                break;
-            case "ASCII":
-                inputBytes = input.getBytes(StandardCharsets.US_ASCII);
-                break;
-            case "UTF-8":
-            default:
-                inputBytes = input.getBytes(StandardCharsets.UTF_8);
-                break;
-        }
+        byte[] inputBytes = charsetUtils.getBytes(input, charset);
 
-        // 选择编码器
-        Base64.Encoder encoder = urlSafe 
-                ? Base64.getUrlEncoder() 
+        Base64.Encoder encoder = urlSafe
+                ? Base64.getUrlEncoder()
                 : Base64.getEncoder();
 
         return encoder.encodeToString(inputBytes);
@@ -135,28 +116,15 @@ public class Base64CodecExecutor implements ToolExecutor<Base64CodecExecutor.Bas
      * Base64解码
      */
     private String decodeBase64(String input, String charset, boolean urlSafe) {
-        // 清理输入（移除换行符和空格）
         String cleanInput = input.replaceAll("\\s", "");
 
-        // 选择解码器
-        Base64.Decoder decoder = urlSafe 
-                ? Base64.getUrlDecoder() 
+        Base64.Decoder decoder = urlSafe
+                ? Base64.getUrlDecoder()
                 : Base64.getDecoder();
 
         byte[] decodedBytes = decoder.decode(cleanInput);
 
-        // 根据字符集转换为字符串
-        switch (charset.toUpperCase()) {
-            case "GBK":
-                return new String(decodedBytes, java.nio.charset.Charset.forName("GBK"));
-            case "ISO-8859-1":
-                return new String(decodedBytes, StandardCharsets.ISO_8859_1);
-            case "ASCII":
-                return new String(decodedBytes, StandardCharsets.US_ASCII);
-            case "UTF-8":
-            default:
-                return new String(decodedBytes, StandardCharsets.UTF_8);
-        }
+        return charsetUtils.newString(decodedBytes, charset);
     }
 
     /**
@@ -175,7 +143,7 @@ public class Base64CodecExecutor implements ToolExecutor<Base64CodecExecutor.Bas
         /**
          * 字符集：UTF-8、GBK、ISO-8859-1、ASCII
          */
-        private String charset = "UTF-8";
+        private String charset = ToolConstants.DEFAULT_CHARSET;
         /**
          * 是否使用URL安全Base64（将+替换为-，/替换为_）
          */
@@ -185,12 +153,9 @@ public class Base64CodecExecutor implements ToolExecutor<Base64CodecExecutor.Bas
     /**
      * 响应结果
      */
+    @EqualsAndHashCode(callSuper = true)
     @Data
-    public static class Base64Response {
-        /**
-         * 是否成功
-         */
-        private boolean success;
+    public static class Base64Response extends BaseToolResponse {
         /**
          * 操作类型
          */
@@ -211,9 +176,5 @@ public class Base64CodecExecutor implements ToolExecutor<Base64CodecExecutor.Bas
          * 输出长度
          */
         private int outputLength;
-        /**
-         * 错误信息
-         */
-        private String errorMessage;
     }
 }

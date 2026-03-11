@@ -2,13 +2,11 @@
 import { ref, computed, watch } from 'vue'
 import { ArrowRightLeft, Copy, Check, AlertCircle, Trash2, FileCode, FileText } from 'lucide-vue-next'
 import { useToolExecutor } from '~/composables/useToolExecutor'
+import { useToast } from '~/composables/useToast'
+import { useClipboard } from '~/composables/useClipboard'
 import { ToolType } from '~/types/tool'
-
-// 操作类型
-enum OperationType {
-  ENCODE = 'encode',
-  DECODE = 'decode'
-}
+import { CodecOperation } from '~/types/tool-common'
+import { CHARSET_OPTIONS } from '~/constants/tool'
 
 // 请求参数
 interface Base64Params {
@@ -30,20 +28,16 @@ interface Base64Result {
 }
 
 // 状态
-const activeTab = ref<OperationType>(OperationType.ENCODE)
+const activeTab = ref<CodecOperation>(CodecOperation.ENCODE)
 const inputText = ref('')
 const charset = ref('UTF-8')
 const urlSafe = ref(false)
 const result = ref<Base64Result | null>(null)
 const error = ref('')
 
-// Toast 提示
-const toast = ref({ show: false, message: '' })
-const showToast = (message: string) => {
-  toast.value.message = message
-  toast.value.show = true
-  setTimeout(() => toast.value.show = false, 2000)
-}
+// 使用通用 composables
+const { toast, showSuccess, showError } = useToast()
+const { copy } = useClipboard(showSuccess)
 
 // 使用工具执行器
 const { execute, isLoading } = useToolExecutor<Base64Params, Base64Result>({
@@ -80,7 +74,7 @@ const processBase64 = async () => {
 }
 
 // 切换操作
-const switchOperation = (op: OperationType) => {
+const switchOperation = (op: CodecOperation) => {
   activeTab.value = op
   // 如果有结果，交换输入输出
   if (result.value?.output) {
@@ -95,12 +89,7 @@ const switchOperation = (op: OperationType) => {
 // 复制结果
 const copyResult = async () => {
   if (result.value?.output) {
-    try {
-      await navigator.clipboard.writeText(result.value.output)
-      showToast('已复制到剪贴板')
-    } catch {
-      showToast('复制失败')
-    }
+    await copy(result.value.output, '已复制到剪贴板', '复制失败')
   }
 }
 
@@ -111,24 +100,16 @@ const clearAll = () => {
   error.value = ''
 }
 
-// 字符集选项
-const charsetOptions = [
-  { value: 'UTF-8', label: 'UTF-8 (推荐)' },
-  { value: 'GBK', label: 'GBK (中文)' },
-  { value: 'ISO-8859-1', label: 'ISO-8859-1 (西欧)' },
-  { value: 'ASCII', label: 'ASCII' }
-]
-
 // 输入框占位符
 const inputPlaceholder = computed(() => {
-  return activeTab.value === OperationType.ENCODE
+  return activeTab.value === CodecOperation.ENCODE
     ? '输入要编码的文本内容...'
     : '输入要解码的Base64字符串...'
 })
 
 // 输出框标签
 const outputLabel = computed(() => {
-  return activeTab.value === OperationType.ENCODE
+  return activeTab.value === CodecOperation.ENCODE
     ? 'Base64 编码结果'
     : '解码后的文本'
 })
@@ -148,9 +129,9 @@ watch([inputText, charset, urlSafe], () => {
       <div class="border-b bg-muted/20">
         <div class="flex">
           <button
-            @click="switchOperation(OperationType.ENCODE)"
+            @click="switchOperation(CodecOperation.ENCODE)"
             class="flex items-center gap-2 px-6 py-3 border-b-2 transition-colors"
-            :class="activeTab === OperationType.ENCODE
+            :class="activeTab === CodecOperation.ENCODE
               ? 'border-primary bg-background text-primary'
               : 'border-transparent text-muted-foreground hover:text-foreground'"
           >
@@ -158,9 +139,9 @@ watch([inputText, charset, urlSafe], () => {
             编码 (Encode)
           </button>
           <button
-            @click="switchOperation(OperationType.DECODE)"
+            @click="switchOperation(CodecOperation.DECODE)"
             class="flex items-center gap-2 px-6 py-3 border-b-2 transition-colors"
-            :class="activeTab === OperationType.DECODE
+            :class="activeTab === CodecOperation.DECODE
               ? 'border-primary bg-background text-primary'
               : 'border-transparent text-muted-foreground hover:text-foreground'"
           >
@@ -180,7 +161,7 @@ watch([inputText, charset, urlSafe], () => {
               v-model="charset"
               class="px-3 py-1.5 text-sm border rounded bg-background"
             >
-              <option v-for="opt in charsetOptions" :key="opt.value" :value="opt.value">
+              <option v-for="opt in CHARSET_OPTIONS" :key="opt.value" :value="opt.value">
                 {{ opt.label }}
               </option>
             </select>
@@ -214,7 +195,7 @@ watch([inputText, charset, urlSafe], () => {
             <div class="flex items-center gap-2">
               <div class="w-1 h-4 bg-primary rounded-full"></div>
               <label class="text-sm font-medium">
-                {{ activeTab === OperationType.ENCODE ? '输入文本' : '输入 Base64' }}
+                {{ activeTab === CodecOperation.ENCODE ? '输入文本' : '输入 Base64' }}
               </label>
             </div>
             <Textarea
@@ -246,7 +227,7 @@ watch([inputText, charset, urlSafe], () => {
               readonly
               rows="10"
               class="font-mono text-sm resize-none bg-muted/20"
-              :placeholder="activeTab === OperationType.ENCODE ? 'Base64 编码结果将显示在这里...' : '解码后的文本将显示在这里...'"
+              :placeholder="activeTab === CodecOperation.ENCODE ? 'Base64 编码结果将显示在这里...' : '解码后的文本将显示在这里...'"
             />
           </div>
         </div>
@@ -265,7 +246,7 @@ watch([inputText, charset, urlSafe], () => {
           v-if="error"
           class="flex items-center gap-2 text-sm text-red-500 bg-red-50/80 p-3 rounded-lg border border-red-200"
         >
-          <AlertCircle class="w-4 h-4 flex-shrink-0" />
+          <AlertCircle class="w-4 h-4 shrink-0" />
           {{ error }}
         </div>
 
@@ -286,6 +267,7 @@ watch([inputText, charset, urlSafe], () => {
     <div
       v-if="toast.show"
       class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-50"
+      :class="toast.type === 'error' ? 'bg-red-500' : toast.type === 'info' ? 'bg-blue-500' : 'bg-green-500'"
     >
       <Check class="w-4 h-4" />
       {{ toast.message }}

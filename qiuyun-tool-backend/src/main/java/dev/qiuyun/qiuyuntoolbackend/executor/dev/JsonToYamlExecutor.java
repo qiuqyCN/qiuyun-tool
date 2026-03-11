@@ -5,14 +5,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import dev.qiuyun.qiuyuntoolbackend.enums.ToolType;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
+import dev.qiuyun.qiuyuntoolbackend.executor.AbstractToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
-import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
+import dev.qiuyun.qiuyuntoolbackend.executor.common.BaseToolResponse;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * JSON转YAML工具执行器
@@ -21,10 +24,12 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JsonToYamlExecutor implements ToolExecutor<JsonToYamlExecutor.JsonToYamlRequest, JsonToYamlExecutor.JsonToYamlResponse> {
+public class JsonToYamlExecutor extends AbstractToolExecutor<JsonToYamlExecutor.JsonToYamlRequest, JsonToYamlExecutor.JsonToYamlResponse> {
 
     private final ObjectMapper objectMapper;
     private final YAMLMapper yamlMapper;
+
+    private static final Set<String> VALID_OPERATIONS = Set.of("json-to-yaml", "yaml-to-json");
 
     @Override
     public String getToolCode() {
@@ -38,45 +43,29 @@ public class JsonToYamlExecutor implements ToolExecutor<JsonToYamlExecutor.JsonT
 
     @Override
     public void validate(JsonToYamlRequest request) throws BusinessException {
-        if (request == null || request.getInput() == null || request.getInput().trim().isEmpty()) {
-            throw new BusinessException("输入内容不能为空");
-        }
-        if (request.getOperation() == null || request.getOperation().trim().isEmpty()) {
-            throw new BusinessException("操作类型不能为空");
-        }
-        // 验证操作类型
-        if (!"json-to-yaml".equals(request.getOperation()) && !"yaml-to-json".equals(request.getOperation())) {
-            throw new BusinessException("不支持的操作类型: " + request.getOperation());
-        }
+        validateNotNull(request, "请求");
+        validateNotEmpty(request.getInput(), "输入内容");
+        validateNotEmpty(request.getOperation(), "操作类型");
+        validateEnum(request.getOperation(), "操作类型", VALID_OPERATIONS);
     }
 
     @Override
-    public JsonToYamlResponse execute(JsonToYamlRequest request, ToolContext context) throws BusinessException {
+    protected JsonToYamlResponse doExecute(JsonToYamlRequest request, ToolContext context) throws Exception {
         String input = request.getInput().trim();
         String operation = request.getOperation();
 
-        try {
-            String result;
-            if ("json-to-yaml".equals(operation)) {
-                result = jsonToYaml(input);
-            } else if ("yaml-to-json".equals(operation)) {
-                result = yamlToJson(input);
-            } else {
-                throw new BusinessException("不支持的操作类型: " + operation);
-            }
-
-            JsonToYamlResponse response = new JsonToYamlResponse();
-            response.setSuccess(true);
-            response.setResult(result);
-            response.setOperation(operation);
-            return response;
-
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("转换错误: {}", e.getMessage());
-            throw new BusinessException("转换失败: " + e.getMessage());
+        String result;
+        if ("json-to-yaml".equals(operation)) {
+            result = jsonToYaml(input);
+        } else {
+            result = yamlToJson(input);
         }
+
+        JsonToYamlResponse response = new JsonToYamlResponse();
+        response.setSuccess(true);
+        response.setResult(result);
+        response.setOperation(operation);
+        return response;
     }
 
     @Override
@@ -129,12 +118,9 @@ public class JsonToYamlExecutor implements ToolExecutor<JsonToYamlExecutor.JsonT
     /**
      * 响应结果
      */
+    @EqualsAndHashCode(callSuper = true)
     @Data
-    public static class JsonToYamlResponse {
-        /**
-         * 是否成功
-         */
-        private boolean success;
+    public static class JsonToYamlResponse extends BaseToolResponse {
         /**
          * 转换结果
          */
@@ -143,9 +129,5 @@ public class JsonToYamlExecutor implements ToolExecutor<JsonToYamlExecutor.JsonT
          * 操作类型
          */
         private String operation;
-        /**
-         * 错误信息（失败时）
-         */
-        private String errorMessage;
     }
 }

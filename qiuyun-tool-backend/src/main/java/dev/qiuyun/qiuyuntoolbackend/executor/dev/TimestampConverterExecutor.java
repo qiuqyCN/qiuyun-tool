@@ -1,10 +1,13 @@
 package dev.qiuyun.qiuyuntoolbackend.executor.dev;
 
+import dev.qiuyun.qiuyuntoolbackend.enums.TimestampUnit;
 import dev.qiuyun.qiuyuntoolbackend.enums.ToolType;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
+import dev.qiuyun.qiuyuntoolbackend.executor.AbstractToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
-import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
+import dev.qiuyun.qiuyuntoolbackend.executor.common.BaseToolResponse;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 时间戳转换工具执行器
@@ -21,7 +25,9 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-public class TimestampConverterExecutor implements ToolExecutor<TimestampConverterExecutor.TimestampRequest, TimestampConverterExecutor.TimestampResponse> {
+public class TimestampConverterExecutor extends AbstractToolExecutor<TimestampConverterExecutor.TimestampRequest, TimestampConverterExecutor.TimestampResponse> {
+
+    private static final Set<String> VALID_OPERATIONS = Set.of("timestamp-to-date", "date-to-timestamp");
 
     @Override
     public String getToolCode() {
@@ -35,69 +41,53 @@ public class TimestampConverterExecutor implements ToolExecutor<TimestampConvert
 
     @Override
     public void validate(TimestampRequest request) throws BusinessException {
-        if (request == null) {
-            throw new BusinessException("请求不能为空");
-        }
-        if (request.getOperation() == null || request.getOperation().trim().isEmpty()) {
-            throw new BusinessException("操作类型不能为空");
-        }
-        if (!"timestamp-to-date".equals(request.getOperation()) && !"date-to-timestamp".equals(request.getOperation())) {
-            throw new BusinessException("不支持的操作类型: " + request.getOperation());
-        }
+        validateNotNull(request, "请求");
+        validateNotEmpty(request.getOperation(), "操作类型");
+        validateEnum(request.getOperation(), "操作类型", VALID_OPERATIONS);
     }
 
     @Override
-    public TimestampResponse execute(TimestampRequest request, ToolContext context) throws BusinessException {
-        try {
-            String operation = request.getOperation();
-            TimestampResponse response = new TimestampResponse();
-            response.setSuccess(true);
-            response.setOperation(operation);
+    protected TimestampResponse doExecute(TimestampRequest request, ToolContext context) throws Exception {
+        String operation = request.getOperation();
+        TimestampResponse response = new TimestampResponse();
+        response.setSuccess(true);
+        response.setOperation(operation);
 
-            if ("timestamp-to-date".equals(operation)) {
-                // 时间戳转日期
-                if (request.getTimestamp() == null && (request.getTimestamps() == null || request.getTimestamps().isEmpty())) {
-                    throw new BusinessException("时间戳不能为空");
-                }
-                
-                List<ConversionResult> results = new ArrayList<>();
-                
-                // 处理单个时间戳
-                if (request.getTimestamp() != null) {
-                    results.add(convertTimestampToDate(request.getTimestamp(), request.getUnit()));
-                }
-                
-                // 处理批量时间戳
-                if (request.getTimestamps() != null) {
-                    for (Long ts : request.getTimestamps()) {
-                        results.add(convertTimestampToDate(ts, request.getUnit()));
-                    }
-                }
-                
-                response.setResults(results);
-                
-            } else if ("date-to-timestamp".equals(operation)) {
-                // 日期转时间戳
-                if (request.getDateString() == null || request.getDateString().trim().isEmpty()) {
-                    throw new BusinessException("日期字符串不能为空");
-                }
-                
-                ConversionResult result = convertDateToTimestamp(
-                    request.getDateString(), 
-                    request.getDateFormat(),
-                    request.getUnit()
-                );
-                response.setResults(List.of(result));
+        if ("timestamp-to-date".equals(operation)) {
+            // 时间戳转日期
+            if (request.getTimestamp() == null && (request.getTimestamps() == null || request.getTimestamps().isEmpty())) {
+                throw new BusinessException("时间戳不能为空");
             }
 
-            return response;
+            List<ConversionResult> results = new ArrayList<>();
 
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("时间戳转换错误: {}", e.getMessage());
-            throw new BusinessException("转换失败: " + e.getMessage());
+            // 处理单个时间戳
+            if (request.getTimestamp() != null) {
+                results.add(convertTimestampToDate(request.getTimestamp(), request.getUnit()));
+            }
+
+            // 处理批量时间戳
+            if (request.getTimestamps() != null) {
+                for (Long ts : request.getTimestamps()) {
+                    results.add(convertTimestampToDate(ts, request.getUnit()));
+                }
+            }
+
+            response.setResults(results);
+
+        } else if ("date-to-timestamp".equals(operation)) {
+            // 日期转时间戳
+            validateNotEmpty(request.getDateString(), "日期字符串");
+
+            ConversionResult result = convertDateToTimestamp(
+                request.getDateString(),
+                request.getDateFormat(),
+                request.getUnit()
+            );
+            response.setResults(List.of(result));
         }
+
+        return response;
     }
 
     @Override
@@ -120,10 +110,10 @@ public class TimestampConverterExecutor implements ToolExecutor<TimestampConvert
                 "timestamp-to-date", "时间戳 → 日期",
                 "date-to-timestamp", "日期 → 时间戳"
             ),
-            "units", new String[]{"seconds", "milliseconds"},
+            "units", new String[]{TimestampUnit.SECONDS.getCode(), TimestampUnit.MILLISECONDS.getCode()},
             "unitLabels", Map.of(
-                "seconds", "秒 (s)",
-                "milliseconds", "毫秒 (ms)"
+                TimestampUnit.SECONDS.getCode(), TimestampUnit.SECONDS.getLabel(),
+                TimestampUnit.MILLISECONDS.getCode(), TimestampUnit.MILLISECONDS.getLabel()
             ),
             "dateFormats", dateFormats,
             "timezones", List.of("UTC", "Asia/Shanghai", "Asia/Tokyo", "America/New_York", "Europe/London")
@@ -136,10 +126,10 @@ public class TimestampConverterExecutor implements ToolExecutor<TimestampConvert
     private ConversionResult convertTimestampToDate(Long timestamp, String unit) {
         ConversionResult result = new ConversionResult();
         result.setInput(String.valueOf(timestamp));
-        
+
         try {
             Instant instant;
-            if ("milliseconds".equals(unit)) {
+            if (TimestampUnit.MILLISECONDS.getCode().equals(unit)) {
                 instant = Instant.ofEpochMilli(timestamp);
                 result.setTimestampMs(timestamp);
                 result.setTimestampSec(timestamp / 1000);
@@ -148,42 +138,42 @@ public class TimestampConverterExecutor implements ToolExecutor<TimestampConvert
                 result.setTimestampSec(timestamp);
                 result.setTimestampMs(timestamp * 1000);
             }
-            
+
             // 各种时区的时间
             Map<String, String> dateTimes = new HashMap<>();
-            
+
             // UTC
             ZonedDateTime utc = instant.atZone(ZoneId.of("UTC"));
             dateTimes.put("UTC", formatDateTime(utc));
-            
+
             // 本地时区
             ZonedDateTime local = instant.atZone(ZoneId.systemDefault());
             dateTimes.put("Local", formatDateTime(local));
-            
+
             // 北京时间
             ZonedDateTime beijing = instant.atZone(ZoneId.of("Asia/Shanghai"));
             dateTimes.put("Asia/Shanghai", formatDateTime(beijing));
-            
+
             // 东京
             ZonedDateTime tokyo = instant.atZone(ZoneId.of("Asia/Tokyo"));
             dateTimes.put("Asia/Tokyo", formatDateTime(tokyo));
-            
+
             // 纽约
             ZonedDateTime newYork = instant.atZone(ZoneId.of("America/New_York"));
             dateTimes.put("America/New_York", formatDateTime(newYork));
-            
+
             // 伦敦
             ZonedDateTime london = instant.atZone(ZoneId.of("Europe/London"));
             dateTimes.put("Europe/London", formatDateTime(london));
-            
+
             result.setDateTimes(dateTimes);
             result.setSuccess(true);
-            
+
         } catch (Exception e) {
             result.setSuccess(false);
             result.setErrorMessage("无效的时间戳: " + timestamp);
         }
-        
+
         return result;
     }
 
@@ -193,10 +183,10 @@ public class TimestampConverterExecutor implements ToolExecutor<TimestampConvert
     private ConversionResult convertDateToTimestamp(String dateString, String format, String unit) {
         ConversionResult result = new ConversionResult();
         result.setInput(dateString);
-        
+
         try {
             LocalDateTime dateTime;
-            
+
             if ("ISO".equals(format)) {
                 // ISO 8601 格式
                 dateTime = LocalDateTime.parse(dateString, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
@@ -205,36 +195,36 @@ public class TimestampConverterExecutor implements ToolExecutor<TimestampConvert
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
                 dateTime = LocalDateTime.parse(dateString, formatter);
             }
-            
+
             // 转换为时间戳（使用系统默认时区）
             ZonedDateTime zonedDateTime = dateTime.atZone(ZoneId.systemDefault());
             Instant instant = zonedDateTime.toInstant();
-            
+
             long timestampSec = instant.getEpochSecond();
             long timestampMs = instant.toEpochMilli();
-            
+
             result.setTimestampSec(timestampSec);
             result.setTimestampMs(timestampMs);
-            
-            if ("seconds".equals(unit)) {
+
+            if (TimestampUnit.SECONDS.getCode().equals(unit)) {
                 result.setOutput(String.valueOf(timestampSec));
             } else {
                 result.setOutput(String.valueOf(timestampMs));
             }
-            
+
             // 同时返回两种单位的时间戳
             Map<String, String> dateTimes = new HashMap<>();
-            dateTimes.put("seconds", String.valueOf(timestampSec));
-            dateTimes.put("milliseconds", String.valueOf(timestampMs));
+            dateTimes.put(TimestampUnit.SECONDS.getCode(), String.valueOf(timestampSec));
+            dateTimes.put(TimestampUnit.MILLISECONDS.getCode(), String.valueOf(timestampMs));
             result.setDateTimes(dateTimes);
-            
+
             result.setSuccess(true);
-            
+
         } catch (Exception e) {
             result.setSuccess(false);
             result.setErrorMessage("日期格式错误: " + e.getMessage());
         }
-        
+
         return result;
     }
 
@@ -274,18 +264,15 @@ public class TimestampConverterExecutor implements ToolExecutor<TimestampConvert
         /**
          * 时间戳单位：seconds、milliseconds
          */
-        private String unit = "milliseconds";
+        private String unit = TimestampUnit.MILLISECONDS.getCode();
     }
 
     /**
      * 响应结果
      */
+    @EqualsAndHashCode(callSuper = true)
     @Data
-    public static class TimestampResponse {
-        /**
-         * 是否成功
-         */
-        private boolean success;
+    public static class TimestampResponse extends BaseToolResponse {
         /**
          * 操作类型
          */
@@ -294,10 +281,6 @@ public class TimestampConverterExecutor implements ToolExecutor<TimestampConvert
          * 转换结果列表
          */
         private List<ConversionResult> results;
-        /**
-         * 错误信息
-         */
-        private String errorMessage;
     }
 
     /**

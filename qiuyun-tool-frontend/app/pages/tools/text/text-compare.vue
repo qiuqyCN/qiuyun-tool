@@ -264,7 +264,7 @@ const getDiffTypeColor = (type: string): string => {
           v-if="error"
           class="flex items-center gap-2 text-sm text-red-500 bg-red-50/80 p-3 rounded-lg border border-red-200"
         >
-          <AlertCircle class="w-4 h-4 flex-shrink-0" />
+          <AlertCircle class="w-4 h-4 shrink-0" />
           {{ error }}
         </div>
 
@@ -311,7 +311,7 @@ const getDiffTypeColor = (type: string): string => {
               :class="getDiffTypeClass(line.type)"
             >
               <!-- 行号 -->
-              <div class="flex gap-1 text-xs text-muted-foreground w-20 flex-shrink-0">
+              <div class="flex gap-1 text-xs text-muted-foreground w-20 shrink-0">
                 <span class="w-8 text-right">{{ line.oldLineNum || '' }}</span>
                 <span class="text-gray-300">|</span>
                 <span class="w-8">{{ line.newLineNum || '' }}</span>
@@ -320,7 +320,7 @@ const getDiffTypeColor = (type: string): string => {
               <!-- 类型标签 -->
               <span
                 v-if="line.type !== 'unchanged'"
-                class="text-xs px-1.5 py-0.5 rounded flex-shrink-0"
+                class="text-xs px-1.5 py-0.5 rounded shrink-0"
                 :class="getDiffTypeColor(line.type)"
               >
                 {{ getDiffTypeLabel(line.type) }}

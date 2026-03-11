@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { Hash, Copy, Check, AlertCircle, Trash2, Type } from 'lucide-vue-next'
 import { useToolExecutor } from '~/composables/useToolExecutor'
+import { useToast } from '~/composables/useToast'
+import { useClipboard } from '~/composables/useClipboard'
 import { ToolType } from '~/types/tool'
+import { CHARSET_OPTIONS } from '~/constants/tool'
 
 // 请求参数
 interface Md5Params {
@@ -36,13 +39,9 @@ const charset = ref('UTF-8')
 const results = ref<Md5Result[]>([])
 const error = ref('')
 
-// Toast 提示
-const toast = ref({ show: false, message: '' })
-const showToast = (message: string) => {
-  toast.value.message = message
-  toast.value.show = true
-  setTimeout(() => toast.value.show = false, 2000)
-}
+// 使用通用 composables
+const { toast, showSuccess } = useToast()
+const { copy, copyMultiple } = useClipboard(showSuccess)
 
 // 使用工具执行器
 const { execute, isLoading } = useToolExecutor<Md5Params, Md5Response>({
@@ -78,25 +77,10 @@ const encrypt = async () => {
   })
 }
 
-// 复制结果
-const copyResult = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text)
-    showToast('已复制到剪贴板')
-  } catch {
-    showToast('复制失败')
-  }
-}
-
 // 复制所有结果
 const copyAllResults = async () => {
-  const text = results.value.map(r => `${r.input}: ${r.output}`).join('\n')
-  try {
-    await navigator.clipboard.writeText(text)
-    showToast('已复制所有结果')
-  } catch {
-    showToast('复制失败')
-  }
+  const texts = results.value.map(r => `${r.input}: ${r.output}`)
+  await copyMultiple(texts, '已复制所有结果')
 }
 
 // 清空
@@ -105,14 +89,6 @@ const clearAll = () => {
   results.value = []
   error.value = ''
 }
-
-// 字符集选项
-const charsetOptions = [
-  { value: 'UTF-8', label: 'UTF-8 (推荐)' },
-  { value: 'GBK', label: 'GBK (中文)' },
-  { value: 'ISO-8859-1', label: 'ISO-8859-1 (西欧)' },
-  { value: 'ASCII', label: 'ASCII' }
-]
 
 // 监听输入变化，自动加密
 watch([inputText, bitLength, uppercase, charset], () => {
@@ -177,7 +153,7 @@ watch([inputText, bitLength, uppercase, charset], () => {
               v-model="charset"
               class="px-3 py-1.5 text-sm border rounded bg-background"
             >
-              <option v-for="opt in charsetOptions" :key="opt.value" :value="opt.value">
+              <option v-for="opt in CHARSET_OPTIONS" :key="opt.value" :value="opt.value">
                 {{ opt.label }}
               </option>
             </select>
@@ -216,7 +192,7 @@ watch([inputText, bitLength, uppercase, charset], () => {
           v-if="error"
           class="flex items-center gap-2 text-sm text-red-500 bg-red-50/80 p-3 rounded-lg border border-red-200"
         >
-          <AlertCircle class="w-4 h-4 flex-shrink-0" />
+          <AlertCircle class="w-4 h-4 shrink-0" />
           {{ error }}
         </div>
 
@@ -252,7 +228,7 @@ watch([inputText, bitLength, uppercase, charset], () => {
                 <span class="text-xs text-muted-foreground">MD5:</span>
                 <code class="text-sm font-mono bg-primary/5 text-primary px-2 py-0.5 rounded flex-1">{{ result.output }}</code>
                 <button
-                  @click="copyResult(result.output)"
+                  @click="copy(result.output)"
                   class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                   title="复制"
                 >
@@ -281,6 +257,7 @@ watch([inputText, bitLength, uppercase, charset], () => {
     <div
       v-if="toast.show"
       class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-50"
+      :class="toast.type === 'error' ? 'bg-red-500' : toast.type === 'info' ? 'bg-blue-500' : 'bg-green-500'"
     >
       <Check class="w-4 h-4" />
       {{ toast.message }}
