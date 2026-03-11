@@ -557,7 +557,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // 数字工具 - 琥珀色系（浅色背景）
         Tool hexConverter = Tool.builder()
-                .code("hex-converter")
+                .code("radix-converter")
                 .name("进制转换")
                 .description("二进制、八进制、十进制、十六进制互转")
                 .category(numberCategory)
