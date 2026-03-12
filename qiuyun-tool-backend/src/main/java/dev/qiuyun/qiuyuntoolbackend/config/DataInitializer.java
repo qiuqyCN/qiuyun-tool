@@ -638,8 +638,36 @@ public class DataInitializer implements CommandLineRunner {
                 .tags(new HashSet<>(Arrays.asList(hotTag)))
                 .build();
 
+        Tool jsonJavaConverter = Tool.builder()
+                .code("json-java-converter")
+                .name("JSON/Java互转")
+                .description("JSON与Java POJO类互相转换")
+                .category(devCategory)
+                .icon("Coffee")
+                .iconColor("#B45309")
+                .iconBgColor("#FEF3C7")
+                .isVip(false)
+                .isActive(true)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>JSON → Java</strong>：输入JSON数据，生成对应的Java POJO类</li>\n" +
+                        "    <li><strong>Java → JSON</strong>：输入Java对象的JSON表示，格式化输出</li>\n" +
+                        "    <li><strong>设置选项</strong>：可设置包名、根类名、是否使用Lombok</li>\n" +
+                        "    <li>支持嵌套对象（自动生成内部类）</li>\n" +
+                        "    <li>支持数组/List类型</li>\n" +
+                        "    <li>自动推断字段类型</li>\n" +
+                        "    <li>生成@JsonProperty注解保持字段映射</li>\n" +
+                        "  </ol>")
+                .tags(new HashSet<>(Arrays.asList(devTag)))
+                .build();
+
         List<Tool> tools = Arrays.asList(
-                jsonFormatter, yamlJsonConverter, codeBeautify, regexTester, timestampConverter, base64Codec, yamlPropertiesConverter,
+                jsonFormatter, yamlJsonConverter, codeBeautify, regexTester, timestampConverter, base64Codec, yamlPropertiesConverter, jsonJavaConverter,
                 imageCompress, imageConvert, imageToBase64,
                 pdfToWord, markdownEditor,
                 md5Encrypt, urlEncode,
