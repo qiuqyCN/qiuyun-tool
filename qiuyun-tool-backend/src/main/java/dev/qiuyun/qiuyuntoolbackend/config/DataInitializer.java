@@ -317,6 +317,35 @@ public class DataInitializer implements CommandLineRunner {
                 .tags(new HashSet<>())
                 .build();
 
+        Tool yamlPropertiesConverter = Tool.builder()
+                .code("yaml-properties-converter")
+                .name("YAML/Properties互转")
+                .description("YAML格式与Java Properties配置文件双向转换")
+                .category(devCategory)
+                .icon("ArrowRightLeft")
+                .iconColor("#4338CA")
+                .iconBgColor("#E0E7FF")
+                .isVip(false)
+                .isActive(true)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>选择转换方向</strong>：点击顶部标签切换 Properties→YAML 或 YAML→Properties</li>\n" +
+                        "    <li><strong>输入内容</strong>：在输入框中粘贴需要转换的配置内容</li>\n" +
+                        "    <li><strong>执行转换</strong>：点击执行按钮进行格式转换</li>\n" +
+                        "    <li><strong>切换方向</strong>：点击切换按钮可快速交换输入输出内容并反向转换</li>\n" +
+                        "    <li>支持嵌套结构转换（点号分隔键 ↔ YAML层级）</li>\n" +
+                        "    <li>支持数组索引格式转换</li>\n" +
+                        "    <li>自动识别数值和布尔值类型</li>\n" +
+                        "    <li>支持键排序选项</li>\n" +
+                        "  </ol>")
+                .tags(new HashSet<>(Arrays.asList(devTag)))
+                .build();
+
         // 图片工具 - 绿色系（浅色背景）
         Tool imageCompress = Tool.builder()
                 .code("image-compress")
@@ -609,7 +638,7 @@ public class DataInitializer implements CommandLineRunner {
                 .build();
 
         List<Tool> tools = Arrays.asList(
-                jsonFormatter, jsonToYaml, codeBeautify, regexTester, timestampConverter, base64Codec,
+                jsonFormatter, jsonToYaml, codeBeautify, regexTester, timestampConverter, base64Codec, yamlPropertiesConverter,
                 imageCompress, imageConvert, imageToBase64,
                 pdfToWord, markdownEditor,
                 md5Encrypt, urlEncode,
