@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { AlertCircle, CheckCircle, Copy, Download, Check, Loader2, Code2, FileCode, Braces, Database, Coffee, FileType2 } from 'lucide-vue-next'
 import { useToolExecutor } from '~/composables/useToolExecutor'
 import { ToolType } from '~/types/tool'
+import { generateFileName, downloadFile } from '~/utils/file'
 
 // 语言类型枚举
 enum LanguageType {
@@ -184,13 +185,9 @@ const downloadOutput = () => {
       [LanguageType.XML]: 'application/xml'
     }
 
-    const blob = new Blob([outputCode.value], { type: mimeTypes[activeLanguage.value] })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `output.${extensions[activeLanguage.value]}`
-    a.click()
-    URL.revokeObjectURL(url)
+    const extension = extensions[activeLanguage.value]
+    const fileName = generateFileName('code-beautify', extension)
+    downloadFile(outputCode.value, fileName, mimeTypes[activeLanguage.value])
   }
 }
 </script>

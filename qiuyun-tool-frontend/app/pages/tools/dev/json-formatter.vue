@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { AlertCircle, CheckCircle, Copy, Download, Check, Loader2, Braces } from 'lucide-vue-next'
 import { useToolExecutor } from '~/composables/useToolExecutor'
 import { ToolType } from '~/types/tool'
+import { generateFileName, downloadFile } from '~/utils/file'
 
 // JSON操作类型枚举
 enum JsonOperation {
@@ -129,13 +130,8 @@ const copyOutput = async () => {
 // 下载结果
 const downloadOutput = () => {
   if (outputJson.value) {
-    const blob = new Blob([outputJson.value], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'formatted.json'
-    a.click()
-    URL.revokeObjectURL(url)
+    const fileName = generateFileName('json-formatter', 'json')
+    downloadFile(outputJson.value, fileName, 'application/json')
   }
 }
 
