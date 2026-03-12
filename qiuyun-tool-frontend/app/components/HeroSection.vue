@@ -34,6 +34,7 @@ import {
   Key,
   Scale,
 } from "lucide-vue-next";
+import { useDebounce } from "@/composables/useDebounce";
 import type { ToolResponse } from "@/types/api";
 
 // 工具图标映射表
@@ -183,16 +184,13 @@ const performSearch = () => {
   isSearching.value = false;
 };
 
-// 防抖搜索
-let searchTimeout: ReturnType<typeof setTimeout> | null = null;
-const debouncedSearch = () => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout);
-  }
-  searchTimeout = setTimeout(() => {
+// 使用防抖 composable 实现搜索
+const { debouncedFn: debouncedSearch } = useDebounce(
+  () => {
     performSearch();
-  }, 200);
-};
+  },
+  { delay: 200 }
+);
 
 // 监听输入变化
 watch(searchQuery, () => {
@@ -307,9 +305,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener("click", handleClickOutside);
-  if (searchTimeout) {
-    clearTimeout(searchTimeout);
-  }
 });
 </script>
 

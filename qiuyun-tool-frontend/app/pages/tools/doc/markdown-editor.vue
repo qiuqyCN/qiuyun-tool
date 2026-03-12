@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onUnmounted } from 'vue'
 import { 
   FileText, 
   Eye, 
@@ -25,6 +25,7 @@ import {
   Minimize2
 } from 'lucide-vue-next'
 import { useToolExecutor } from '~/composables/useToolExecutor'
+import { useDebounce } from '~/composables/useDebounce'
 import { ToolType } from '~/types/tool'
 import { generateFileName, downloadFile } from '~/utils/file'
 
@@ -272,18 +273,15 @@ const executeAction = async (action: Action) => {
   })
 }
 
-// 防抖预览
-let previewTimeout: NodeJS.Timeout | null = null
-const debouncedPreview = () => {
-  if (previewTimeout) {
-    clearTimeout(previewTimeout)
-  }
-  previewTimeout = setTimeout(() => {
+// 使用防抖 composable 实现预览
+const { debouncedFn: debouncedPreview, cancel: cancelPreview } = useDebounce(
+  () => {
     if (inputContent.value.trim()) {
       executeAction(Action.PREVIEW)
     }
-  }, 500)
-}
+  },
+  { delay: 500 }
+)
 
 // 监听输入变化，自动预览
 watch(inputContent, () => {
@@ -294,6 +292,11 @@ watch(inputContent, () => {
 watch(options, () => {
   debouncedPreview()
 }, { deep: true })
+
+// 组件卸载时取消待执行的防抖
+onUnmounted(() => {
+  cancelPreview()
+})
 
 // 加载示例
 const loadSample = () => {
