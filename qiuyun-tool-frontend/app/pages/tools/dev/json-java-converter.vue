@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { AlertCircle, CheckCircle, Copy, Download, Check, Loader2, ArrowRightLeft, FileJson, Coffee } from 'lucide-vue-next'
 import { useToolExecutor } from '~/composables/useToolExecutor'
 import { ToolType } from '~/types/tool'
+import { generateFileName, downloadFile } from '~/utils/file'
 
 // 操作类型枚举
 enum ConvertOperation {
@@ -164,13 +165,9 @@ const copyOutput = async () => {
 const downloadOutput = () => {
   if (outputContent.value) {
     const isJava = activeTab.value === ConvertOperation.JSON_TO_JAVA
-    const blob = new Blob([outputContent.value], { type: isJava ? 'text/java' : 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = isJava ? `${rootClassName.value || 'Root'}.java` : 'output.json'
-    a.click()
-    URL.revokeObjectURL(url)
+    const extension = isJava ? 'java' : 'json'
+    const fileName = generateFileName('json-java', extension)
+    downloadFile(outputContent.value, fileName, isJava ? 'text/java' : 'application/json')
   }
 }
 

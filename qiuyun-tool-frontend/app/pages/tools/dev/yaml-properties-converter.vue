@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { CheckCircle, Copy, Download, Check, FileCode, ArrowRightLeft, Loader2, FileJson, FileType } from 'lucide-vue-next'
 import { useToolExecutor } from '~/composables/useToolExecutor'
 import { ToolType } from '~/types/tool'
+import { generateFileName, downloadFile } from '~/utils/file'
 
 // 操作类型枚举
 enum ConvertOperation {
@@ -190,13 +191,9 @@ const downloadOutput = () => {
   if (!outputContent.value) return
 
   const isYaml = activeTab.value === ConvertOperation.PROPERTIES_TO_YAML
-  const blob = new Blob([outputContent.value], { type: isYaml ? 'text/yaml' : 'text/plain' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = isYaml ? 'application.yaml' : 'application.properties'
-  link.click()
-  URL.revokeObjectURL(url)
+  const extension = isYaml ? 'yaml' : 'properties'
+  const fileName = generateFileName('yaml-properties', extension)
+  downloadFile(outputContent.value, fileName, isYaml ? 'text/yaml' : 'text/plain')
 }
 
 // 处理

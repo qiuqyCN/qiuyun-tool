@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { AlertCircle, CheckCircle, Copy, Download, Check, Loader2, FileText, FileCode, FileType, Eye, Settings } from 'lucide-vue-next'
 import { useToolExecutor } from '~/composables/useToolExecutor'
 import { ToolType } from '~/types/tool'
+import { generateFileName, downloadFile, downloadBase64File } from '~/utils/file'
 
 // 目标格式枚举
 enum TargetFormat {
@@ -196,50 +197,34 @@ const downloadOutput = () => {
   if (!outputContent.value) return
 
   let mimeType: string
-  let fileName: string
+  let extension: string
 
   switch (targetFormat.value) {
     case TargetFormat.HTML:
       mimeType = 'text/html'
-      fileName = 'output.html'
+      extension = 'html'
       break
     case TargetFormat.PDF:
       mimeType = 'application/pdf'
-      fileName = 'output.pdf'
+      extension = 'pdf'
       break
     case TargetFormat.WORD:
       mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-      fileName = 'output.docx'
+      extension = 'docx'
       break
     default:
       mimeType = 'text/plain'
-      fileName = 'output.txt'
+      extension = 'txt'
   }
+
+  const fileName = generateFileName('markdown', extension)
 
   // PDF 和 Word 是 Base64 编码
   if (targetFormat.value === TargetFormat.PDF || targetFormat.value === TargetFormat.WORD) {
-    const byteCharacters = atob(outputContent.value)
-    const byteNumbers = new Array(byteCharacters.length)
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i)
-    }
-    const byteArray = new Uint8Array(byteNumbers)
-    const blob = new Blob([byteArray], { type: mimeType })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = fileName
-    link.click()
-    URL.revokeObjectURL(url)
+    downloadBase64File(outputContent.value, fileName, mimeType)
   } else {
     // HTML 是文本
-    const blob = new Blob([outputContent.value], { type: mimeType })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = fileName
-    link.click()
-    URL.revokeObjectURL(url)
+    downloadFile(outputContent.value, fileName, mimeType)
   }
 }
 
