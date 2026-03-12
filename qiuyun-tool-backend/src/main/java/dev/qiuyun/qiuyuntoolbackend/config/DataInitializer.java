@@ -155,7 +155,7 @@ public class DataInitializer implements CommandLineRunner {
 
         Category devCategory = categories.stream().filter(c -> c.getCode().equals("dev")).findFirst().orElse(null);
         Category imageCategory = categories.stream().filter(c -> c.getCode().equals("image")).findFirst().orElse(null);
-        Category docCategory = categories.stream().filter(c -> c.getCode().equals("document")).findFirst().orElse(null);
+        Category docCategory = categories.stream().filter(c -> c.getCode().equals("doc")).findFirst().orElse(null);
         Category cryptoCategory = categories.stream().filter(c -> c.getCode().equals("crypto")).findFirst().orElse(null);
         Category textCategory = categories.stream().filter(c -> c.getCode().equals("text")).findFirst().orElse(null);
         Category numberCategory = categories.stream().filter(c -> c.getCode().equals("number")).findFirst().orElse(null);
@@ -666,10 +666,37 @@ public class DataInitializer implements CommandLineRunner {
                 .tags(new HashSet<>(Arrays.asList(devTag)))
                 .build();
 
+        Tool markdownConverter = Tool.builder()
+                .code("markdown-converter")
+                .name("Markdown格式转换")
+                .description("Markdown转HTML、PDF、Word等格式")
+                .category(docCategory)
+                .icon("FileText")
+                .iconColor("#059669")
+                .iconBgColor("#D1FAE5")
+                .isVip(false)
+                .isActive(true)
+                .visitsCount(0L)
+                .viewCount(0L)
+                .usageCount(0L)
+                .rating(BigDecimal.valueOf(0.0))
+                .reviewCount(0)
+                .favoriteCount(0)
+                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
+                        "    <li><strong>输入 Markdown</strong>：在输入框中粘贴 Markdown 格式的文档内容</li>\n" +
+                        "    <li><strong>选择格式</strong>：点击格式按钮选择目标格式（HTML、PDF、Word）</li>\n" +
+                        "    <li><strong>执行转换</strong>：点击转换按钮进行格式转换</li>\n" +
+                        "    <li><strong>HTML 格式</strong>：可直接预览、复制或下载</li>\n" +
+                        "    <li><strong>PDF/Word 格式</strong>：需要下载后查看</li>\n" +
+                        "    <li>支持标准 Markdown 语法和 GitHub Flavored Markdown 扩展</li>\n" +
+                        "  </ol>")
+                .tags(new HashSet<>(Arrays.asList(docTag)))
+                .build();
+
         List<Tool> tools = Arrays.asList(
                 jsonFormatter, yamlJsonConverter, codeBeautify, regexTester, timestampConverter, base64Codec, yamlPropertiesConverter, jsonJavaConverter,
                 imageCompress, imageConvert, imageToBase64,
-                pdfToWord, markdownEditor,
+                pdfToWord, markdownEditor, markdownConverter,
                 md5Encrypt, urlEncode,
                 textCompare, wordCount,
                 hexConverter, randomNumber
