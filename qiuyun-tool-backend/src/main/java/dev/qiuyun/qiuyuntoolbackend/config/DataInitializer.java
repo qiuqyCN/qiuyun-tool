@@ -187,12 +187,12 @@ public class DataInitializer implements CommandLineRunner {
                 .tags(new HashSet<>(Arrays.asList(hotTag, commonTag)))
                 .build();
 
-        Tool jsonToYaml = Tool.builder()
-                .code("json-to-yaml")
-                .name("JSON转YAML")
-                .description("JSON与YAML格式互相转换")
+        Tool yamlJsonConverter = Tool.builder()
+                .code("yaml-json-converter")
+                .name("YAML/JSON互转")
+                .description("YAML与JSON格式互相转换")
                 .category(devCategory)
-                .icon("FileJson")
+                .icon("ArrowRightLeft")
                 .iconColor("#3730A3")
                 .iconBgColor("#E0E7FF")
                 .isVip(false)
@@ -204,10 +204,11 @@ public class DataInitializer implements CommandLineRunner {
                 .reviewCount(0)
                 .favoriteCount(0)
                 .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>JSON转YAML</strong>：将JSON格式的数据转换为YAML格式，便于配置文件编写</li>\n" +
+                        "    <li><strong>选择转换方向</strong>：点击顶部标签切换 YAML→JSON 或 JSON→YAML</li>\n" +
                         "    <li><strong>YAML转JSON</strong>：将YAML格式的数据转换为JSON格式，便于程序解析</li>\n" +
+                        "    <li><strong>JSON转YAML</strong>：将JSON格式的数据转换为YAML格式，便于配置文件编写</li>\n" +
+                        "    <li><strong>切换方向</strong>：点击切换按钮可快速交换输入输出内容并反向转换</li>\n" +
                         "    <li>支持复杂的嵌套结构转换</li>\n" +
-                        "    <li>自动检测输入格式并进行相应转换</li>\n" +
                         "    <li>支持复制结果或下载为文件</li>\n" +
                         "  </ol>")
                 .tags(new HashSet<>(Arrays.asList(devTag)))
@@ -638,7 +639,7 @@ public class DataInitializer implements CommandLineRunner {
                 .build();
 
         List<Tool> tools = Arrays.asList(
-                jsonFormatter, jsonToYaml, codeBeautify, regexTester, timestampConverter, base64Codec, yamlPropertiesConverter,
+                jsonFormatter, yamlJsonConverter, codeBeautify, regexTester, timestampConverter, base64Codec, yamlPropertiesConverter,
                 imageCompress, imageConvert, imageToBase64,
                 pdfToWord, markdownEditor,
                 md5Encrypt, urlEncode,

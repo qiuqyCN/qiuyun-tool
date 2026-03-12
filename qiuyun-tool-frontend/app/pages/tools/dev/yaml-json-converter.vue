@@ -6,8 +6,8 @@ import { ToolType } from '~/types/tool'
 
 // 操作类型枚举
 enum ConvertOperation {
-  JSON_TO_YAML = 'json-to-yaml',
-  YAML_TO_JSON = 'yaml-to-json'
+  YAML_TO_JSON = 'yaml-to-json',
+  JSON_TO_YAML = 'json-to-yaml'
 }
 
 // 请求参数类型
@@ -40,19 +40,25 @@ const showToast = (message: string) => {
 }
 
 // 状态
-const activeTab = ref<ConvertOperation>(ConvertOperation.JSON_TO_YAML)
+const activeTab = ref<ConvertOperation>(ConvertOperation.YAML_TO_JSON)
 const inputContent = ref('')
 const outputContent = ref('')
 const error = ref('')
 
 // 操作标签
 const operationLabels: Record<ConvertOperation, string> = {
-  [ConvertOperation.JSON_TO_YAML]: 'JSON → YAML',
-  [ConvertOperation.YAML_TO_JSON]: 'YAML → JSON'
+  [ConvertOperation.YAML_TO_JSON]: 'YAML → JSON',
+  [ConvertOperation.JSON_TO_YAML]: 'JSON → YAML'
 }
 
 // 占位符
 const placeholders: Record<ConvertOperation, string> = {
+  [ConvertOperation.YAML_TO_JSON]: `name: 张三
+age: 25
+email: zhangsan@example.com
+address:
+  city: 北京
+  zipcode: "100000"`,
   [ConvertOperation.JSON_TO_YAML]: `{
   "name": "张三",
   "age": 25,
@@ -61,29 +67,23 @@ const placeholders: Record<ConvertOperation, string> = {
     "city": "北京",
     "zipcode": "100000"
   }
-}`,
-  [ConvertOperation.YAML_TO_JSON]: `name: 张三
-age: 25
-email: zhangsan@example.com
-address:
-  city: 北京
-  zipcode: "100000"`
+}`
 }
 
 // 输入输出标签
 const inputLabels: Record<ConvertOperation, string> = {
-  [ConvertOperation.JSON_TO_YAML]: '输入 JSON',
-  [ConvertOperation.YAML_TO_JSON]: '输入 YAML'
+  [ConvertOperation.YAML_TO_JSON]: '输入 YAML',
+  [ConvertOperation.JSON_TO_YAML]: '输入 JSON'
 }
 
 const outputLabels: Record<ConvertOperation, string> = {
-  [ConvertOperation.JSON_TO_YAML]: '输出 YAML',
-  [ConvertOperation.YAML_TO_JSON]: '输出 JSON'
+  [ConvertOperation.YAML_TO_JSON]: '输出 JSON',
+  [ConvertOperation.JSON_TO_YAML]: '输出 YAML'
 }
 
 // 使用工具执行器
 const { execute, isLoading } = useToolExecutor<ConvertParams, ConvertResult>({
-  toolCode: 'json-to-yaml',
+  toolCode: 'yaml-json-converter',
   toolType: ToolType.INSTANT,
   onSuccess: (result) => {
     if (result.success) {
@@ -103,7 +103,7 @@ const { execute, isLoading } = useToolExecutor<ConvertParams, ConvertResult>({
 // 执行转换
 const processConvert = async (operation: ConvertOperation) => {
   if (!inputContent.value.trim()) {
-    error.value = activeTab.value === ConvertOperation.JSON_TO_YAML ? '请输入 JSON 数据' : '请输入 YAML 数据'
+    error.value = activeTab.value === ConvertOperation.YAML_TO_JSON ? '请输入 YAML 数据' : '请输入 JSON 数据'
     return
   }
 
@@ -113,17 +113,17 @@ const processConvert = async (operation: ConvertOperation) => {
   })
 }
 
-// JSON转YAML
-const convertJsonToYaml = () => processConvert(ConvertOperation.JSON_TO_YAML)
-
 // YAML转JSON
 const convertYamlToJson = () => processConvert(ConvertOperation.YAML_TO_JSON)
 
+// JSON转YAML
+const convertJsonToYaml = () => processConvert(ConvertOperation.JSON_TO_YAML)
+
 // 切换转换方向
 const switchDirection = () => {
-  activeTab.value = activeTab.value === ConvertOperation.JSON_TO_YAML
-    ? ConvertOperation.YAML_TO_JSON
-    : ConvertOperation.JSON_TO_YAML
+  activeTab.value = activeTab.value === ConvertOperation.YAML_TO_JSON
+    ? ConvertOperation.JSON_TO_YAML
+    : ConvertOperation.YAML_TO_JSON
   // 交换输入输出
   const temp = inputContent.value
   inputContent.value = outputContent.value
@@ -166,16 +166,16 @@ const downloadOutput = () => {
 
 // 处理
 const handleProcess = () => {
-  if (activeTab.value === ConvertOperation.JSON_TO_YAML) {
-    convertJsonToYaml()
-  } else {
+  if (activeTab.value === ConvertOperation.YAML_TO_JSON) {
     convertYamlToJson()
+  } else {
+    convertJsonToYaml()
   }
 }
 </script>
 
 <template>
-  <NuxtLayout name="tool" tool-code="json-to-yaml">
+  <NuxtLayout name="tool" tool-code="yaml-json-converter">
     <!-- 工具执行区域 -->
     <div class="border border-border/40 rounded-xl overflow-hidden">
       <!-- 工具 Tabs -->
@@ -190,8 +190,8 @@ const handleProcess = () => {
               ? 'border-primary bg-background text-primary'
               : 'border-transparent text-muted-foreground hover:text-foreground'"
           >
-            <FileJson v-if="op === ConvertOperation.JSON_TO_YAML" class="w-4 h-4" />
-            <FileType v-else class="w-4 h-4" />
+            <FileType v-if="op === ConvertOperation.YAML_TO_JSON" class="w-4 h-4" />
+            <FileJson v-else class="w-4 h-4" />
             {{ label }}
           </button>
         </div>

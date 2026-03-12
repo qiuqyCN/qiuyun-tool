@@ -18,22 +18,22 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * JSON转YAML工具执行器
- * 支持：JSON转YAML、YAML转JSON
+ * YAML与JSON互转工具执行器
+ * 支持：YAML转JSON、JSON转YAML
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JsonToYamlExecutor extends AbstractToolExecutor<JsonToYamlExecutor.JsonToYamlRequest, JsonToYamlExecutor.JsonToYamlResponse> {
+public class YamlJsonConverterExecutor extends AbstractToolExecutor<YamlJsonConverterExecutor.ConverterRequest, YamlJsonConverterExecutor.ConverterResponse> {
 
     private final ObjectMapper objectMapper;
     private final YAMLMapper yamlMapper;
 
-    private static final Set<String> VALID_OPERATIONS = Set.of("json-to-yaml", "yaml-to-json");
+    private static final Set<String> VALID_OPERATIONS = Set.of("yaml-to-json", "json-to-yaml");
 
     @Override
     public String getToolCode() {
-        return "json-to-yaml";
+        return "yaml-json-converter";
     }
 
     @Override
@@ -42,7 +42,7 @@ public class JsonToYamlExecutor extends AbstractToolExecutor<JsonToYamlExecutor.
     }
 
     @Override
-    public void validate(JsonToYamlRequest request) throws BusinessException {
+    public void validate(ConverterRequest request) throws BusinessException {
         validateNotNull(request, "请求");
         validateNotEmpty(request.getInput(), "输入内容");
         validateNotEmpty(request.getOperation(), "操作类型");
@@ -50,18 +50,18 @@ public class JsonToYamlExecutor extends AbstractToolExecutor<JsonToYamlExecutor.
     }
 
     @Override
-    protected JsonToYamlResponse doExecute(JsonToYamlRequest request, ToolContext context) throws Exception {
+    protected ConverterResponse doExecute(ConverterRequest request, ToolContext context) throws Exception {
         String input = request.getInput().trim();
         String operation = request.getOperation();
 
         String result;
-        if ("json-to-yaml".equals(operation)) {
-            result = jsonToYaml(input);
-        } else {
+        if ("yaml-to-json".equals(operation)) {
             result = yamlToJson(input);
+        } else {
+            result = jsonToYaml(input);
         }
 
-        JsonToYamlResponse response = new JsonToYamlResponse();
+        ConverterResponse response = new ConverterResponse();
         response.setSuccess(true);
         response.setResult(result);
         response.setOperation(operation);
@@ -71,25 +71,17 @@ public class JsonToYamlExecutor extends AbstractToolExecutor<JsonToYamlExecutor.
     @Override
     public Map<String, Object> getToolConfig() {
         return Map.of(
-                "name", "JSON转YAML",
-                "description", "JSON与YAML格式相互转换",
+                "name", "YAML/JSON互转",
+                "description", "YAML与JSON格式相互转换",
                 "operations", new String[]{
-                    "json-to-yaml",
-                    "yaml-to-json"
+                    "yaml-to-json",
+                    "json-to-yaml"
                 },
                 "operationLabels", Map.of(
-                        "json-to-yaml", "JSON → YAML",
-                        "yaml-to-json", "YAML → JSON"
+                        "yaml-to-json", "YAML → JSON",
+                        "json-to-yaml", "JSON → YAML"
                 )
         );
-    }
-
-    /**
-     * JSON转YAML
-     */
-    private String jsonToYaml(String json) throws Exception {
-        JsonNode jsonNode = objectMapper.readTree(json);
-        return yamlMapper.writeValueAsString(jsonNode);
     }
 
     /**
@@ -101,12 +93,20 @@ public class JsonToYamlExecutor extends AbstractToolExecutor<JsonToYamlExecutor.
     }
 
     /**
+     * JSON转YAML
+     */
+    private String jsonToYaml(String json) throws Exception {
+        JsonNode jsonNode = objectMapper.readTree(json);
+        return yamlMapper.writeValueAsString(jsonNode);
+    }
+
+    /**
      * 请求参数
      */
     @Data
-    public static class JsonToYamlRequest {
+    public static class ConverterRequest {
         /**
-         * 操作类型：json-to-yaml、yaml-to-json
+         * 操作类型：yaml-to-json、json-to-yaml
          */
         private String operation;
         /**
@@ -120,7 +120,7 @@ public class JsonToYamlExecutor extends AbstractToolExecutor<JsonToYamlExecutor.
      */
     @EqualsAndHashCode(callSuper = true)
     @Data
-    public static class JsonToYamlResponse extends BaseToolResponse {
+    public static class ConverterResponse extends BaseToolResponse {
         /**
          * 转换结果
          */
