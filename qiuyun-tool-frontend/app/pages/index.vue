@@ -40,7 +40,10 @@ import {
   Star,
   Text,
   Type,
-  Wrench
+  Wrench,
+  ArrowRightLeft,
+  Coffee,
+  FileCode
 } from 'lucide-vue-next'
 
 // SEO 配置
@@ -198,6 +201,9 @@ const toolIconMap: Record<string, any> = {
   'Type': Type,
   'Dices': Dices,
   'Scale': Scale,
+  'ArrowRightLeft': ArrowRightLeft,
+  'Coffee': Coffee,
+  'FileCode': FileCode,
 }
 
 // 获取分类图标组件

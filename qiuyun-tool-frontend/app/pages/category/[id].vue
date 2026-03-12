@@ -38,7 +38,10 @@ import {
   GitCompare,
   Text,
   Dices,
-  Scale
+  Scale,
+  ArrowRightLeft,
+  Coffee,
+  FileCode
 } from 'lucide-vue-next'
 
 // 分类图标映射表
@@ -75,6 +78,9 @@ const toolIconMap: Record<string, any> = {
   'Type': Type,
   'Dices': Dices,
   'Scale': Scale,
+  'ArrowRightLeft': ArrowRightLeft,
+  'Coffee': Coffee,
+  'FileCode': FileCode,
 }
 
 // 获取分类图标组件

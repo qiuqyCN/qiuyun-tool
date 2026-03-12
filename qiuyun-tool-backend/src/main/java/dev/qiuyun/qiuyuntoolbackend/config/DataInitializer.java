@@ -645,7 +645,7 @@ public class DataInitializer implements CommandLineRunner {
                 .category(devCategory)
                 .icon("Coffee")
                 .iconColor("#B45309")
-                .iconBgColor("#FEF3C7")
+                .iconBgColor("#E0E7FF")
                 .isVip(false)
                 .isActive(true)
                 .visitsCount(0L)
