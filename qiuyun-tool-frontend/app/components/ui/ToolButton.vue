@@ -26,7 +26,7 @@ const emit = defineEmits<{
     class="font-medium rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
     :class="{
       // Variants
-      'bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700': variant === 'primary',
+      'bg-linear-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700': variant === 'primary',
       'bg-gray-100 text-gray-700 hover:bg-gray-200': variant === 'secondary',
       'border-2 border-rose-500 text-rose-600 hover:bg-rose-50': variant === 'outline',
       // Sizes

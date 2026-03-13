@@ -38,7 +38,7 @@
       >
         <div class="flex items-start gap-3">
           <Avatar class="w-10 h-10">
-            <AvatarImage :src="review.userAvatar" :alt="review.userName" />
+            <AvatarImage :src="review.userAvatar || ''" :alt="review.userName" />
             <AvatarFallback>{{ review.userName.charAt(0) }}</AvatarFallback>
           </Avatar>
           <div class="flex-1">
@@ -259,9 +259,9 @@ const submitReview = async () => {
     // TODO: 调用API提交评价
     const newReview: Review = {
       id: Date.now().toString(),
-      userId: userStore.userInfo?.id || '',
-      userName: userStore.userInfo?.nickname || '匿名用户',
-      userAvatar: userStore.userInfo?.avatar,
+      userId: userStore.currentUser?.id?.toString() || '',
+      userName: userStore.currentUser?.nickname || '匿名用户',
+      userAvatar: userStore.currentUser?.avatar,
       rating: userRating.value,
       content: userReview.value,
       likes: 0,

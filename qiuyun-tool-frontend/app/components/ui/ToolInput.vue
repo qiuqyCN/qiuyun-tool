@@ -1,6 +1,6 @@
 <script setup lang="ts">
 interface Props {
-  modelValue: string | number
+  modelValue: string | number | null | undefined
   type?: string
   placeholder?: string
   min?: number
@@ -12,13 +12,14 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: string | number): void
+  (e: 'update:modelValue', value: string | number | null): void
 }>()
 
 const onInput = (event: Event) => {
   const target = event.target as HTMLInputElement
   if (props.type === 'number') {
-    emit('update:modelValue', target.valueAsNumber)
+    const value = target.value === '' ? null : target.valueAsNumber
+    emit('update:modelValue', value)
   } else {
     emit('update:modelValue', target.value)
   }

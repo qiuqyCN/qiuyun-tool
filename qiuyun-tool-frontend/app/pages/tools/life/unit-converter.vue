@@ -218,11 +218,15 @@ const convertTemperature = (value: number, from: string, to: string): number => 
 const result = computed(() => {
   if (!inputValue.value || isNaN(inputValue.value)) return 0
 
-  const from = currentUnits.value[fromUnit.value]
-  const to = currentUnits.value[toUnit.value]
+  const fromUnitKey = fromUnit.value
+  const toUnitKey = toUnit.value
+  const from = fromUnitKey ? currentUnits.value[fromUnitKey] : null
+  const to = toUnitKey ? currentUnits.value[toUnitKey] : null
+
+  if (!from || !to) return 0
 
   if (currentCategory.value === Category.TEMPERATURE) {
-    return convertTemperature(inputValue.value, fromUnit.value, toUnit.value)
+    return convertTemperature(inputValue.value, fromUnitKey, toUnitKey)
   }
 
   const baseValue = inputValue.value * from.toBase

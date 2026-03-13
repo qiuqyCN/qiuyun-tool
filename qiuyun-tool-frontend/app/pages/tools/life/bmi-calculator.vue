@@ -11,8 +11,8 @@ useHead({
   ]
 })
 
-const height = ref<number | null>(null)
-const weight = ref<number | null>(null)
+const height = ref<number | undefined>(undefined)
+const weight = ref<number | undefined>(undefined)
 const gender = ref<'male' | 'female'>('male')
 
 const bmiResult = computed(() => {
@@ -125,7 +125,7 @@ const getBmiPosition = (bmi: number): number => {
                 </span>
               </label>
               <ToolInput
-                v-model.number="height"
+                v-model="height"
                 type="number"
                 placeholder="请输入身高"
                 min="1"
@@ -142,7 +142,7 @@ const getBmiPosition = (bmi: number): number => {
                 </span>
               </label>
               <ToolInput
-                v-model.number="weight"
+                v-model="weight"
                 type="number"
                 placeholder="请输入体重"
                 min="1"

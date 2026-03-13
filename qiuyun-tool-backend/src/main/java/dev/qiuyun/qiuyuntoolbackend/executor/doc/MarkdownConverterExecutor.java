@@ -26,8 +26,6 @@ import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
-import java.io.StringReader;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Set;

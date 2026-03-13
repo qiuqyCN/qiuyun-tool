@@ -211,7 +211,7 @@ onUnmounted(() => {
             @click="currentMode = TimerMode.COUNTDOWN"
             class="flex items-center justify-center gap-2 p-4 rounded-xl transition-all duration-200"
             :class="currentMode === TimerMode.COUNTDOWN
-              ? 'bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-200'
+              ? 'bg-linear-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-200'
               : 'bg-gray-50 text-gray-600 hover:bg-rose-50 hover:text-rose-600'"
           >
             <Timer class="w-5 h-5" />
@@ -221,7 +221,7 @@ onUnmounted(() => {
             @click="currentMode = TimerMode.STOPWATCH"
             class="flex items-center justify-center gap-2 p-4 rounded-xl transition-all duration-200"
             :class="currentMode === TimerMode.STOPWATCH
-              ? 'bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-200'
+              ? 'bg-linear-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-200'
               : 'bg-gray-50 text-gray-600 hover:bg-rose-50 hover:text-rose-600'"
           >
             <Clock class="w-5 h-5" />
@@ -258,15 +258,15 @@ onUnmounted(() => {
           <div class="grid grid-cols-3 gap-4 mb-4">
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">小时</label>
-              <ToolInput v-model.number="hours" type="number" placeholder="0" min="0" max="99" />
+              <ToolInput v-model="hours" type="number" placeholder="0" min="0" max="99" />
             </div>
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">分钟</label>
-              <ToolInput v-model.number="minutes" type="number" placeholder="0" min="0" max="59" />
+              <ToolInput v-model="minutes" type="number" placeholder="0" min="0" max="59" />
             </div>
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">秒</label>
-              <ToolInput v-model.number="seconds" type="number" placeholder="0" min="0" max="59" />
+              <ToolInput v-model="seconds" type="number" placeholder="0" min="0" max="59" />
             </div>
           </div>
 

@@ -345,7 +345,7 @@ const fetchFavoriteStatus = async () => {
 
   try {
     const { $api } = useNuxtApp()
-    const response = await $api(`/favorites/check/${toolId.value}`)
+    const response = await $api(`/favorites/check/${toolId.value}`) as { code: number; data: { isFavorite: boolean } }
 
     if (response.code === 200) {
       isFavorite.value = response.data.isFavorite
@@ -369,7 +369,7 @@ const toggleFavorite = async () => {
     const { $api } = useNuxtApp()
     const response = await $api(`/favorites/toggle/${toolId.value}`, {
       method: 'POST'
-    })
+    }) as { code: number; data: { isFavorite: boolean; favoriteCount: number } }
 
     if (response.code === 200) {
       isFavorite.value = response.data.isFavorite

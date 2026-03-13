@@ -40,7 +40,7 @@ const includeEndDay = ref<boolean>(true)
 const birthDate = ref<string>('')
 const calcDate = ref<string>('')
 
-const today = new Date().toISOString().split('T')[0]
+const today = new Date().toISOString().split('T')[0] as string
 
 // 初始化日期
 startDate.value = today
@@ -191,8 +191,10 @@ const ageResult = computed(() => {
   const month = birth.getMonth() + 1
   const day = birth.getDate()
   const constellation = constellations.find(c => {
-    const [startM, startD] = c.start
-    const [endM, endD] = c.end
+    const startM = c.start[0] ?? 0
+    const startD = c.start[1] ?? 0
+    const endM = c.end[0] ?? 0
+    const endD = c.end[1] ?? 0
     if (startM === endM) {
       return month === startM && day >= startD && day <= endD
     }
@@ -318,15 +320,15 @@ const modes = [
             <div class="grid grid-cols-3 gap-3">
               <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">年</label>
-                <ToolInput v-model.number="yearsToAdd" type="number" placeholder="0" />
+                <ToolInput v-model="yearsToAdd" type="number" placeholder="0" />
               </div>
               <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">月</label>
-                <ToolInput v-model.number="monthsToAdd" type="number" placeholder="0" />
+                <ToolInput v-model="monthsToAdd" type="number" placeholder="0" />
               </div>
               <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">日</label>
-                <ToolInput v-model.number="daysToAdd" type="number" placeholder="0" />
+                <ToolInput v-model="daysToAdd" type="number" placeholder="0" />
               </div>
             </div>
             <p class="text-xs text-gray-500">正值表示未来日期，负值表示过去日期</p>
@@ -365,7 +367,7 @@ const modes = [
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">工作日数量</label>
-              <ToolInput v-model.number="workDays" type="number" placeholder="请输入工作日数" min="1" />
+              <ToolInput v-model="workDays" type="number" placeholder="请输入工作日数" min="1" />
             </div>
             <div class="flex items-center gap-2">
               <input

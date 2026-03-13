@@ -20,7 +20,7 @@ const birthDate = ref<string>('')
 const calcDate = ref<string>('')
 
 const now = new Date()
-const today = now.toISOString().split('T')[0]
+const today = now.toISOString().split('T')[0] as string
 
 birthDate.value = today
 calcDate.value = today
@@ -131,10 +131,12 @@ function solarToLunar(date: Date): { year: number; month: number; day: number; i
   const lunarMonth = month
   const lunarDay = days + 1
 
-  const yearGanZhi = Gan[(lunarYear - 4) % 10] + Zhi[(lunarYear - 4) % 12]
-  const animal = Animals[(lunarYear - 4) % 12]
-  const monthName = (isLeap ? '闰' : '') + lunarMonths[lunarMonth - 1] + '月'
-  const dayName = lunarDays[lunarDay - 1]
+  const gan = Gan[(lunarYear - 4) % 10]
+  const zhi = Zhi[(lunarYear - 4) % 12]
+  const yearGanZhi = (gan || '') + (zhi || '')
+  const animal = Animals[(lunarYear - 4) % 12] || ''
+  const monthName = (isLeap ? '闰' : '') + (lunarMonths[lunarMonth - 1] || '') + '月'
+  const dayName = lunarDays[lunarDay - 1] || ''
 
   return {
     year: lunarYear,
@@ -150,25 +152,33 @@ function solarToLunar(date: Date): { year: number; month: number; day: number; i
 
 function lYearDays(y: number): number {
   let sum = 348
+  const info = lunarInfo[y - 1900]
+  if (info === undefined) return sum
   for (let i = 0x8000; i > 0x8; i >>= 1) {
-    sum += (lunarInfo[y - 1900] & i) ? 1 : 0
+    sum += (info & i) ? 1 : 0
   }
   return sum + leapDays(y)
 }
 
 function leapDays(y: number): number {
   if (leapMonthOfYear(y)) {
-    return (lunarInfo[y - 1900] & 0x10000) ? 30 : 29
+    const info = lunarInfo[y - 1900]
+    if (info === undefined) return 30
+    return (info & 0x10000) ? 30 : 29
   }
   return 0
 }
 
 function leapMonthOfYear(y: number): number {
-  return lunarInfo[y - 1900] & 0xf
+  const info = lunarInfo[y - 1900]
+  if (info === undefined) return 0
+  return info & 0xf
 }
 
 function monthDays(y: number, m: number): number {
-  return (lunarInfo[y - 1900] & (0x10000 >> m)) ? 30 : 29
+  const info = lunarInfo[y - 1900]
+  if (info === undefined) return 30
+  return (info & (0x10000 >> m)) ? 30 : 29
 }
 
 // 农历输入
@@ -248,8 +258,10 @@ const ageResult = computed(() => {
   const month = birth.getMonth() + 1
   const day = birth.getDate()
   const constellation = constellations.find(c => {
-    const [startM, startD] = c.start
-    const [endM, endD] = c.end
+    const startM = c.start[0] ?? 0
+    const startD = c.start[1] ?? 0
+    const endM = c.end[0] ?? 0
+    const endD = c.end[1] ?? 0
     if (startM === endM) {
       return month === startM && day >= startD && day <= endD
     }
@@ -518,12 +530,12 @@ const currentYearLeapMonth = computed(() => {
           生肖与星座
         </h3>
         <div class="grid md:grid-cols-2 gap-4">
-          <div class="p-4 bg-gradient-to-br from-red-50 to-orange-50 rounded-xl text-center">
+          <div class="p-4 bg-linear-to-br from-red-50 to-orange-50 rounded-xl text-center">
             <div class="text-sm text-gray-500 mb-2">生肖</div>
             <div class="text-4xl font-bold text-red-600">{{ ageResult.zodiac }}</div>
             <div v-if="ageResult.lunarYearGanZhi" class="text-sm text-gray-500 mt-1">{{ ageResult.lunarYearGanZhi }}年</div>
           </div>
-          <div class="p-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl text-center">
+          <div class="p-4 bg-linear-to-br from-purple-50 to-indigo-50 rounded-xl text-center">
             <div class="text-sm text-gray-500 mb-2">星座</div>
             <div class="text-2xl font-bold text-purple-600">{{ ageResult.constellation }}</div>
           </div>
