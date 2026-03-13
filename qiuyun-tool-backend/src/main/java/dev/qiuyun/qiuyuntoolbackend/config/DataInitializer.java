@@ -455,6 +455,20 @@ public class DataInitializer implements CommandLineRunner {
                         "查看过期", "自动检测并显示 Token 过期时间"),
                 new HashSet<>(Arrays.asList(devTag))));
 
+        defs.add(new ToolDefinition("rsa-key-generator", "RSA密钥生成器", "生成 RSA 公私钥对，支持多种密钥长度和格式",
+                cryptoCategory, "Key", "#991B1B", "#FEE2E2", false, true,
+                buildInstructions("选择密钥长度", "1024/2048/3072/4096 bit，推荐 2048",
+                        "选择格式", "PKCS#1 或 PKCS#8 格式",
+                        "生成密钥", "点击生成按钮获取公私钥对"),
+                new HashSet<>(Arrays.asList(devTag))));
+
+        defs.add(new ToolDefinition("hmac-generator", "HMAC生成器", "生成 HMAC 消息认证码，支持多种哈希算法",
+                cryptoCategory, "Hash", "#DC2626", "#FEE2E2", false, true,
+                buildInstructions("输入消息", "输入要计算 HMAC 的消息内容",
+                        "输入密钥", "输入 Secret Key",
+                        "选择算法", "支持 HMAC-SHA1/SHA256/SHA384/SHA512/MD5"),
+                new HashSet<>(Arrays.asList(devTag))));
+
         // ========== 文本工具 (紫色系) ==========
         defs.add(new ToolDefinition("text-compare", "文本对比", "文本差异对比工具",
                 textCategory, "GitCompare", "#9333EA", "#F3E8FF", false, true,
