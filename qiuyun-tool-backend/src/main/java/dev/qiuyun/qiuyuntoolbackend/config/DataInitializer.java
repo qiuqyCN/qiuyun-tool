@@ -17,13 +17,78 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 数据初始化器
  * 应用启动时初始化分类、标签和工具数据
+ * 支持增量更新：新增工具会自动添加，已有工具会更新配置
+ *
+ * ==================== 工具色系规范 ====================
+ * 每个分类有固定的色系，保持视觉一致性：
+ *
+ * 开发工具 (dev) - 蓝色系
+ *   主色: #2563EB (亮蓝), #3B82F6 (中蓝), #1D4ED8 (深蓝)
+ *   背景: #DBEAFE (浅蓝), #EFF6FF (极浅蓝), #BFDBFE (淡蓝)
+ *   图标: Braces, ArrowRightLeft, Code2, Search, Clock, Binary, Coffee
+ *   使用建议: 开发类工具使用蓝色系，传达专业、技术感
+ *
+ * 图片工具 (image) - 绿色系
+ *   主色: #16A34A (翠绿), #22C55E (亮绿), #15803D (深绿)
+ *   背景: #DCFCE7 (浅绿), #F0FDF4 (极浅绿), #BBF7D0 (淡绿)
+ *   图标: ImageMinus, ImagePlus, Image, QrCode, ScanLine
+ *   使用建议: 图片处理类工具使用绿色系，传达自然、清晰感
+ *
+ * 文档工具 (document) - 橙色系
+ *   主色: #EA580C (亮橙), #F97316 (中橙), #C2410C (深橙)
+ *   背景: #FFEDD5 (浅橙), #FFF7ED (极浅橙), #FED7AA (淡橙)
+ *   图标: FileText, FileEdit
+ *   使用建议: 文档处理类工具使用橙色系，传达活力、创造力
+ *
+ * 加密工具 (crypto) - 红色系
+ *   主色: #DC2626 (亮红), #EF4444 (中红), #B91C1C (深红)
+ *   背景: #FEE2E2 (浅红), #FEF2F2 (极浅红), #FECACA (淡红)
+ *   图标: Hash, Link
+ *   使用建议: 安全加密类工具使用红色系，传达警示、重要性
+ *
+ * 文本工具 (text) - 紫色系
+ *   主色: #9333EA (亮紫), #A855F7 (中紫), #7C3AED (深紫)
+ *   背景: #F3E8FF (浅紫), #FAF5FF (极浅紫), #E9D5FF (淡紫)
+ *   图标: GitCompare, Text, AlignLeft, Type
+ *   使用建议: 文本处理类工具使用紫色系，传达优雅、文艺感
+ *
+ * 数字工具 (number) - 琥珀/黄色系
+ *   主色: #D97706 (琥珀), #F59E0B (亮黄), #B45309 (深琥珀)
+ *   背景: #FEF3C7 (浅琥珀), #FFFBEB (极浅琥珀), #FDE68A (淡黄)
+ *   图标: Binary, Dices, Calculator, Hash
+ *   使用建议: 数字计算类工具使用琥珀色系，传达计算、逻辑感
+ *
+ * 媒体工具 (media) - 青色系
+ *   主色: #0891B2 (青蓝), #06B6D4 (亮青), #0E7490 (深青)
+ *   背景: #CFFAFE (浅青), #ECFEFF (极浅青), #A5F3FC (淡青)
+ *   图标: Video, Music, Play, Film, Mic
+ *   使用建议: 音视频类工具使用青色系，传达现代、科技感
+ *
+ * 生活工具 (life) - 粉色/玫瑰系
+ *   主色: #E11D48 (玫瑰), #F43F5E (亮粉), #BE123C (深玫瑰)
+ *   背景: #FFE4E6 (浅粉), #FFF1F2 (极浅粉), #FECDD3 (淡粉)
+ *   图标: Heart, Star, Calendar, Clock, Home, Smile
+ *   使用建议: 生活实用类工具使用粉色系，传达温馨、亲和力
+ *
+ * 颜色选择原则:
+ *   1. 同一分类内使用相近色系，保持和谐
+ *   2. 热门工具使用该分类的主色（第一个颜色）
+ *   3. VIP工具可使用更深或更亮的颜色突出显示
+ *   4. 背景色使用对应主色的极浅版本（Tailwind 50-100 色阶）
+ *   5. 主色建议使用 Tailwind 500-700 色阶
+ *   6. 避免使用过于相近的颜色，确保分类辨识度
+ *
+ * 使用示例:
+ *   new ToolDefinition("tool-code", "工具名称", "描述",
+ *       category, "IconName", "#2563EB", "#DBEAFE", false, true,
+ *       buildInstructions(...), tags)
+ * ====================================================
  */
 @Slf4j
 @Component
@@ -39,674 +104,429 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        // 检查是否已有数据
-        if (categoryRepository.count() > 0) {
-            log.info("数据库已有数据，跳过初始化");
-            return;
-        }
+        log.info("开始数据初始化/同步...");
 
-        log.info("开始初始化数据...");
+        // 1. 初始化分类（增量更新）
+        Map<String, Category> categories = initCategories();
 
-        // 初始化分类
-        List<Category> categories = initCategories();
+        // 2. 初始化标签（增量更新）
+        Map<String, Tag> tags = initTags();
 
-        // 初始化标签
-        List<Tag> tags = initTags();
-
-        // 初始化工具
+        // 3. 初始化/同步工具（增量更新）
         initTools(categories, tags);
 
-        // 初始化用户数据
-        initUsers();
+        // 4. 初始化用户数据（仅在用户表为空时执行）
+        if (userRepository.count() == 0) {
+            initUsers();
+        }
 
-        log.info("数据初始化完成！");
+        log.info("数据初始化/同步完成！");
     }
 
     /**
-     * 初始化分类数据
+     * 初始化分类数据（支持增量更新）
      */
-    private List<Category> initCategories() {
-        log.info("初始化分类数据...");
+    private Map<String, Category> initCategories() {
+        log.info("同步分类数据...");
 
-        List<Category> categories = Arrays.asList(
-                Category.builder()
-                        .code("dev")
-                        .name("开发工具")
-                        .icon("Code")
-                        .description("JSON格式化、代码压缩、正则测试等开发常用工具")
-                        .sortOrder(1)
-                        .isActive(true)
-                        .build(),
-                Category.builder()
-                        .code("image")
-                        .name("图片工具")
-                        .icon("Image")
-                        .description("图片压缩、格式转换、Base64编码等图片处理工具")
-                        .sortOrder(2)
-                        .isActive(true)
-                        .build(),
-                Category.builder()
-                        .code("document")
-                        .name("文档转换")
-                        .icon("FileText")
-                        .description("PDF转换、Word转换、Markdown编辑等文档工具")
-                        .sortOrder(3)
-                        .isActive(true)
-                        .build(),
-                Category.builder()
-                        .code("crypto")
-                        .name("加密工具")
-                        .icon("Lock")
-                        .description("MD5加密、Base64、URL编码等加密解密工具")
-                        .sortOrder(4)
-                        .isActive(true)
-                        .build(),
-                Category.builder()
-                        .code("text")
-                        .name("文本工具")
-                        .icon("Type")
-                        .description("文本对比、字数统计、大小写转换等文本处理工具")
-                        .sortOrder(5)
-                        .isActive(true)
-                        .build(),
-                Category.builder()
-                        .code("number")
-                        .name("数字工具")
-                        .icon("Calculator")
-                        .description("进制转换、单位换算、随机数生成等数字工具")
-                        .sortOrder(6)
-                        .isActive(true)
-                        .build()
+        // 定义所有分类
+        List<CategoryDefinition> categoryDefs = Arrays.asList(
+                new CategoryDefinition("dev", "开发工具", "Code", "JSON格式化、代码压缩、正则测试等开发常用工具", 1),
+                new CategoryDefinition("document", "文档转换", "FileText", "PDF转换、Word转换、Markdown编辑等文档工具", 3),
+                new CategoryDefinition("image", "图片工具", "Image", "图片压缩、格式转换、Base64编码、二维码生成等图片处理工具", 2),
+                new CategoryDefinition("media", "媒体工具", "Video", "视频转换、音频处理、格式转换等媒体工具", 7),
+                new CategoryDefinition("crypto", "加密工具", "Lock", "MD5加密、Base64、URL编码等加密解密工具", 4),
+                new CategoryDefinition("text", "文本工具", "Type", "文本对比、字数统计、大小写转换等文本处理工具", 5),
+                new CategoryDefinition("number", "数字工具", "Calculator", "进制转换、单位换算、随机数生成等数字工具", 6),
+                new CategoryDefinition("life", "生活工具", "Heart", "日历、天气、单位换算、日常计算等生活实用工具", 8)
         );
 
-        return categoryRepository.saveAll(categories);
+        // 获取现有分类
+        List<Category> existingCategories = categoryRepository.findAll();
+        Map<String, Category> existingMap = existingCategories.stream()
+                .collect(Collectors.toMap(Category::getCode, c -> c));
+
+        List<Category> toSave = new ArrayList<>();
+
+        for (CategoryDefinition def : categoryDefs) {
+            Category category = existingMap.get(def.code);
+            if (category == null) {
+                // 新增分类
+                category = Category.builder()
+                        .code(def.code)
+                        .name(def.name)
+                        .icon(def.icon)
+                        .description(def.description)
+                        .sortOrder(def.sortOrder)
+                        .isActive(true)
+                        .build();
+                log.info("新增分类: {}", def.name);
+            } else {
+                // 更新分类（保留统计数据，更新配置）
+                category.setName(def.name);
+                category.setIcon(def.icon);
+                category.setDescription(def.description);
+                category.setSortOrder(def.sortOrder);
+                log.debug("更新分类: {}", def.name);
+            }
+            toSave.add(category);
+        }
+
+        List<Category> saved = categoryRepository.saveAll(toSave);
+        return saved.stream().collect(Collectors.toMap(Category::getCode, c -> c));
     }
 
     /**
-     * 初始化标签数据
+     * 初始化标签数据（支持增量更新）
      */
-    private List<Tag> initTags() {
-        log.info("初始化标签数据...");
+    private Map<String, Tag> initTags() {
+        log.info("同步标签数据...");
 
-        List<Tag> tags = Arrays.asList(
-                Tag.builder().name("热门").description("热门工具").isHot(true).build(),
-                Tag.builder().name("常用").description("常用工具").isHot(true).build(),
-                Tag.builder().name("VIP").description("VIP专属工具").isHot(false).build(),
-                Tag.builder().name("开发").description("开发相关").isHot(false).build(),
-                Tag.builder().name("图片").description("图片处理").isHot(false).build(),
-                Tag.builder().name("文档").description("文档处理").isHot(false).build()
+        // 定义所有标签
+        List<TagDefinition> tagDefs = Arrays.asList(
+                new TagDefinition("热门", "热门工具", true),
+                new TagDefinition("常用", "常用工具", true),
+                new TagDefinition("VIP", "VIP专属工具", false),
+                new TagDefinition("开发", "开发相关", false),
+                new TagDefinition("文档", "文档处理", false),
+                new TagDefinition("图片", "图片处理", false),
+                new TagDefinition("媒体", "音视频处理", false),
+                new TagDefinition("生活", "生活实用", false)
         );
 
-        return tagRepository.saveAll(tags);
+        // 获取现有标签
+        List<Tag> existingTags = tagRepository.findAll();
+        Map<String, Tag> existingMap = existingTags.stream()
+                .collect(Collectors.toMap(Tag::getName, t -> t));
+
+        List<Tag> toSave = new ArrayList<>();
+
+        for (TagDefinition def : tagDefs) {
+            Tag tag = existingMap.get(def.name);
+            if (tag == null) {
+                // 新增标签
+                tag = Tag.builder()
+                        .name(def.name)
+                        .description(def.description)
+                        .isHot(def.isHot)
+                        .build();
+                log.info("新增标签: {}", def.name);
+            } else {
+                // 更新标签
+                tag.setDescription(def.description);
+                tag.setIsHot(def.isHot);
+                log.debug("更新标签: {}", def.name);
+            }
+            toSave.add(tag);
+        }
+
+        List<Tag> saved = tagRepository.saveAll(toSave);
+        return saved.stream().collect(Collectors.toMap(Tag::getName, t -> t));
     }
 
     /**
-     * 初始化工具数据
+     * 初始化/同步工具数据（支持增量更新）
      */
-    private void initTools(List<Category> categories, List<Tag> tags) {
-        log.info("初始化工具数据...");
+    private void initTools(Map<String, Category> categories, Map<String, Tag> tags) {
+        log.info("同步工具数据...");
 
-        Tag hotTag = tags.stream().filter(t -> t.getName().equals("热门")).findFirst().orElse(null);
-        Tag commonTag = tags.stream().filter(t -> t.getName().equals("常用")).findFirst().orElse(null);
-        Tag vipTag = tags.stream().filter(t -> t.getName().equals("VIP")).findFirst().orElse(null);
-        Tag devTag = tags.stream().filter(t -> t.getName().equals("开发")).findFirst().orElse(null);
-        Tag imageTag = tags.stream().filter(t -> t.getName().equals("图片")).findFirst().orElse(null);
-        Tag docTag = tags.stream().filter(t -> t.getName().equals("文档")).findFirst().orElse(null);
+        // 获取现有工具
+        List<Tool> existingTools = toolRepository.findAll();
+        Map<String, Tool> existingMap = existingTools.stream()
+                .collect(Collectors.toMap(Tool::getCode, t -> t));
 
-        Category devCategory = categories.stream().filter(c -> c.getCode().equals("dev")).findFirst().orElse(null);
-        Category imageCategory = categories.stream().filter(c -> c.getCode().equals("image")).findFirst().orElse(null);
-        Category docCategory = categories.stream().filter(c -> c.getCode().equals("doc")).findFirst().orElse(null);
-        Category cryptoCategory = categories.stream().filter(c -> c.getCode().equals("crypto")).findFirst().orElse(null);
-        Category textCategory = categories.stream().filter(c -> c.getCode().equals("text")).findFirst().orElse(null);
-        Category numberCategory = categories.stream().filter(c -> c.getCode().equals("number")).findFirst().orElse(null);
+        // 定义所有工具
+        List<ToolDefinition> toolDefs = buildToolDefinitions(categories, tags);
 
-        // 开发工具 - 蓝色系（浅色背景）
-        Tool jsonFormatter = Tool.builder()
-                .code("json-formatter")
-                .name("JSON格式化")
-                .description("JSON数据的格式化、压缩、转义等操作")
-                .category(devCategory)
-                .icon("Braces")
-                .iconColor("#1E40AF")
-                .iconBgColor("#DBEAFE")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>格式化</strong>：将压缩的 JSON 数据转换为易读的格式，自动添加缩进和换行</li>\n" +
-                        "    <li><strong>压缩</strong>：去除 JSON 中的空白字符，减小数据体积</li>\n" +
-                        "    <li><strong>转义</strong>：将 JSON 字符串转义，适用于在代码中使用</li>\n" +
-                        "    <li><strong>去转义</strong>：将转义后的 JSON 字符串还原为正常格式</li>\n" +
-                        "    <li>支持复制结果到剪贴板或下载为 .json 文件</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(hotTag, commonTag)))
-                .build();
+        List<Tool> toSave = new ArrayList<>();
+        int newCount = 0;
+        int updateCount = 0;
 
-        Tool yamlJsonConverter = Tool.builder()
-                .code("yaml-json-converter")
-                .name("YAML/JSON互转")
-                .description("YAML与JSON格式互相转换")
-                .category(devCategory)
-                .icon("ArrowRightLeft")
-                .iconColor("#3730A3")
-                .iconBgColor("#E0E7FF")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>选择转换方向</strong>：点击顶部标签切换 YAML→JSON 或 JSON→YAML</li>\n" +
-                        "    <li><strong>YAML转JSON</strong>：将YAML格式的数据转换为JSON格式，便于程序解析</li>\n" +
-                        "    <li><strong>JSON转YAML</strong>：将JSON格式的数据转换为YAML格式，便于配置文件编写</li>\n" +
-                        "    <li><strong>切换方向</strong>：点击切换按钮可快速交换输入输出内容并反向转换</li>\n" +
-                        "    <li>支持复杂的嵌套结构转换</li>\n" +
-                        "    <li>支持复制结果或下载为文件</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(devTag)))
-                .build();
+        for (ToolDefinition def : toolDefs) {
+            Tool tool = existingMap.get(def.code);
+            if (tool == null) {
+                // 新增工具
+                tool = Tool.builder()
+                        .code(def.code)
+                        .name(def.name)
+                        .description(def.description)
+                        .category(def.category)
+                        .icon(def.icon)
+                        .iconColor(def.iconColor)
+                        .iconBgColor(def.iconBgColor)
+                        .isVip(def.isVip)
+                        .isActive(def.isActive)
+                        .visitsCount(0L)
+                        .viewCount(0L)
+                        .usageCount(0L)
+                        .rating(BigDecimal.valueOf(0.0))
+                        .reviewCount(0)
+                        .favoriteCount(0)
+                        .instructions(def.instructions)
+                        .tags(def.tags)
+                        .build();
+                log.info("新增工具: {}", def.name);
+                newCount++;
+            } else {
+                // 更新工具（保留统计数据，更新配置）
+                tool.setName(def.name);
+                tool.setDescription(def.description);
+                tool.setCategory(def.category);
+                tool.setIcon(def.icon);
+                tool.setIconColor(def.iconColor);
+                tool.setIconBgColor(def.iconBgColor);
+                tool.setIsVip(def.isVip);
+                tool.setIsActive(def.isActive);
+                tool.setInstructions(def.instructions);
+                tool.setTags(def.tags);
+                log.debug("更新工具: {}", def.name);
+                updateCount++;
+            }
+            toSave.add(tool);
+        }
 
-        Tool codeBeautify = Tool.builder()
-                .code("code-beautify")
-                .name("代码美化")
-                .description("HTML/CSS/JavaScript/Java/SQL/XML代码格式化")
-                .category(devCategory)
-                .icon("Code2")
-                .iconColor("#5B21B6")
-                .iconBgColor("#EDE9FE")
-                .isVip(true)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>HTML格式化</strong>：自动缩进和换行，使HTML结构清晰易读</li>\n" +
-                        "    <li><strong>CSS格式化</strong>：美化CSS样式代码，规范属性格式</li>\n" +
-                        "    <li><strong>JavaScript格式化</strong>：格式化JS代码，提高可读性</li>\n" +
-                        "    <li>支持代码压缩功能，减小文件体积</li>\n" +
-                        "    <li>支持语法高亮和错误检测</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(vipTag)))
-                .build();
-
-        Tool regexTester = Tool.builder()
-                .code("regex-tester")
-                .name("正则测试")
-                .description("在线正则表达式测试工具")
-                .category(devCategory)
-                .icon("Search")
-                .iconColor("#0369A1")
-                .iconBgColor("#E0F2FE")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>输入正则表达式</strong>：在正则输入框中填写要测试的正则表达式</li>\n" +
-                        "    <li><strong>输入测试文本</strong>：在文本框中输入需要匹配的测试内容</li>\n" +
-                        "    <li><strong>实时匹配</strong>：系统会实时显示匹配结果和高亮匹配内容</li>\n" +
-                        "    <li>支持常用正则表达式预设，一键使用</li>\n" +
-                        "    <li>显示匹配分组信息，方便提取数据</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>())
-                .build();
-
-        Tool timestampConverter = Tool.builder()
-                .code("timestamp-converter")
-                .name("时间戳转换")
-                .description("Unix时间戳与日期时间互转")
-                .category(devCategory)
-                .icon("Clock")
-                .iconColor("#0E7490")
-                .iconBgColor("#CFFAFE")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>时间戳转日期</strong>：输入Unix时间戳（秒或毫秒），转换为可读的日期时间</li>\n" +
-                        "    <li><strong>日期转时间戳</strong>：选择或输入日期时间，转换为Unix时间戳</li>\n" +
-                        "    <li>支持多种日期格式输出</li>\n" +
-                        "    <li>自动识别当前时区和UTC时间</li>\n" +
-                        "    <li>支持批量转换多个时间戳</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(hotTag)))
-                .build();
-
-        Tool base64Codec = Tool.builder()
-                .code("base64-codec")
-                .name("Base64编解码")
-                .description("Base64编码和解码工具")
-                .category(devCategory)
-                .icon("Binary")
-                .iconColor("#0F766E")
-                .iconBgColor("#CCFBF1")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>Base64编码</strong>：将普通文本转换为Base64编码格式</li>\n" +
-                        "    <li><strong>Base64解码</strong>：将Base64编码还原为原始文本</li>\n" +
-                        "    <li>支持URL安全的Base64编码</li>\n" +
-                        "    <li>支持处理中文字符，自动识别编码</li>\n" +
-                        "    <li>支持复制结果或下载为文件</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>())
-                .build();
-
-        Tool yamlPropertiesConverter = Tool.builder()
-                .code("yaml-properties-converter")
-                .name("YAML/Properties互转")
-                .description("YAML格式与Java Properties配置文件双向转换")
-                .category(devCategory)
-                .icon("ArrowRightLeft")
-                .iconColor("#4338CA")
-                .iconBgColor("#E0E7FF")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>选择转换方向</strong>：点击顶部标签切换 Properties→YAML 或 YAML→Properties</li>\n" +
-                        "    <li><strong>输入内容</strong>：在输入框中粘贴需要转换的配置内容</li>\n" +
-                        "    <li><strong>执行转换</strong>：点击执行按钮进行格式转换</li>\n" +
-                        "    <li><strong>切换方向</strong>：点击切换按钮可快速交换输入输出内容并反向转换</li>\n" +
-                        "    <li>支持嵌套结构转换（点号分隔键 ↔ YAML层级）</li>\n" +
-                        "    <li>支持数组索引格式转换</li>\n" +
-                        "    <li>自动识别数值和布尔值类型</li>\n" +
-                        "    <li>支持键排序选项</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(devTag)))
-                .build();
-
-        // 图片工具 - 绿色系（浅色背景）
-        Tool imageCompress = Tool.builder()
-                .code("image-compress")
-                .name("图片压缩")
-                .description("在线图片压缩，支持JPG/PNG/GIF")
-                .category(imageCategory)
-                .icon("ImageMinus")
-                .iconColor("#065F46")
-                .iconBgColor("#D1FAE5")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>上传图片</strong>：点击上传或拖拽图片文件到指定区域</li>\n" +
-                        "    <li><strong>选择压缩质量</strong>：调整压缩比例，平衡画质和文件大小</li>\n" +
-                        "    <li><strong>预览对比</strong>：查看压缩前后的画质对比</li>\n" +
-                        "    <li>支持JPG、PNG、GIF格式</li>\n" +
-                        "    <li>支持批量压缩多张图片</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(hotTag, commonTag)))
-                .build();
-
-        Tool imageConvert = Tool.builder()
-                .code("image-convert")
-                .name("图片格式转换")
-                .description("图片格式互相转换")
-                .category(imageCategory)
-                .icon("ImagePlus")
-                .iconColor("#15803D")
-                .iconBgColor("#DCFCE7")
-                .isVip(true)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>上传图片</strong>：选择需要转换格式的图片文件</li>\n" +
-                        "    <li><strong>选择目标格式</strong>：选择要转换成的图片格式</li>\n" +
-                        "    <li><strong>开始转换</strong>：点击转换按钮，等待处理完成</li>\n" +
-                        "    <li>支持JPG、PNG、GIF、WebP、BMP等格式互转</li>\n" +
-                        "    <li>支持调整输出图片质量</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(vipTag, imageTag)))
-                .build();
-
-        Tool imageToBase64 = Tool.builder()
-                .code("image-to-base64")
-                .name("图片转Base64")
-                .description("图片转换为Base64编码")
-                .category(imageCategory)
-                .icon("Image")
-                .iconColor("#047857")
-                .iconBgColor("#D1FAE5")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>上传图片</strong>：选择要转换的图片文件</li>\n" +
-                        "    <li><strong>自动转换</strong>：系统自动将图片转换为Base64编码</li>\n" +
-                        "    <li><strong>复制结果</strong>：一键复制Base64字符串</li>\n" +
-                        "    <li>支持生成Data URI格式，可直接用于CSS/HTML</li>\n" +
-                        "    <li>支持Base64转图片，还原原始图片</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(imageTag)))
-                .build();
-
-        // 文档工具 - 橙色系（浅色背景）
-        Tool pdfToWord = Tool.builder()
-                .code("pdf-to-word")
-                .name("PDF转Word")
-                .description("PDF文档转换为Word格式")
-                .category(docCategory)
-                .icon("FileText")
-                .iconColor("#9A3412")
-                .iconBgColor("#FFEDD5")
-                .isVip(true)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>上传PDF</strong>：选择要转换的PDF文件</li>\n" +
-                        "    <li><strong>开始转换</strong>：点击转换按钮，等待处理完成</li>\n" +
-                        "    <li><strong>下载Word</strong>：转换完成后下载.docx文件</li>\n" +
-                        "    <li>保留原文档格式和排版</li>\n" +
-                        "    <li>支持多页PDF文档转换</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(hotTag, vipTag, docTag)))
-                .build();
-
-        Tool markdownEditor = Tool.builder()
-                .code("markdown-editor")
-                .name("Markdown编辑器")
-                .description("在线Markdown编辑和预览")
-                .category(docCategory)
-                .icon("FileEdit")
-                .iconColor("#C2410C")
-                .iconBgColor("#FED7AA")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>编辑Markdown</strong>：在左侧编辑器中输入Markdown语法</li>\n" +
-                        "    <li><strong>实时预览</strong>：右侧实时显示渲染后的效果</li>\n" +
-                        "    <li><strong>工具栏</strong>：使用工具栏快速插入常用格式</li>\n" +
-                        "    <li>支持导出为HTML或PDF</li>\n" +
-                        "    <li>支持语法高亮和表格编辑</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(docTag)))
-                .build();
-
-        // 加密工具 - 红色系（浅色背景）
-        Tool md5Encrypt = Tool.builder()
-                .code("md5-encrypt")
-                .name("MD5加密")
-                .description("MD5加密工具，支持32位/16位")
-                .category(cryptoCategory)
-                .icon("Hash")
-                .iconColor("#991B1B")
-                .iconBgColor("#FEE2E2")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>输入文本</strong>：在输入框中填写需要加密的文本</li>\n" +
-                        "    <li><strong>选择位数</strong>：选择32位或16位MD5加密</li>\n" +
-                        "    <li><strong>获取结果</strong>：系统自动生成MD5加密字符串</li>\n" +
-                        "    <li>支持大写和小写输出格式</li>\n" +
-                        "    <li>支持批量加密多个文本</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(hotTag, commonTag)))
-                .build();
-
-        Tool urlEncode = Tool.builder()
-                .code("url-encode")
-                .name("URL编解码")
-                .description("URL编码和解码工具")
-                .category(cryptoCategory)
-                .icon("Link")
-                .iconColor("#B91C1C")
-                .iconBgColor("#FECACA")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>URL编码</strong>：将特殊字符转换为URL安全格式</li>\n" +
-                        "    <li><strong>URL解码</strong>：将编码后的URL还原为原始字符串</li>\n" +
-                        "    <li>自动识别编码/解码操作</li>\n" +
-                        "    <li>支持处理中文字符</li>\n" +
-                        "    <li>支持批量处理多个URL</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>())
-                .build();
-
-        // 文本工具 - 紫色系（浅色背景）
-        Tool textCompare = Tool.builder()
-                .code("text-compare")
-                .name("文本对比")
-                .description("文本差异对比工具")
-                .category(textCategory)
-                .icon("GitCompare")
-                .iconColor("#6B21A8")
-                .iconBgColor("#F3E8FF")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>输入原文本</strong>：在左侧输入框中填写原始文本</li>\n" +
-                        "    <li><strong>输入对比文本</strong>：在右侧输入框中填写对比文本</li>\n" +
-                        "    <li><strong>查看差异</strong>：系统自动高亮显示差异部分</li>\n" +
-                        "    <li>支持行级和字符级对比</li>\n" +
-                        "    <li>支持忽略空格和大小写选项</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>())
-                .build();
-
-        Tool wordCount = Tool.builder()
-                .code("word-count")
-                .name("字数统计")
-                .description("统计文本字数、字符数、行数")
-                .category(textCategory)
-                .icon("Text")
-                .iconColor("#7C3AED")
-                .iconBgColor("#EDE9FE")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>输入文本</strong>：在文本框中输入或粘贴需要统计的内容</li>\n" +
-                        "    <li><strong>实时统计</strong>：系统自动显示字数、字符数、行数</li>\n" +
-                        "    <li><strong>详细数据</strong>：查看中文字数、英文单词数、标点符号等</li>\n" +
-                        "    <li>支持统计选中内容的字数</li>\n" +
-                        "    <li>支持清空和复制文本</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(commonTag)))
-                .build();
-
-        // 数字工具 - 琥珀色系（浅色背景）
-        Tool hexConverter = Tool.builder()
-                .code("radix-converter")
-                .name("进制转换")
-                .description("二进制、八进制、十进制、十六进制互转")
-                .category(numberCategory)
-                .icon("Binary")
-                .iconColor("#92400E")
-                .iconBgColor("#FEF3C7")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>输入数值</strong>：在输入框中填写要转换的数字</li>\n" +
-                        "    <li><strong>选择进制</strong>：选择输入数字的当前进制</li>\n" +
-                        "    <li><strong>查看结果</strong>：自动显示其他进制的转换结果</li>\n" +
-                        "    <li>支持二进制、八进制、十进制、十六进制互转</li>\n" +
-                        "    <li>支持批量转换多个数值</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>())
-                .build();
-
-        Tool randomNumber = Tool.builder()
-                .code("random-number")
-                .name("随机数生成")
-                .description("生成随机数、随机密码")
-                .category(numberCategory)
-                .icon("Dices")
-                .iconColor("#B45309")
-                .iconBgColor("#FEF9C3")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>设置范围</strong>：输入最小值和最大值</li>\n" +
-                        "    <li><strong>生成数量</strong>：选择要生成的随机数个数</li>\n" +
-                        "    <li><strong>点击生成</strong>：获取随机数结果</li>\n" +
-                        "    <li>支持生成随机密码，可设置长度和字符类型</li>\n" +
-                        "    <li>支持生成不重复的随机数</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(hotTag)))
-                .build();
-
-        Tool jsonJavaConverter = Tool.builder()
-                .code("json-java-converter")
-                .name("JSON/Java互转")
-                .description("JSON与Java POJO类互相转换")
-                .category(devCategory)
-                .icon("Coffee")
-                .iconColor("#B45309")
-                .iconBgColor("#E0E7FF")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>JSON → Java</strong>：输入JSON数据，生成对应的Java POJO类</li>\n" +
-                        "    <li><strong>Java → JSON</strong>：输入Java对象的JSON表示，格式化输出</li>\n" +
-                        "    <li><strong>设置选项</strong>：可设置包名、根类名、是否使用Lombok</li>\n" +
-                        "    <li>支持嵌套对象（自动生成内部类）</li>\n" +
-                        "    <li>支持数组/List类型</li>\n" +
-                        "    <li>自动推断字段类型</li>\n" +
-                        "    <li>生成@JsonProperty注解保持字段映射</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(devTag)))
-                .build();
-
-        Tool markdownConverter = Tool.builder()
-                .code("markdown-converter")
-                .name("Markdown格式转换")
-                .description("Markdown转HTML、PDF、Word等格式")
-                .category(docCategory)
-                .icon("FileText")
-                .iconColor("#059669")
-                .iconBgColor("#D1FAE5")
-                .isVip(false)
-                .isActive(true)
-                .visitsCount(0L)
-                .viewCount(0L)
-                .usageCount(0L)
-                .rating(BigDecimal.valueOf(0.0))
-                .reviewCount(0)
-                .favoriteCount(0)
-                .instructions("<ol class=\"list-decimal list-inside space-y-2\">\n" +
-                        "    <li><strong>输入 Markdown</strong>：在输入框中粘贴 Markdown 格式的文档内容</li>\n" +
-                        "    <li><strong>选择格式</strong>：点击格式按钮选择目标格式（HTML、PDF、Word）</li>\n" +
-                        "    <li><strong>执行转换</strong>：点击转换按钮进行格式转换</li>\n" +
-                        "    <li><strong>HTML 格式</strong>：可直接预览、复制或下载</li>\n" +
-                        "    <li><strong>PDF/Word 格式</strong>：需要下载后查看</li>\n" +
-                        "    <li>支持标准 Markdown 语法和 GitHub Flavored Markdown 扩展</li>\n" +
-                        "  </ol>")
-                .tags(new HashSet<>(Arrays.asList(docTag)))
-                .build();
-
-        List<Tool> tools = Arrays.asList(
-                jsonFormatter, yamlJsonConverter, codeBeautify, regexTester, timestampConverter, base64Codec, yamlPropertiesConverter, jsonJavaConverter,
-                imageCompress, imageConvert, imageToBase64,
-                pdfToWord, markdownEditor, markdownConverter,
-                md5Encrypt, urlEncode,
-                textCompare, wordCount,
-                hexConverter, randomNumber
-        );
-
-        toolRepository.saveAll(tools);
+        toolRepository.saveAll(toSave);
+        log.info("工具同步完成: 新增 {} 个, 更新 {} 个", newCount, updateCount);
     }
 
     /**
-     * 初始化用户数据
+     * 构建工具定义列表
+     */
+    private List<ToolDefinition> buildToolDefinitions(Map<String, Category> categories, Map<String, Tag> tags) {
+        List<ToolDefinition> defs = new ArrayList<>();
+
+        Category devCategory = categories.get("dev");
+        Category imageCategory = categories.get("image");
+        Category docCategory = categories.get("document");
+        Category cryptoCategory = categories.get("crypto");
+        Category textCategory = categories.get("text");
+        Category numberCategory = categories.get("number");
+        Category mediaCategory = categories.get("media");
+        Category lifeCategory = categories.get("life");
+
+        Tag hotTag = tags.get("热门");
+        Tag commonTag = tags.get("常用");
+        Tag vipTag = tags.get("VIP");
+        Tag devTag = tags.get("开发");
+        Tag imageTag = tags.get("图片");
+        Tag docTag = tags.get("文档");
+        Tag mediaTag = tags.get("媒体");
+        Tag lifeTag = tags.get("生活");
+
+        // ========== 开发工具 (蓝色系) ==========
+        defs.add(new ToolDefinition("json-formatter", "JSON格式化", "JSON数据的格式化、压缩、转义等操作",
+                devCategory, "Braces", "#2563EB", "#DBEAFE", false, true,
+                buildInstructions("格式化", "将压缩的 JSON 数据转换为易读的格式，自动添加缩进和换行",
+                        "压缩", "去除 JSON 中的空白字符，减小数据体积",
+                        "转义", "将 JSON 字符串转义，适用于在代码中使用",
+                        "去转义", "将转义后的 JSON 字符串还原为正常格式"),
+                new HashSet<>(Arrays.asList(hotTag, commonTag))));
+
+        defs.add(new ToolDefinition("yaml-json-converter", "YAML/JSON互转", "YAML与JSON格式互相转换",
+                devCategory, "ArrowRightLeft", "#3B82F6", "#EFF6FF", false, true,
+                buildInstructions("选择转换方向", "点击顶部标签切换 YAML→JSON 或 JSON→YAML",
+                        "YAML转JSON", "将YAML格式的数据转换为JSON格式，便于程序解析",
+                        "JSON转YAML", "将JSON格式的数据转换为YAML格式，便于配置文件编写",
+                        "切换方向", "点击切换按钮可快速交换输入输出内容并反向转换"),
+                new HashSet<>(Arrays.asList(devTag))));
+
+        defs.add(new ToolDefinition("code-beautify", "代码美化", "HTML/CSS/JavaScript/Java/SQL/XML代码格式化",
+                devCategory, "Code2", "#1D4ED8", "#BFDBFE", true, true,
+                buildInstructions("HTML格式化", "自动缩进和换行，使HTML结构清晰易读",
+                        "CSS格式化", "美化CSS样式代码，规范属性格式",
+                        "JavaScript格式化", "格式化JS代码，提高可读性",
+                        "代码压缩", "支持代码压缩功能，减小文件体积"),
+                new HashSet<>(Arrays.asList(vipTag))));
+
+        defs.add(new ToolDefinition("regex-tester", "正则测试", "在线正则表达式测试工具",
+                devCategory, "Search", "#2563EB", "#DBEAFE", false, true,
+                buildInstructions("输入正则表达式", "在正则输入框中填写要测试的正则表达式",
+                        "输入测试文本", "在文本框中输入需要匹配的测试内容",
+                        "实时匹配", "系统会实时显示匹配结果和高亮匹配内容"),
+                new HashSet<>()));
+
+        defs.add(new ToolDefinition("timestamp-converter", "时间戳转换", "Unix时间戳与日期时间互转",
+                devCategory, "Clock", "#3B82F6", "#EFF6FF", false, true,
+                buildInstructions("时间戳转日期", "输入Unix时间戳（秒或毫秒），转换为可读的日期时间",
+                        "日期转时间戳", "选择或输入日期时间，转换为Unix时间戳",
+                        "多种格式", "支持多种日期格式输出"),
+                new HashSet<>(Arrays.asList(hotTag))));
+
+
+
+        defs.add(new ToolDefinition("yaml-properties-converter", "YAML/Properties互转", "YAML格式与Java Properties配置文件双向转换",
+                devCategory, "ArrowRightLeft", "#2563EB", "#DBEAFE", false, true,
+                buildInstructions("选择转换方向", "点击顶部标签切换 Properties→YAML 或 YAML→Properties",
+                        "输入内容", "在输入框中粘贴需要转换的配置内容",
+                        "嵌套结构", "支持嵌套结构转换（点号分隔键 ↔ YAML层级）"),
+                new HashSet<>(Arrays.asList(devTag))));
+
+        defs.add(new ToolDefinition("json-java-converter", "JSON/Java互转", "JSON与Java POJO类互相转换",
+                devCategory, "Coffee", "#3B82F6", "#EFF6FF", false, true,
+                buildInstructions("JSON → Java", "输入JSON数据，生成对应的Java POJO类",
+                        "Java → JSON", "输入Java对象的JSON表示，格式化输出",
+                        "设置选项", "可设置包名、根类名、是否使用Lombok"),
+                new HashSet<>(Arrays.asList(devTag))));
+
+        // ========== 图片工具 (绿色系) ==========
+        defs.add(new ToolDefinition("image-compress", "图片压缩", "在线图片压缩，支持JPG/PNG/GIF",
+                imageCategory, "ImageMinus", "#16A34A", "#DCFCE7", false, true,
+                buildInstructions("上传图片", "点击上传或拖拽图片文件到指定区域",
+                        "选择压缩质量", "调整压缩比例，平衡画质和文件大小",
+                        "预览对比", "查看压缩前后的画质对比"),
+                new HashSet<>(Arrays.asList(hotTag, commonTag))));
+
+        defs.add(new ToolDefinition("image-convert", "图片格式转换", "图片格式互相转换",
+                imageCategory, "ImagePlus", "#22C55E", "#F0FDF4", true, true,
+                buildInstructions("上传图片", "选择需要转换格式的图片文件",
+                        "选择目标格式", "选择要转换成的图片格式",
+                        "开始转换", "点击转换按钮，等待处理完成"),
+                new HashSet<>(Arrays.asList(vipTag, imageTag))));
+
+        defs.add(new ToolDefinition("image-to-base64", "图片转Base64", "图片转换为Base64编码",
+                imageCategory, "Image", "#15803D", "#BBF7D0", false, true,
+                buildInstructions("上传图片", "选择要转换的图片文件",
+                        "自动转换", "系统自动将图片转换为Base64编码",
+                        "复制结果", "一键复制Base64字符串"),
+                new HashSet<>(Arrays.asList(imageTag))));
+
+        defs.add(new ToolDefinition("qr-code-generator", "二维码生成", "生成各种类型的二维码，支持自定义样式和Logo",
+                imageCategory, "QrCode", "#16A34A", "#DCFCE7", false, true,
+                buildInstructions("选择内容类型", "支持文本、URL、WiFi、邮箱、电话、短信",
+                        "输入内容", "根据类型填写相应信息",
+                        "自定义样式", "调整尺寸、纠错级别，可添加Logo"),
+                new HashSet<>(Arrays.asList(hotTag, imageTag))));
+
+        defs.add(new ToolDefinition("qr-code-parser", "二维码解析", "上传二维码图片，识别其中的内容信息",
+                imageCategory, "ScanLine", "#22C55E", "#F0FDF4", false, true,
+                buildInstructions("上传图片", "点击或拖拽二维码图片到上传区域",
+                        "开始解析", "系统自动识别二维码内容",
+                        "查看结果", "显示内容类型和结构化数据"),
+                new HashSet<>(Arrays.asList(imageTag))));
+
+        // ========== 文档工具 (橙色系) ==========
+        defs.add(new ToolDefinition("pdf-to-word", "PDF转Word", "PDF文档转换为Word格式",
+                docCategory, "FileText", "#EA580C", "#FFEDD5", true, true,
+                buildInstructions("上传PDF", "选择要转换的PDF文件",
+                        "开始转换", "点击转换按钮，等待处理完成",
+                        "下载Word", "转换完成后下载.docx文件"),
+                new HashSet<>(Arrays.asList(hotTag, vipTag, docTag))));
+
+        defs.add(new ToolDefinition("markdown-editor", "Markdown编辑器", "在线Markdown编辑和预览",
+                docCategory, "FileEdit", "#F97316", "#FFF7ED", false, true,
+                buildInstructions("编辑Markdown", "在左侧编辑器中输入Markdown语法",
+                        "实时预览", "右侧实时显示渲染后的效果",
+                        "工具栏", "使用工具栏快速插入常用格式"),
+                new HashSet<>(Arrays.asList(docTag))));
+
+        defs.add(new ToolDefinition("markdown-converter", "Markdown格式转换", "Markdown转HTML、PDF、Word等格式",
+                docCategory, "FileText", "#C2410C", "#FED7AA", false, true,
+                buildInstructions("输入 Markdown", "在输入框中粘贴 Markdown 格式的文档内容",
+                        "选择格式", "点击格式按钮选择目标格式（HTML、PDF、Word）",
+                        "执行转换", "点击转换按钮进行格式转换"),
+                new HashSet<>(Arrays.asList(docTag))));
+
+        // ========== 加密工具 (红色系) ==========
+        defs.add(new ToolDefinition("md5-encrypt", "MD5加密", "MD5加密工具，支持32位/16位",
+                cryptoCategory, "Hash", "#DC2626", "#FEE2E2", false, true,
+                buildInstructions("输入文本", "在输入框中填写需要加密的文本",
+                        "选择位数", "选择32位或16位MD5加密",
+                        "获取结果", "系统自动生成MD5加密字符串"),
+                new HashSet<>(Arrays.asList(hotTag, commonTag))));
+
+        defs.add(new ToolDefinition("url-encode", "URL编解码", "URL编码和解码工具",
+                cryptoCategory, "Link", "#EF4444", "#FEF2F2", false, true,
+                buildInstructions("URL编码", "将特殊字符转换为URL安全格式",
+                        "URL解码", "将编码后的URL还原为原始字符串",
+                        "自动识别", "自动识别编码/解码操作"),
+                new HashSet<>()));
+
+        defs.add(new ToolDefinition("base64-codec", "Base64编解码", "Base64编码和解码工具",
+                cryptoCategory, "Binary", "#DC2626", "#FEE2E2", false, true,
+                buildInstructions("Base64编码", "将普通文本转换为Base64编码格式",
+                        "Base64解码", "将Base64编码还原为原始文本",
+                        "URL安全", "支持URL安全的Base64编码"),
+                new HashSet<>(Arrays.asList(commonTag))));
+
+        // ========== 文本工具 (紫色系) ==========
+        defs.add(new ToolDefinition("text-compare", "文本对比", "文本差异对比工具",
+                textCategory, "GitCompare", "#9333EA", "#F3E8FF", false, true,
+                buildInstructions("输入原文本", "在左侧输入框中填写原始文本",
+                        "输入对比文本", "在右侧输入框中填写对比文本",
+                        "查看差异", "系统自动高亮显示差异部分"),
+                new HashSet<>()));
+
+        defs.add(new ToolDefinition("word-count", "字数统计", "统计文本字数、字符数、行数",
+                textCategory, "Text", "#A855F7", "#FAF5FF", false, true,
+                buildInstructions("输入文本", "在文本框中输入或粘贴需要统计的内容",
+                        "实时统计", "系统自动显示字数、字符数、行数",
+                        "详细数据", "查看中文字数、英文单词数、标点符号等"),
+                new HashSet<>(Arrays.asList(commonTag))));
+
+        // ========== 数字工具 (琥珀/黄色系) ==========
+        defs.add(new ToolDefinition("radix-converter", "进制转换", "二进制、八进制、十进制、十六进制互转",
+                numberCategory, "Binary", "#D97706", "#FEF3C7", false, true,
+                buildInstructions("输入数值", "在输入框中填写要转换的数字",
+                        "选择进制", "选择输入数字的当前进制",
+                        "查看结果", "自动显示其他进制的转换结果"),
+                new HashSet<>()));
+
+        defs.add(new ToolDefinition("random-number", "随机数生成", "生成随机数、随机密码",
+                numberCategory, "Dices", "#F59E0B", "#FFFBEB", false, true,
+                buildInstructions("设置范围", "输入最小值和最大值",
+                        "生成数量", "选择要生成的随机数个数",
+                        "点击生成", "获取随机数结果"),
+                new HashSet<>(Arrays.asList(hotTag))));
+
+        // ========== 媒体工具 (青色系) ==========
+        defs.add(new ToolDefinition("video-convert", "视频格式转换", "视频格式互相转换，支持MP4/AVI/MOV等",
+                mediaCategory, "Video", "#0891B2", "#CFFAFE", false, true,
+                buildInstructions("上传视频", "选择需要转换的视频文件",
+                        "选择格式", "选择目标视频格式",
+                        "开始转换", "点击转换按钮，等待处理完成"),
+                new HashSet<>(Arrays.asList(mediaTag))));
+
+        defs.add(new ToolDefinition("audio-convert", "音频格式转换", "音频格式互相转换，支持MP3/WAV/FLAC等",
+                mediaCategory, "Music", "#06B6D4", "#ECFEFF", false, true,
+                buildInstructions("上传音频", "选择需要转换的音频文件",
+                        "选择格式", "选择目标音频格式",
+                        "开始转换", "点击转换按钮，等待处理完成"),
+                new HashSet<>(Arrays.asList(mediaTag))));
+
+        // ========== 生活工具 (粉色/玫瑰系) ==========
+        defs.add(new ToolDefinition("calendar", "日历查询", "万年历、节假日查询、农历转换",
+                lifeCategory, "Calendar", "#E11D48", "#FFE4E6", false, true,
+                buildInstructions("选择日期", "点击日历选择要查询的日期",
+                        "查看信息", "显示公历、农历、节气、节假日信息",
+                        "节假日", "自动标注法定节假日和调休安排"),
+                new HashSet<>(Arrays.asList(lifeTag))));
+
+        defs.add(new ToolDefinition("daily-quote", "每日一言", "每日励志语录、名言警句",
+                lifeCategory, "Quote", "#F43F5E", "#FFF1F2", false, true,
+                buildInstructions("随机语录", "点击按钮获取随机语录",
+                        "收藏语录", "点击收藏按钮保存喜欢的语录",
+                        "分享语录", "一键分享语录到社交媒体"),
+                new HashSet<>(Arrays.asList(lifeTag))));
+
+        return defs;
+    }
+
+    /**
+     * 构建使用说明HTML
+     */
+    private String buildInstructions(String... steps) {
+        StringBuilder sb = new StringBuilder("<ol class=\"list-decimal list-inside space-y-2\">\n");
+        for (int i = 0; i < steps.length; i += 2) {
+            String title = steps[i];
+            String desc = i + 1 < steps.length ? steps[i + 1] : "";
+            sb.append(String.format("    <li><strong>%s</strong>：%s</li>\n", title, desc));
+        }
+        sb.append("  </ol>");
+        return sb.toString();
+    }
+
+    /**
+     * 初始化用户数据（仅在首次启动时执行）
      */
     private void initUsers() {
         log.info("初始化用户数据...");
@@ -756,4 +576,24 @@ public class DataInitializer implements CommandLineRunner {
         log.info("VIP用户: vip/123456");
         log.info("管理员: admin/123456");
     }
+
+    // ==================== 定义类 ====================
+
+    private record CategoryDefinition(String code, String name, String icon, String description, int sortOrder) {}
+
+    private record TagDefinition(String name, String description, boolean isHot) {}
+
+    private record ToolDefinition(
+            String code,
+            String name,
+            String description,
+            Category category,
+            String icon,
+            String iconColor,
+            String iconBgColor,
+            boolean isVip,
+            boolean isActive,
+            String instructions,
+            Set<Tag> tags
+    ) {}
 }
