@@ -143,7 +143,7 @@ const hmacLength = computed(() => {
           <div class="space-y-4">
             <!-- 消息内容 -->
             <div>
-              <label class="text-sm font-medium mb-2 block flex items-center gap-2">
+              <label class="text-sm font-medium mb-2 flex items-center gap-2">
                 <FileText class="w-4 h-4" />
                 消息内容
               </label>
@@ -161,7 +161,7 @@ const hmacLength = computed(() => {
 
             <!-- 密钥 -->
             <div>
-              <label class="text-sm font-medium mb-2 block flex items-center gap-2">
+              <label class="text-sm font-medium mb-2 flex items-center gap-2">
                 <Key class="w-4 h-4" />
                 密钥 (Secret Key)
               </label>

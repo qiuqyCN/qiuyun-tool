@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 文本对比工具执行器
@@ -25,7 +24,6 @@ import java.util.Set;
 @Component
 public class TextCompareExecutor extends AbstractToolExecutor<TextCompareExecutor.TextCompareRequest, TextCompareExecutor.TextCompareResponse> {
 
-    private static final Set<String> VALID_MODES = Set.of(CompareMode.LINE.getCode(), CompareMode.CHAR.getCode());
 
     @Override
     public String getToolCode() {

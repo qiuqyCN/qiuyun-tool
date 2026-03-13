@@ -254,7 +254,7 @@ public class WordCountExecutor extends AbstractToolExecutor<WordCountExecutor.Wo
         Matcher chineseMatcher = chinesePattern.matcher(text);
         while (chineseMatcher.find()) {
             String word = chineseMatcher.group();
-            frequencyMap.merge(word, 1, Integer::sum);
+            frequencyMap.put(word, frequencyMap.getOrDefault(word, 0) + 1);
         }
 
         // 英文单词
@@ -262,7 +262,7 @@ public class WordCountExecutor extends AbstractToolExecutor<WordCountExecutor.Wo
         Matcher englishMatcher = englishPattern.matcher(text);
         while (englishMatcher.find()) {
             String word = englishMatcher.group().toLowerCase();
-            frequencyMap.merge(word, 1, Integer::sum);
+            frequencyMap.put(word, frequencyMap.getOrDefault(word, 0) + 1);
         }
 
         // 排序并取前10

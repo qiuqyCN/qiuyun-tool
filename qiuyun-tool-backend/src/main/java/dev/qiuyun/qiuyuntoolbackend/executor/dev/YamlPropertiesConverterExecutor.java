@@ -1,6 +1,5 @@
 package dev.qiuyun.qiuyuntoolbackend.executor.dev;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import dev.qiuyun.qiuyuntoolbackend.enums.ToolType;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
@@ -29,7 +28,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class YamlPropertiesConverterExecutor extends AbstractToolExecutor<YamlPropertiesConverterExecutor.ConverterRequest, YamlPropertiesConverterExecutor.ConverterResponse> {
 
-    private final ObjectMapper objectMapper;
     private final YAMLMapper yamlMapper;
 
     @Override

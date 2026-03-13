@@ -128,8 +128,8 @@ const getBmiPosition = (bmi: number): number => {
                 v-model="height"
                 type="number"
                 placeholder="请输入身高"
-                min="1"
-                max="300"
+                :min="1"
+                :max="300"
               />
             </div>
 
@@ -145,8 +145,8 @@ const getBmiPosition = (bmi: number): number => {
                 v-model="weight"
                 type="number"
                 placeholder="请输入体重"
-                min="1"
-                max="500"
+                :min="1"
+                :max="500"
               />
             </div>
           </div>
@@ -176,7 +176,7 @@ const getBmiPosition = (bmi: number): number => {
               </div>
               <div class="relative h-4 mt-1">
                 <div
-                  class="absolute w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[8px] border-b-gray-700 transform -translate-x-1/2"
+                  class="absolute w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-8 border-b-gray-700 transform -translate-x-1/2"
                   :style="{ left: getBmiPosition(bmiResult.bmi) + '%' }"
                 ></div>
               </div>
@@ -231,7 +231,7 @@ const getBmiPosition = (bmi: number): number => {
 
         <div class="mt-4 p-4 rounded-xl" :style="{ backgroundColor: bmiResult.color + '15' }">
           <div class="flex items-start gap-3">
-            <Heart class="w-5 h-5 mt-0.5 flex-shrink-0" :style="{ color: bmiResult.color }" />
+            <Heart class="w-5 h-5 mt-0.5 shrink-0" :style="{ color: bmiResult.color }" />
             <div>
               <div class="font-medium text-gray-900 mb-1">健康建议</div>
               <div class="text-sm text-gray-600">{{ bmiResult.advice }}</div>
@@ -262,7 +262,7 @@ const getBmiPosition = (bmi: number): number => {
         </div>
 
         <div class="mt-4 p-4 bg-blue-50 rounded-xl flex items-start gap-3">
-          <AlertCircle class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+          <AlertCircle class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
           <div class="text-sm text-blue-700">
             <p class="font-medium mb-1">说明</p>
             <p>BMI (身体质量指数) 是衡量人体胖瘦程度的常用指标。计算公式为：BMI = 体重(kg) ÷ 身高²(m²)。</p>

@@ -141,9 +141,8 @@ public class JsonJavaConverterExecutor extends AbstractToolExecutor<JsonJavaConv
         // 收集内部类
         Map<String, ObjectNode> innerClasses = new LinkedHashMap<>();
 
-        Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
-        while (fields.hasNext()) {
-            Map.Entry<String, JsonNode> entry = fields.next();
+        Set<Map.Entry<String, JsonNode>> fields = node.properties();
+        for (Map.Entry<String, JsonNode> entry : fields) {
             String fieldName = entry.getKey();
             JsonNode fieldValue = entry.getValue();
 
@@ -157,9 +156,8 @@ public class JsonJavaConverterExecutor extends AbstractToolExecutor<JsonJavaConv
 
         // Getter/Setter（如果不使用 Lombok）
         if (!useLombok) {
-            fields = node.fields();
-            while (fields.hasNext()) {
-                Map.Entry<String, JsonNode> entry = fields.next();
+            fields = node.properties();
+            for (Map.Entry<String, JsonNode> entry : fields) {
                 String fieldName = entry.getKey();
                 JsonNode fieldValue = entry.getValue();
                 String javaType = inferJavaType(fieldName, fieldValue, new LinkedHashMap<>());
@@ -206,7 +204,7 @@ public class JsonJavaConverterExecutor extends AbstractToolExecutor<JsonJavaConv
             return className;
         } else if (node.isArray()) {
             ArrayNode arrayNode = (ArrayNode) node;
-            if (arrayNode.size() > 0) {
+            if (!arrayNode.isEmpty()) {
                 JsonNode firstElement = arrayNode.get(0);
                 String elementType = inferJavaType(fieldName, firstElement, innerClasses);
                 return "List<" + elementType + ">";
@@ -287,7 +285,7 @@ public class JsonJavaConverterExecutor extends AbstractToolExecutor<JsonJavaConv
 
         // 提取字段（支持多种格式）
         // 1. 标准字段格式：private String name;
-        Pattern fieldPattern = Pattern.compile("(?:private|public|protected)\\s+(?:static\\s+)?(?:final\\s+)?([\\w<>,\\s]+?)\\s+(\\w+)\\s*(?:=|;|\\{)");
+        Pattern fieldPattern = Pattern.compile("(?:private|public|protected)\\s+(?:static\\s+)?(?:final\\s+)?([\\w<>,\\s]+?)\\s+(\\w+)\\s*[=;{]");
         Matcher fieldMatcher = fieldPattern.matcher(javaCode);
         while (fieldMatcher.find()) {
             String type = fieldMatcher.group(1).trim();

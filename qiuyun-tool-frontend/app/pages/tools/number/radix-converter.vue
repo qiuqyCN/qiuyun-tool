@@ -185,13 +185,13 @@ watch([inputValue, fromBase], () => {
               <div class="flex items-center justify-between mb-2">
                 <span class="text-xs text-muted-foreground">二进制 (Binary)</span>
                 <button
-                  @click="copyResult(result.results['2'])"
+                  @click="copyResult(result.results['2'] || '')"
                   class="text-xs text-primary hover:underline"
                 >
-                  复制
+                  复制  
                 </button>
               </div>
-              <code class="font-mono text-sm break-all">{{ result.results['2'] }}</code>
+              <code class="font-mono text-sm break-all">{{ result.results['2'] || '' }}</code>
             </div>
 
             <!-- 八进制 -->
@@ -199,13 +199,13 @@ watch([inputValue, fromBase], () => {
               <div class="flex items-center justify-between mb-2">
                 <span class="text-xs text-muted-foreground">八进制 (Octal)</span>
                 <button
-                  @click="copyResult(result.results['8'])"
+                  @click="copyResult(result.results['8'] || '')"
                   class="text-xs text-primary hover:underline"
                 >
                   复制
                 </button>
               </div>
-              <code class="font-mono text-sm break-all">{{ result.results['8'] }}</code>
+              <code class="font-mono text-sm break-all">{{ result.results['8'] || '' }}</code>
             </div>
 
             <!-- 十进制 -->
@@ -213,13 +213,13 @@ watch([inputValue, fromBase], () => {
               <div class="flex items-center justify-between mb-2">
                 <span class="text-xs text-blue-600">十进制 (Decimal)</span>
                 <button
-                  @click="copyResult(result.results['10'])"
+                  @click="copyResult(result.results['10'] || '')"
                   class="text-xs text-blue-600 hover:underline"
                 >
                   复制
                 </button>
               </div>
-              <code class="font-mono text-sm break-all text-blue-700">{{ result.results['10'] }}</code>
+              <code class="font-mono text-sm break-all text-blue-700">{{ result.results['10'] || '' }}</code>
             </div>
 
             <!-- 十六进制 -->
@@ -227,13 +227,13 @@ watch([inputValue, fromBase], () => {
               <div class="flex items-center justify-between mb-2">
                 <span class="text-xs text-muted-foreground">十六进制 (Hex)</span>
                 <button
-                  @click="copyResult(result.results['16'])"
+                  @click="copyResult(result.results['16'] || '')"
                   class="text-xs text-primary hover:underline"
                 >
                   复制
                 </button>
               </div>
-              <code class="font-mono text-sm break-all">{{ result.results['16'] }}</code>
+              <code class="font-mono text-sm break-all">{{ result.results['16'] || '' }}</code>
             </div>
           </div>
         </div>

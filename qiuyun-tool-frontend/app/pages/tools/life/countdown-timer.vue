@@ -258,15 +258,15 @@ onUnmounted(() => {
           <div class="grid grid-cols-3 gap-4 mb-4">
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">小时</label>
-              <ToolInput v-model="hours" type="number" placeholder="0" min="0" max="99" />
+              <ToolInput v-model="hours" type="number" placeholder="0" :min="0" :max="99" />
             </div>
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">分钟</label>
-              <ToolInput v-model="minutes" type="number" placeholder="0" min="0" max="59" />
+              <ToolInput v-model="minutes" type="number" placeholder="0" :min="0" :max="59" />
             </div>
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">秒</label>
-              <ToolInput v-model="seconds" type="number" placeholder="0" min="0" max="59" />
+              <ToolInput v-model="seconds" type="number" placeholder="0" :min="0" :max="59" />
             </div>
           </div>
 

@@ -34,7 +34,6 @@ import java.util.Set;
 public class ImageCompressExecutor extends AbstractToolExecutor<ImageCompressExecutor.ImageCompressRequest, ImageCompressExecutor.ImageCompressResponse> {
 
     private static final Set<String> VALID_FORMATS = Set.of("jpeg", "jpg", "png", "webp");
-    private static final Set<String> VALID_OUTPUT_FORMATS = Set.of("original", "jpeg", "png", "webp");
 
     @Override
     public String getToolCode() {

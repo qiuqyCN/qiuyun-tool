@@ -132,7 +132,6 @@ public class RankingServiceImpl implements RankingService {
     @Transactional
     public void calculateRealtimeRanking() {
         LocalDate today = LocalDate.now();
-        LocalDateTime startOfHour = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
         LocalDateTime now = LocalDateTime.now();
 
         // 先删除今天的实时榜数据

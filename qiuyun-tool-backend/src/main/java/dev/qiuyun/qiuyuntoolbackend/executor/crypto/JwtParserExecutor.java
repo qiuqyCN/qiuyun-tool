@@ -44,7 +44,7 @@ public class JwtParserExecutor extends AbstractToolExecutor<JwtParserExecutor.Pa
     public void validate(ParserRequest request) throws BusinessException {
         validateNotNull(request, "请求");
         validateNotEmpty(request.getToken(), "JWT Token");
-        
+
         // 基本格式验证
         String token = request.getToken().trim();
         if (!token.contains(".")) {
@@ -55,7 +55,7 @@ public class JwtParserExecutor extends AbstractToolExecutor<JwtParserExecutor.Pa
     @Override
     protected ParserResponse doExecute(ParserRequest request, ToolContext context) throws Exception {
         String token = request.getToken().trim();
-        
+
         // 移除 Bearer 前缀（如果有）
         if (token.toLowerCase().startsWith("bearer ")) {
             token = token.substring(7).trim();
@@ -125,7 +125,7 @@ public class JwtParserExecutor extends AbstractToolExecutor<JwtParserExecutor.Pa
 
         JwtHeader header = new JwtHeader();
         header.setRawJson(headerJson);
-        
+
         if (headerNode.has("alg")) {
             header.setAlg(headerNode.get("alg").asText());
         }
@@ -184,7 +184,7 @@ public class JwtParserExecutor extends AbstractToolExecutor<JwtParserExecutor.Pa
 
         // 其他自定义声明
         Map<String, JsonNode> claims = new LinkedHashMap<>();
-        payloadNode.fields().forEachRemaining(entry -> {
+        payloadNode.properties().forEach(entry -> {
             String key = entry.getKey();
             if (!List.of("iss", "sub", "aud", "exp", "nbf", "iat", "jti").contains(key)) {
                 claims.put(key, entry.getValue());
@@ -201,13 +201,13 @@ public class JwtParserExecutor extends AbstractToolExecutor<JwtParserExecutor.Pa
     private String base64UrlDecode(String base64Url) {
         // 替换 Base64 URL 安全字符
         String base64 = base64Url.replace('-', '+').replace('_', '/');
-        
+
         // 补齐填充
         int padding = 4 - (base64.length() % 4);
         if (padding != 4) {
             base64 += "=".repeat(padding);
         }
-        
+
         return new String(Base64.getDecoder().decode(base64), StandardCharsets.UTF_8);
     }
 
