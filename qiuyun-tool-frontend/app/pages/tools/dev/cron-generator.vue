@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { Clock, Calendar, Settings, ArrowRightLeft, Info, Check, AlertCircle } from 'lucide-vue-next'
-import ToolCard from '@/components/ui/ToolCard.vue'
+import { ToolCard } from '@/components/ui/tool-card'
 
 useHead({
   title: 'Cron 生成与解析 - 秋云工具',
@@ -211,6 +211,7 @@ const parseCron = () => {
   
   for (let i = 0; i < currentConfig.value.fields.length; i++) {
     const field = currentConfig.value.fields[i]
+    if (!field) continue
     const value = parts[i] || '*'
     
     const fieldDesc = describeField(value, field)
@@ -246,9 +247,13 @@ const describeField = (value: string, field: CronField): string => {
     return values.join('、')
   }
   if (value.includes('-')) {
-    const [start, end] = value.split('-')
+    const parts = value.split('-')
+    const start = parts[0] || ''
+    const end = parts[1] || ''
     if (field.names) {
-      return `${field.names[parseInt(start) - field.min]}到${field.names[parseInt(end) - field.min]}`
+      const startName = field.names[parseInt(start) - field.min]
+      const endName = field.names[parseInt(end) - field.min]
+      return `${startName || start}到${endName || end}`
     }
     return `${start}到${end}${field.label}`
   }
@@ -412,7 +417,7 @@ const convertFormat = (targetFormat: CronFormat) => {
           @click="currentMode = mode.key"
           class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all"
           :class="currentMode === mode.key
-            ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white'
+            ? 'bg-linear-to-r from-rose-500 to-pink-600 text-white'
             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
         >
           <component :is="mode.icon" class="w-4 h-4" />
@@ -503,7 +508,7 @@ const convertFormat = (targetFormat: CronFormat) => {
               />
               <button
                 @click="parseCron"
-                class="px-6 py-2.5 bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-xl font-medium hover:from-rose-600 hover:to-pink-700 transition-all"
+                class="px-6 py-2.5 bg-linear-to-r from-rose-500 to-pink-600 text-white rounded-xl font-medium hover:from-rose-600 hover:to-pink-700 transition-all"
               >
                 解析
               </button>
@@ -521,7 +526,7 @@ const convertFormat = (targetFormat: CronFormat) => {
 
           <!-- 解析结果 -->
           <div v-if="parseResult" class="space-y-4">
-            <div class="p-4 bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl">
+            <div class="p-4 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
               <div class="text-sm text-gray-600 mb-1">执行规则</div>
               <div class="text-lg font-semibold text-gray-900">{{ parseResult.description }}</div>
             </div>

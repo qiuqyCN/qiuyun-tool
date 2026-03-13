@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { ArrowRightLeft, Ruler, Weight, Thermometer, Gauge, Clock, Database } from 'lucide-vue-next'
-import ToolInput from '@/components/ui/ToolInput.vue'
-import ToolButton from '@/components/ui/ToolButton.vue'
-import ToolCard from '@/components/ui/ToolCard.vue'
+import { ToolInput } from '@/components/ui/tool-input'
+import { ToolButton } from '@/components/ui/tool-button'
+import { ToolCard } from '@/components/ui/tool-card'
 
 useHead({
   title: '综合单位换算 - 秋云工具',
@@ -191,8 +191,8 @@ const unitKeys = computed(() => Object.keys(currentUnits.value))
 
 watch(currentCategory, (newCategory) => {
   const keys = Object.keys(categories[newCategory].units)
-  fromUnit.value = keys[0]
-  toUnit.value = keys[1] || keys[0]
+  fromUnit.value = keys[0] || ''
+  toUnit.value = keys[1] || keys[0] || ''
 }, { immediate: true })
 
 const convertTemperature = (value: number, from: string, to: string): number => {
@@ -260,6 +260,7 @@ const quickConversions = computed(() => {
         convertedValue = convertTemperature(inputValue.value, fromUnit.value, key)
       } else {
         const from = units[fromUnit.value]
+        if (!from) return
         const baseValue = inputValue.value * from.toBase
         convertedValue = baseValue / unit.toBase
       }

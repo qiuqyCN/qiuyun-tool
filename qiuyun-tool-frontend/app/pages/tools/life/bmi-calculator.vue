@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Scale, Ruler, Info, Heart, AlertCircle } from 'lucide-vue-next'
-import ToolInput from '@/components/ui/ToolInput.vue'
-import ToolCard from '@/components/ui/ToolCard.vue'
+import { ToolInput } from '@/components/ui/tool-input'
+import { ToolCard } from '@/components/ui/tool-card'
 
 useHead({
   title: 'BMI计算器 - 秋云工具',

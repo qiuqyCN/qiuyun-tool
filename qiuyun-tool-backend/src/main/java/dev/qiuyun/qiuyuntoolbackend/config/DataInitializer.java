@@ -598,6 +598,15 @@ public class DataInitializer implements CommandLineRunner {
                         "点击生成", "获取随机数结果"),
                 new HashSet<>(Arrays.asList(hotTag))));
 
+        // ========== 数字转中文大写 (数字工具) ==========
+        defs.add(new ToolDefinition("number-to-chinese", "数字转中文大写", "将阿拉伯数字转换为中文大写金额，支持财务票据、合同等场景",
+                numberCategory, "Banknote", "#D97706", "#FEF3C7", false, true,
+                buildInstructions("选择模式", "金额格式（元角分）或普通数字",
+                        "输入数字", "填写需要转换的阿拉伯数字",
+                        "查看结果", "自动转换为中文大写",
+                        "一键复制", "点击复制按钮复制转换结果"),
+                new HashSet<>(Arrays.asList(hotTag, commonTag))));
+
         // ========== 媒体工具 (青色系) ==========
         defs.add(new ToolDefinition("video-convert", "视频格式转换", "视频格式互相转换，支持MP4/AVI/MOV等",
                 mediaCategory, "Video", "#0891B2", "#CFFAFE", false, true,
@@ -677,6 +686,15 @@ public class DataInitializer implements CommandLineRunner {
                         "解析表达式", "输入 Cron 表达式查看人类可读描述",
                         "执行预览", "查看未来执行时间列表"),
                 new HashSet<>(Arrays.asList(devTag, commonTag))));
+
+        // ========== 设备信息工具 (开发工具) ==========
+        defs.add(new ToolDefinition("device-info", "设备信息检测", "获取浏览器、操作系统、屏幕、硬件、网络等详细的设备信息",
+                devCategory, "Monitor", "#3B82F6", "#EFF6FF", false, true,
+                buildInstructions("自动检测", "页面加载后自动获取所有设备信息",
+                        "查看信息", "浏览操作系统、浏览器、屏幕、硬件、电池、网络等详细信息",
+                        "功能检测", "查看设备支持的 Web 功能（WebGL、存储、定位等）",
+                        "复制报告", "一键复制完整的设备信息报告"),
+                new HashSet<>(Arrays.asList(devTag))));
 
         return defs;
     }

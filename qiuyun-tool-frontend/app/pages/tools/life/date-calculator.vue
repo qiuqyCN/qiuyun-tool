@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Calendar, Clock, CalendarDays, CalendarClock, ChevronDown } from 'lucide-vue-next'
-import ToolInput from '@/components/ui/ToolInput.vue'
-import ToolCard from '@/components/ui/ToolCard.vue'
+import { ToolInput } from '@/components/ui/tool-input'
+import { ToolCard } from '@/components/ui/tool-card'
 
 useHead({
   title: '日期计算器 - 秋云工具',
@@ -367,7 +367,7 @@ const modes = [
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">工作日数量</label>
-              <ToolInput v-model="workDays" type="number" placeholder="请输入工作日数" min="1" />
+              <ToolInput v-model="workDays" type="number" placeholder="请输入工作日数" :min="1" />
             </div>
             <div class="flex items-center gap-2">
               <input

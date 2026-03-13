@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
 import { Timer, Play, Pause, RotateCcw, Bell, Plus, Trash2, Clock } from 'lucide-vue-next'
-import ToolInput from '@/components/ui/ToolInput.vue'
-import ToolCard from '@/components/ui/ToolCard.vue'
+import { ToolInput } from '@/components/ui/tool-input'
+import { ToolCard } from '@/components/ui/tool-card'
 
 useHead({
   title: '倒计时工具 - 秋云工具',
