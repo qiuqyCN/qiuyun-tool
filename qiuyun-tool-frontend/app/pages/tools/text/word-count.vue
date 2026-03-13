@@ -355,9 +355,9 @@ const statCards = computed(() => {
         </div>
 
         <!-- 说明 -->
-        <div class="p-3 bg-blue-50/50 rounded-lg border border-blue-100">
-          <div class="text-xs text-blue-600 font-medium mb-2">字数统计说明:</div>
-          <ul class="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+        <div class="p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+          <div class="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2">字数统计说明:</div>
+          <ul class="text-xs text-gray-600 dark:text-gray-300 space-y-1 list-disc list-inside">
             <li>总字符数包含所有字符（含空格、标点等）</li>
             <li>中文字符统计 CJK 统一表意文字范围</li>
             <li>英文单词按连续字母识别</li>

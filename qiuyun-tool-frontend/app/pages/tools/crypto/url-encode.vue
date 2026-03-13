@@ -262,13 +262,13 @@ watch([inputText, charset, encodeSpaceAsPlus], () => {
         </div>
 
         <!-- 说明 -->
-        <div class="p-3 bg-blue-50/50 rounded-lg border border-blue-100">
-          <div class="text-xs text-blue-600 font-medium mb-2">URL 编解码说明:</div>
-          <ul class="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-            <li>URL 编码将特殊字符转换为 <code class="bg-muted px-1 rounded">%XX</code> 格式，使其可以在 URL 中安全传输</li>
-            <li>中文字符会被编码为 <code class="bg-muted px-1 rounded">%E4%B8%AD%E6%96%87</code> 这样的格式</li>
-            <li>空格可以编码为 <code class="bg-muted px-1 rounded">+</code> (application/x-www-form-urlencoded) 或 <code class="bg-muted px-1 rounded">%20</code></li>
-            <li>常用编码字符: <code class="bg-muted px-1 rounded">空格 %20</code> <code class="bg-muted px-1 rounded">& %26</code> <code class="bg-muted px-1 rounded">= %3D</code> <code class="bg-muted px-1 rounded">? %3F</code> <code class="bg-muted px-1 rounded"># %23</code></li>
+        <div class="p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+          <div class="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2">URL 编解码说明:</div>
+          <ul class="text-xs text-gray-600 dark:text-gray-300 space-y-1 list-disc list-inside">
+            <li>URL 编码将特殊字符转换为 <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded">%XX</code> 格式，使其可以在 URL 中安全传输</li>
+            <li>中文字符会被编码为 <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded">%E4%B8%AD%E6%96%87</code> 这样的格式</li>
+            <li>空格可以编码为 <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded">+</code> (application/x-www-form-urlencoded) 或 <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded">%20</code></li>
+            <li>常用编码字符: <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded">空格 %20</code> <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded">& %26</code> <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded">= %3D</code> <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded">? %3F</code> <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded"># %23</code></li>
           </ul>
         </div>
       </div>

@@ -300,13 +300,13 @@ watch([inputValue, fromBase], () => {
         </div>
 
         <!-- 说明 -->
-        <div class="p-3 bg-blue-50/50 rounded-lg border border-blue-100">
-          <div class="text-xs text-blue-600 font-medium mb-2">进制说明:</div>
-          <ul class="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-            <li><strong>二进制</strong>：基数为 2，使用数字 0-1，计算机底层使用的进制</li>
-            <li><strong>八进制</strong>：基数为 8，使用数字 0-7，常用于 Unix 文件权限</li>
-            <li><strong>十进制</strong>：基数为 10，使用数字 0-9，日常生活中使用的进制</li>
-            <li><strong>十六进制</strong>：基数为 16，使用数字 0-9 和字母 A-F，常用于内存地址、颜色值</li>
+        <div class="p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+          <div class="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2">进制说明:</div>
+          <ul class="text-xs text-gray-600 dark:text-gray-300 space-y-1 list-disc list-inside">
+            <li><strong class="text-gray-800 dark:text-gray-200">二进制</strong>：基数为 2，使用数字 0-1，计算机底层使用的进制</li>
+            <li><strong class="text-gray-800 dark:text-gray-200">八进制</strong>：基数为 8，使用数字 0-7，常用于 Unix 文件权限</li>
+            <li><strong class="text-gray-800 dark:text-gray-200">十进制</strong>：基数为 10，使用数字 0-9，日常生活中使用的进制</li>
+            <li><strong class="text-gray-800 dark:text-gray-200">十六进制</strong>：基数为 16，使用数字 0-9 和字母 A-F，常用于内存地址、颜色值</li>
             <li>支持 2-36 进制的任意转换，使用数字 0-9 和字母 A-Z 表示数值</li>
           </ul>
         </div>

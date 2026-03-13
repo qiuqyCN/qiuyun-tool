@@ -350,12 +350,12 @@ const getDiffTypeColor = (type: string): string => {
         </div>
 
         <!-- 说明 -->
-        <div class="p-3 bg-blue-50/50 rounded-lg border border-blue-100">
-          <div class="text-xs text-blue-600 font-medium mb-2">文本对比说明:</div>
-          <ul class="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-            <li><span class="text-green-600 font-medium">绿色</span> 表示新增的内容</li>
-            <li><span class="text-red-600 font-medium">红色</span> 表示删除的内容</li>
-            <li><span class="text-yellow-600 font-medium">黄色</span> 表示修改的内容</li>
+        <div class="p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+          <div class="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2">文本对比说明:</div>
+          <ul class="text-xs text-gray-600 dark:text-gray-300 space-y-1 list-disc list-inside">
+            <li><span class="text-green-600 dark:text-green-400 font-medium">绿色</span> 表示新增的内容</li>
+            <li><span class="text-red-600 dark:text-red-400 font-medium">红色</span> 表示删除的内容</li>
+            <li><span class="text-yellow-600 dark:text-yellow-400 font-medium">黄色</span> 表示修改的内容</li>
             <li>行对比模式适合查看代码或文档的差异</li>
             <li>字符对比模式适合查看短文本的详细差异</li>
           </ul>

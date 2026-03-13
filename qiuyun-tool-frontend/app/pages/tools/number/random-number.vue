@@ -355,16 +355,16 @@ const switchType = (type: GeneratorType) => {
         </div>
 
         <!-- 说明 -->
-        <div class="p-3 bg-blue-50/50 rounded-lg border border-blue-100">
-          <div class="text-xs text-blue-600 font-medium mb-2">功能说明:</div>
-          <ul class="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-            <li><strong>整数</strong>：生成指定范围内的随机整数</li>
-            <li><strong>浮点数</strong>：生成指定范围内的随机小数</li>
-            <li><strong>密码</strong>：生成包含字母、数字、符号的随机密码</li>
-            <li><strong>字符串</strong>：按指定字符集生成随机字符串</li>
-            <li><strong>UUID</strong>：生成标准 UUID v4 格式</li>
-            <li><strong>布尔值</strong>：随机生成 true 或 false</li>
-            <li><strong>随机选择</strong>：从选项列表中随机选择一个</li>
+        <div class="p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+          <div class="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2">功能说明:</div>
+          <ul class="text-xs text-gray-600 dark:text-gray-300 space-y-1 list-disc list-inside">
+            <li><strong class="text-gray-800 dark:text-gray-200">整数</strong>：生成指定范围内的随机整数</li>
+            <li><strong class="text-gray-800 dark:text-gray-200">浮点数</strong>：生成指定范围内的随机小数</li>
+            <li><strong class="text-gray-800 dark:text-gray-200">密码</strong>：生成包含字母、数字、符号的随机密码</li>
+            <li><strong class="text-gray-800 dark:text-gray-200">字符串</strong>：按指定字符集生成随机字符串</li>
+            <li><strong class="text-gray-800 dark:text-gray-200">UUID</strong>：生成标准 UUID v4 格式</li>
+            <li><strong class="text-gray-800 dark:text-gray-200">布尔值</strong>：随机生成 true 或 false</li>
+            <li><strong class="text-gray-800 dark:text-gray-200">随机选择</strong>：从选项列表中随机选择一个</li>
           </ul>
         </div>
       </div>

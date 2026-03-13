@@ -240,9 +240,9 @@ watch([inputText, bitLength, uppercase, charset], () => {
         </div>
 
         <!-- 说明 -->
-        <div class="p-3 bg-blue-50/50 rounded-lg border border-blue-100">
-          <div class="text-xs text-blue-600 font-medium mb-2">MD5 说明:</div>
-          <ul class="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+        <div class="p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+          <div class="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2">MD5 说明:</div>
+          <ul class="text-xs text-gray-600 dark:text-gray-300 space-y-1 list-disc list-inside">
             <li>MD5 是一种广泛使用的哈希算法，产生 128 位（16字节）的哈希值</li>
             <li>32位输出：完整的 32 个十六进制字符</li>
             <li>16位输出：取中间 16 个字符（第9-24位）</li>
