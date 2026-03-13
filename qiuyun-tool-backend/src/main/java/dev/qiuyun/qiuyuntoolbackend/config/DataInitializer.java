@@ -124,7 +124,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     /**
-     * 初始化分类数据（支持增量更新）
+     * 初始化分类数据（支持增量更新，仅在实际数据变化时更新）
      */
     private Map<String, Category> initCategories() {
         log.info("同步分类数据...");
@@ -147,6 +147,9 @@ public class DataInitializer implements CommandLineRunner {
                 .collect(Collectors.toMap(Category::getCode, c -> c));
 
         List<Category> toSave = new ArrayList<>();
+        int newCount = 0;
+        int updateCount = 0;
+        int unchangedCount = 0;
 
         for (CategoryDefinition def : categoryDefs) {
             Category category = existingMap.get(def.code);
@@ -161,23 +164,49 @@ public class DataInitializer implements CommandLineRunner {
                         .isActive(true)
                         .build();
                 log.info("新增分类: {}", def.name);
-            } else {
-                // 更新分类（保留统计数据，更新配置）
+                newCount++;
+                toSave.add(category);
+            } else if (isCategoryChanged(category, def)) {
+                // 分类配置发生变化，才进行更新
                 category.setName(def.name);
                 category.setIcon(def.icon);
                 category.setDescription(def.description);
                 category.setSortOrder(def.sortOrder);
-                log.debug("更新分类: {}", def.name);
+                log.info("更新分类: {}", def.name);
+                updateCount++;
+                toSave.add(category);
+            } else {
+                // 分类未发生变化
+                unchangedCount++;
+                log.debug("分类未变化，跳过: {}", def.name);
             }
-            toSave.add(category);
         }
 
-        List<Category> saved = categoryRepository.saveAll(toSave);
+        // 只在有需要保存的数据时才执行保存操作
+        List<Category> saved;
+        if (!toSave.isEmpty()) {
+            saved = categoryRepository.saveAll(toSave);
+        } else {
+            saved = existingCategories;
+        }
+
+        log.info("分类同步完成: 新增 {} 个, 更新 {} 个, 未变化 {} 个", newCount, updateCount, unchangedCount);
         return saved.stream().collect(Collectors.toMap(Category::getCode, c -> c));
     }
 
     /**
-     * 初始化标签数据（支持增量更新）
+     * 比较分类定义与现有分类是否发生变化
+     */
+    private boolean isCategoryChanged(Category existingCategory, CategoryDefinition def) {
+        if (!Objects.equals(existingCategory.getName(), def.name)) return true;
+        if (!Objects.equals(existingCategory.getIcon(), def.icon)) return true;
+        if (!Objects.equals(existingCategory.getDescription(), def.description)) return true;
+        if (existingCategory.getSortOrder() != def.sortOrder) return true;
+        return false;
+    }
+
+    /**
+     * 初始化标签数据（支持增量更新，仅在实际数据变化时更新）
      */
     private Map<String, Tag> initTags() {
         log.info("同步标签数据...");
@@ -200,6 +229,9 @@ public class DataInitializer implements CommandLineRunner {
                 .collect(Collectors.toMap(Tag::getName, t -> t));
 
         List<Tag> toSave = new ArrayList<>();
+        int newCount = 0;
+        int updateCount = 0;
+        int unchangedCount = 0;
 
         for (TagDefinition def : tagDefs) {
             Tag tag = existingMap.get(def.name);
@@ -211,21 +243,45 @@ public class DataInitializer implements CommandLineRunner {
                         .isHot(def.isHot)
                         .build();
                 log.info("新增标签: {}", def.name);
-            } else {
-                // 更新标签
+                newCount++;
+                toSave.add(tag);
+            } else if (isTagChanged(tag, def)) {
+                // 标签配置发生变化，才进行更新
                 tag.setDescription(def.description);
                 tag.setIsHot(def.isHot);
-                log.debug("更新标签: {}", def.name);
+                log.info("更新标签: {}", def.name);
+                updateCount++;
+                toSave.add(tag);
+            } else {
+                // 标签未发生变化
+                unchangedCount++;
+                log.debug("标签未变化，跳过: {}", def.name);
             }
-            toSave.add(tag);
         }
 
-        List<Tag> saved = tagRepository.saveAll(toSave);
+        // 只在有需要保存的数据时才执行保存操作
+        List<Tag> saved;
+        if (!toSave.isEmpty()) {
+            saved = tagRepository.saveAll(toSave);
+        } else {
+            saved = existingTags;
+        }
+
+        log.info("标签同步完成: 新增 {} 个, 更新 {} 个, 未变化 {} 个", newCount, updateCount, unchangedCount);
         return saved.stream().collect(Collectors.toMap(Tag::getName, t -> t));
     }
 
     /**
-     * 初始化/同步工具数据（支持增量更新）
+     * 比较标签定义与现有标签是否发生变化
+     */
+    private boolean isTagChanged(Tag existingTag, TagDefinition def) {
+        if (!Objects.equals(existingTag.getDescription(), def.description)) return true;
+        if (existingTag.getIsHot() != def.isHot) return true;
+        return false;
+    }
+
+    /**
+     * 初始化/同步工具数据（支持增量更新，仅在实际数据变化时更新）
      */
     private void initTools(Map<String, Category> categories, Map<String, Tag> tags) {
         log.info("同步工具数据...");
@@ -241,6 +297,7 @@ public class DataInitializer implements CommandLineRunner {
         List<Tool> toSave = new ArrayList<>();
         int newCount = 0;
         int updateCount = 0;
+        int unchangedCount = 0;
 
         for (ToolDefinition def : toolDefs) {
             Tool tool = existingMap.get(def.code);
@@ -267,8 +324,9 @@ public class DataInitializer implements CommandLineRunner {
                         .build();
                 log.info("新增工具: {}", def.name);
                 newCount++;
-            } else {
-                // 更新工具（保留统计数据，更新配置）
+                toSave.add(tool);
+            } else if (isToolChanged(tool, def)) {
+                // 工具配置发生变化，才进行更新
                 tool.setName(def.name);
                 tool.setDescription(def.description);
                 tool.setCategory(def.category);
@@ -279,14 +337,55 @@ public class DataInitializer implements CommandLineRunner {
                 tool.setIsActive(def.isActive);
                 tool.setInstructions(def.instructions);
                 tool.setTags(def.tags);
-                log.debug("更新工具: {}", def.name);
+                log.info("更新工具: {}", def.name);
                 updateCount++;
+                toSave.add(tool);
+            } else {
+                // 工具未发生变化
+                unchangedCount++;
+                log.debug("工具未变化，跳过: {}", def.name);
             }
-            toSave.add(tool);
         }
 
-        toolRepository.saveAll(toSave);
-        log.info("工具同步完成: 新增 {} 个, 更新 {} 个", newCount, updateCount);
+        // 只在有需要保存的数据时才执行保存操作
+        if (!toSave.isEmpty()) {
+            toolRepository.saveAll(toSave);
+        }
+
+        log.info("工具同步完成: 新增 {} 个, 更新 {} 个, 未变化 {} 个", newCount, updateCount, unchangedCount);
+    }
+
+    /**
+     * 比较工具定义与现有工具是否发生变化
+     */
+    private boolean isToolChanged(Tool existingTool, ToolDefinition def) {
+        // 比较基本字段
+        if (!Objects.equals(existingTool.getName(), def.name)) return true;
+        if (!Objects.equals(existingTool.getDescription(), def.description)) return true;
+        if (!Objects.equals(existingTool.getIcon(), def.icon)) return true;
+        if (!Objects.equals(existingTool.getIconColor(), def.iconColor)) return true;
+        if (!Objects.equals(existingTool.getIconBgColor(), def.iconBgColor)) return true;
+        if (existingTool.getIsVip() != def.isVip) return true;
+        if (existingTool.getIsActive() != def.isActive) return true;
+        if (!Objects.equals(existingTool.getInstructions(), def.instructions)) return true;
+
+        // 比较分类
+        if (existingTool.getCategory() == null || def.category == null) {
+            if (existingTool.getCategory() != def.category) return true;
+        } else if (!Objects.equals(existingTool.getCategory().getId(), def.category.getId())) {
+            return true;
+        }
+
+        // 比较标签
+        Set<String> existingTagNames = existingTool.getTags() != null
+                ? existingTool.getTags().stream().map(Tag::getName).collect(Collectors.toSet())
+                : new HashSet<>();
+        Set<String> defTagNames = def.tags != null
+                ? def.tags.stream().map(Tag::getName).collect(Collectors.toSet())
+                : new HashSet<>();
+        if (!existingTagNames.equals(defTagNames)) return true;
+
+        return false;
     }
 
     /**
@@ -515,18 +614,59 @@ public class DataInitializer implements CommandLineRunner {
                 new HashSet<>(Arrays.asList(mediaTag))));
 
         // ========== 生活工具 (粉色/玫瑰系) ==========
-        defs.add(new ToolDefinition("calendar", "日历查询", "万年历、节假日查询、农历转换",
-                lifeCategory, "Calendar", "#E11D48", "#FFE4E6", false, true,
-                buildInstructions("选择日期", "点击日历选择要查询的日期",
-                        "查看信息", "显示公历、农历、节气、节假日信息",
-                        "节假日", "自动标注法定节假日和调休安排"),
+        defs.add(new ToolDefinition("mortgage-calculator", "房贷计算器", "计算商业贷款、公积金贷款、组合贷款及提前还款的月供和利息",
+                lifeCategory, "Home", "#E11D48", "#FFE4E6", false, true,
+                buildInstructions("选择计算模式", "普通房贷计算或提前还款计算",
+                        "输入贷款信息", "填写贷款金额、年限、利率",
+                        "设置提前还款", "可选，输入提前还款金额和方式",
+                        "查看结果", "获取月供、总利息、还款计划表、节省利息"),
+                new HashSet<>(Arrays.asList(hotTag, lifeTag))));
+
+        defs.add(new ToolDefinition("salary-calculator", "薪资计算器", "计算税后工资、个人所得税、年终奖个税",
+                lifeCategory, "Banknote", "#BE123C", "#FECDD3", false, true,
+                buildInstructions("选择计算类型", "税后工资、个人所得税、年终奖",
+                        "输入收入信息", "填写税前工资、城市、五险一金",
+                        "填写扣除项", "专项附加扣除、其他扣除",
+                        "查看明细", "获取个税、实发工资、税率等详细信息"),
+                new HashSet<>(Arrays.asList(hotTag, lifeTag))));
+
+        defs.add(new ToolDefinition("unit-converter", "综合单位换算", "一站式长度、重量、面积、体积、温度等单位换算",
+                lifeCategory, "ArrowRightLeft", "#F43F5E", "#FFF1F2", false, true,
+                buildInstructions("选择换算类型", "长度、重量、面积、体积、温度等",
+                        "输入数值", "填写要换算的数值",
+                        "选择单位", "选择原始单位和目标单位",
+                        "查看结果", "自动显示换算结果"),
+                new HashSet<>(Arrays.asList(commonTag, lifeTag))));
+
+        defs.add(new ToolDefinition("date-calculator", "日期计算器", "计算日期间隔、日期加减、工作日计算",
+                lifeCategory, "CalendarDays", "#BE123C", "#FECDD3", false, true,
+                buildInstructions("选择计算方式", "日期间隔、日期加减、工作日计算",
+                        "输入日期", "选择或输入相关日期",
+                        "设置参数", "是否包含节假日、周末等",
+                        "查看结果", "获取计算结果和详细天数"),
                 new HashSet<>(Arrays.asList(lifeTag))));
 
-        defs.add(new ToolDefinition("daily-quote", "每日一言", "每日励志语录、名言警句",
-                lifeCategory, "Quote", "#F43F5E", "#FFF1F2", false, true,
-                buildInstructions("随机语录", "点击按钮获取随机语录",
-                        "收藏语录", "点击收藏按钮保存喜欢的语录",
-                        "分享语录", "一键分享语录到社交媒体"),
+        defs.add(new ToolDefinition("bmi-calculator", "BMI计算器", "计算身体质量指数并提供健康建议",
+                lifeCategory, "Scale", "#E11D48", "#FFE4E6", false, true,
+                buildInstructions("输入身高", "填写身高（厘米）",
+                        "输入体重", "填写体重（公斤）",
+                        "计算BMI", "自动计算BMI指数",
+                        "查看建议", "获取体重状态和健康建议"),
+                new HashSet<>(Arrays.asList(lifeTag))));
+
+        defs.add(new ToolDefinition("age-calculator", "年龄计算器", "精确计算年龄，精确到天数",
+                lifeCategory, "Cake", "#F43F5E", "#FFF1F2", false, true,
+                buildInstructions("输入出生日期", "选择出生年月日",
+                        "选择目标日期", "默认今天，可自定义",
+                        "查看结果", "获取周岁、虚岁、存活天数等"),
+                new HashSet<>(Arrays.asList(lifeTag))));
+
+        defs.add(new ToolDefinition("countdown-timer", "倒计时工具", "设置重要日期倒计时，支持正计时和倒计时",
+                lifeCategory, "Timer", "#BE123C", "#FECDD3", false, true,
+                buildInstructions("设置目标日期", "选择重要日期如考试、生日、纪念日",
+                        "添加标题", "为倒计时添加描述标题",
+                        "保存倒计时", "可保存多个倒计时",
+                        "查看剩余", "实时显示剩余天数、小时、分钟"),
                 new HashSet<>(Arrays.asList(lifeTag))));
 
         return defs;

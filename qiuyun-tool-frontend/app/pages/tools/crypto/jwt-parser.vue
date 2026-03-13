@@ -171,8 +171,7 @@ const loadExample = () => {
               <textarea
                 v-model="token"
                 placeholder="请输入 JWT Token，支持 Bearer 格式&#10;例如：eyJhbGciOiJIUzI1NiIs..."
-                class="w-full min-h-[120px] px-3 py-2 border rounded-lg bg-background font-mono text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary"
-                rows="4"
+                class="w-full h-40 px-3 py-2 border rounded-lg bg-background font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                 spellcheck="false"
               />
             </div>
@@ -328,10 +327,10 @@ const loadExample = () => {
                     <div
                       v-for="(value, key) in result.payload.customClaims"
                       :key="key"
-                      class="flex gap-4"
+                      class="flex justify-between"
                     >
-                      <span class="text-muted-foreground shrink-0">{{ key }}</span>
-                      <span class="font-mono break-all text-right flex-1">{{ typeof value === 'object' ? JSON.stringify(value) : value }}</span>
+                      <span class="text-muted-foreground">{{ key }}</span>
+                      <span class="font-mono">{{ typeof value === 'object' ? JSON.stringify(value) : value }}</span>
                     </div>
                   </div>
                 </div>
