@@ -1,4 +1,4 @@
-package dev.qiuyun.qiuyuntoolbackend.config;
+ package dev.qiuyun.qiuyuntoolbackend.config;
 
 import dev.qiuyun.qiuyuntoolbackend.entity.Category;
 import dev.qiuyun.qiuyuntoolbackend.entity.Tag;
@@ -447,6 +447,13 @@ public class DataInitializer implements CommandLineRunner {
                         "Base64解码", "将Base64编码还原为原始文本",
                         "URL安全", "支持URL安全的Base64编码"),
                 new HashSet<>(Arrays.asList(commonTag))));
+
+        defs.add(new ToolDefinition("jwt-parser", "JWT解析器", "解析 JWT Token，查看 Header、Payload、过期时间等信息",
+                cryptoCategory, "Key", "#B91C1C", "#FECACA", false, true,
+                buildInstructions("输入 Token", "粘贴 JWT Token，支持 Bearer 格式",
+                        "解析结构", "自动解析 Header、Payload、Signature 三部分",
+                        "查看过期", "自动检测并显示 Token 过期时间"),
+                new HashSet<>(Arrays.asList(devTag))));
 
         // ========== 文本工具 (紫色系) ==========
         defs.add(new ToolDefinition("text-compare", "文本对比", "文本差异对比工具",
