@@ -371,7 +371,7 @@ const formatQuickValue = (value: number): string => {
         </div>
 
         <!-- 结果展示 -->
-        <div class="mt-6 p-4 bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl">
+        <div class="mt-6 p-4 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
           <div class="text-center">
             <div class="text-sm text-gray-500 mb-1">换算结果</div>
             <div class="text-3xl font-bold text-gray-900">

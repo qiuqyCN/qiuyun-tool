@@ -152,7 +152,7 @@ const getBmiPosition = (bmi: number): number => {
           </div>
 
           <!-- 结果展示 -->
-          <div v-if="bmiResult" class="p-6 bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl">
+          <div v-if="bmiResult" class="p-6 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
             <div class="text-center mb-4">
               <div class="text-sm text-gray-500 mb-1">您的 BMI 指数</div>
               <div class="text-5xl font-bold" :style="{ color: bmiResult.color }">

@@ -280,7 +280,7 @@ onUnmounted(() => {
           <button
             @click="addCountdown"
             :disabled="hours === 0 && minutes === 0 && seconds === 0"
-            class="w-full py-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-xl font-medium hover:from-rose-600 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+            class="w-full py-3 bg-linear-to-r from-rose-500 to-pink-600 text-white rounded-xl font-medium hover:from-rose-600 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
           >
             <Plus class="w-5 h-5" />
             开始倒计时
@@ -342,7 +342,7 @@ onUnmounted(() => {
               <!-- 进度条 -->
               <div v-if="!countdown.isExpired" class="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
-                  class="h-full bg-gradient-to-r from-rose-400 to-pink-500 rounded-full transition-all"
+                  class="h-full bg-linear-to-r from-rose-400 to-pink-500 rounded-full transition-all"
                   :style="{ width: getRemainingTime(countdown).percentage + '%' }"
                 ></div>
               </div>
@@ -371,7 +371,7 @@ onUnmounted(() => {
             <button
               v-if="!isStopwatchRunning"
               @click="startStopwatch"
-              class="px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-xl font-medium hover:from-rose-600 hover:to-pink-700 transition-all flex items-center gap-2"
+              class="px-6 py-3 bg-linear-to-r from-rose-500 to-pink-600 text-white rounded-xl font-medium hover:from-rose-600 hover:to-pink-700 transition-all flex items-center gap-2"
             >
               <Play class="w-5 h-5" />
               开始
@@ -379,7 +379,7 @@ onUnmounted(() => {
             <button
               v-else
               @click="pauseStopwatch"
-              class="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl font-medium hover:from-amber-600 hover:to-orange-700 transition-all flex items-center gap-2"
+              class="px-6 py-3 bg-linear-to-r from-amber-500 to-orange-600 text-white rounded-xl font-medium hover:from-amber-600 hover:to-orange-700 transition-all flex items-center gap-2"
             >
               <Pause class="w-5 h-5" />
               暂停

@@ -269,7 +269,7 @@ const modes = [
             </div>
           </div>
 
-          <div v-if="dateDiffResult" class="p-4 bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl">
+          <div v-if="dateDiffResult" class="p-4 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
             <div class="text-center mb-4">
               <div class="text-sm text-gray-500">相差天数</div>
               <div class="text-4xl font-bold text-rose-600">
@@ -334,7 +334,7 @@ const modes = [
             <p class="text-xs text-gray-500">正值表示未来日期，负值表示过去日期</p>
           </div>
 
-          <div v-if="addDateResult" class="p-4 bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl">
+          <div v-if="addDateResult" class="p-4 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
             <div class="text-center">
               <div class="text-sm text-gray-500 mb-2">推算结果</div>
               <div class="text-2xl font-bold text-gray-900">{{ addDateResult.formatted }}</div>
@@ -380,7 +380,7 @@ const modes = [
             </div>
           </div>
 
-          <div v-if="workdayResult" class="p-4 bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl">
+          <div v-if="workdayResult" class="p-4 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
             <div class="text-center mb-4">
               <div class="text-sm text-gray-500">结束日期</div>
               <div class="text-2xl font-bold text-gray-900">{{ workdayResult.formatted }}</div>
@@ -428,7 +428,7 @@ const modes = [
             </div>
           </div>
 
-          <div v-if="ageResult" class="p-4 bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl">
+          <div v-if="ageResult" class="p-4 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
             <div class="text-center mb-4">
               <div class="text-sm text-gray-500">年龄</div>
               <div class="text-4xl font-bold text-rose-600">

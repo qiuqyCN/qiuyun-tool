@@ -457,7 +457,7 @@ const currentYearLeapMonth = computed(() => {
         </div>
 
         <!-- 农历显示 -->
-        <div v-if="ageResult?.lunarDisplay" class="mt-4 p-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl">
+        <div v-if="ageResult?.lunarDisplay" class="mt-4 p-4 bg-linear-to-r from-amber-50 to-yellow-50 rounded-xl">
           <div class="flex items-center gap-2 text-amber-700">
             <Moon class="w-5 h-5" />
             <span class="font-medium">农历信息</span>
@@ -506,7 +506,7 @@ const currentYearLeapMonth = computed(() => {
         </div>
 
         <!-- 生命进度条 -->
-        <div class="mt-6 p-4 bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl">
+        <div class="mt-6 p-4 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
           <div class="flex items-center justify-between mb-2">
             <span class="text-sm font-medium text-gray-700 flex items-center gap-1">
               <Clock class="w-4 h-4" />
@@ -516,7 +516,7 @@ const currentYearLeapMonth = computed(() => {
           </div>
           <div class="h-3 bg-white rounded-full overflow-hidden">
             <div
-              class="h-full bg-gradient-to-r from-rose-400 to-pink-500 rounded-full transition-all duration-500"
+              class="h-full bg-linear-to-r from-rose-400 to-pink-500 rounded-full transition-all duration-500"
               :style="{ width: ageResult.lifeProgress + '%' }"
             ></div>
           </div>
@@ -550,7 +550,7 @@ const currentYearLeapMonth = computed(() => {
         </h3>
         <div class="grid md:grid-cols-2 gap-4">
           <!-- 公历生日 -->
-          <div class="p-6 bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl">
+          <div class="p-6 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
             <div class="flex items-center gap-2 mb-3">
               <Sun class="w-5 h-5 text-rose-500" />
               <span class="font-medium text-gray-700">公历生日</span>
@@ -559,7 +559,7 @@ const currentYearLeapMonth = computed(() => {
             <div class="text-rose-600 mt-1">距离还有 {{ ageResult.daysToNextSolarBirthday }} 天</div>
           </div>
           <!-- 农历生日 -->
-          <div class="p-6 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl">
+          <div class="p-6 bg-linear-to-r from-amber-50 to-yellow-50 rounded-xl">
             <div class="flex items-center gap-2 mb-3">
               <Moon class="w-5 h-5 text-amber-600" />
               <span class="font-medium text-gray-700">农历生日</span>

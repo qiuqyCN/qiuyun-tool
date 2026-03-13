@@ -669,6 +669,15 @@ public class DataInitializer implements CommandLineRunner {
                         "查看剩余", "实时显示剩余天数、小时、分钟"),
                 new HashSet<>(Arrays.asList(lifeTag))));
 
+        // ========== Cron 工具 (开发工具) ==========
+        defs.add(new ToolDefinition("cron-generator", "Cron 生成与解析", "支持 Linux、Quartz、Spring、AWS 等多种格式的 Cron 表达式生成、解析和转换",
+                devCategory, "Clock", "#2563EB", "#DBEAFE", false, true,
+                buildInstructions("选择格式", "选择 Linux/Quartz/Spring/AWS 等 Cron 格式",
+                        "生成表达式", "使用生成器可视化配置时间规则",
+                        "解析表达式", "输入 Cron 表达式查看人类可读描述",
+                        "执行预览", "查看未来执行时间列表"),
+                new HashSet<>(Arrays.asList(devTag, commonTag))));
+
         return defs;
     }
 
