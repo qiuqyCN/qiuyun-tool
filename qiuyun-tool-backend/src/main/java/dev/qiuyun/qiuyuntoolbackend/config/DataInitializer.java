@@ -722,6 +722,15 @@ public class DataInitializer {
                         "高级功能", "可选提取首字母、检测多音字、查看逐字详情"),
                 new HashSet<>(Arrays.asList(hotTag, commonTag))));
 
+        // 重复行删除
+        defs.add(new ToolDefinition("remove-duplicate-lines", "重复行删除", "删除文本中的重复行，支持多种选项",
+                textCategory, "Filter", "#7C3AED", "#E9D5FF", false, true,
+                buildInstructions("输入文本", "在左侧输入框中输入或粘贴要处理的文本内容",
+                        "选择选项", "可选择忽略大小写、忽略首尾空白、保留首次出现、结果排序等",
+                        "删除重复", "点击删除重复行按钮执行去重操作",
+                        "查看统计", "显示原行数、结果行数、删除重复数等统计信息"),
+                new HashSet<>(Arrays.asList(commonTag))));
+
         // ========== 数字工具 (琥珀/黄色系) ==========
         // 科学计算器
         defs.add(new ToolDefinition("scientific-calculator", "科学计算器", "支持三角函数、对数、指数等科学运算的计算器",
