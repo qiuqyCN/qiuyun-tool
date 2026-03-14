@@ -11,7 +11,9 @@ import dev.qiuyun.qiuyuntoolbackend.repository.ToolRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,7 +95,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DataInitializer implements CommandLineRunner {
+public class DataInitializer {
 
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
@@ -101,26 +103,31 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Override
+    @Async
+    @EventListener(ApplicationReadyEvent.class)
     @Transactional
-    public void run(String... args) {
-        log.info("开始数据初始化/同步...");
+    public void init() {
+        log.info("开始异步数据初始化/同步...");
 
-        // 1. 初始化分类（增量更新）
-        Map<String, Category> categories = initCategories();
+        try {
+            // 1. 初始化分类（增量更新）
+            Map<String, Category> categories = initCategories();
 
-        // 2. 初始化标签（增量更新）
-        Map<String, Tag> tags = initTags();
+            // 2. 初始化标签（增量更新）
+            Map<String, Tag> tags = initTags();
 
-        // 3. 初始化/同步工具（增量更新）
-        initTools(categories, tags);
+            // 3. 初始化/同步工具（增量更新）
+            initTools(categories, tags);
 
-        // 4. 初始化用户数据（仅在用户表为空时执行）
-        if (userRepository.count() == 0) {
-            initUsers();
+            // 4. 初始化用户数据（仅在用户表为空时执行）
+            if (userRepository.count() == 0) {
+                initUsers();
+            }
+
+            log.info("异步数据初始化/同步完成！");
+        } catch (Exception e) {
+            log.error("数据初始化失败: {}", e.getMessage(), e);
         }
-
-        log.info("数据初始化/同步完成！");
     }
 
     /**
