@@ -46,7 +46,7 @@ const messageIdCounter = ref(0)
 const autoReconnect = ref(false)
 const heartbeatEnabled = ref(false)
 const heartbeatInterval = ref(30)
-const heartbeatTimer = ref<NodeJS.Timeout | null>(null)
+const heartbeatTimer = ref<ReturnType<typeof setInterval> | null>(null)
 
 // 连接统计
 const sentCount = ref(0)
