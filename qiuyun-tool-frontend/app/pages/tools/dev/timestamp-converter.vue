@@ -370,7 +370,7 @@ watch([inputValue, unit, dateFormat], () => {
                 <div
                   v-for="(dateTime, tz) in result.dateTimes"
                   :key="tz"
-                  class="p-2 bg-white rounded border"
+                  class="p-2 bg-background rounded border"
                 >
                   <div class="text-xs text-muted-foreground mb-1">{{ timezoneLabels[tz] || tz }}</div>
                   <div class="font-mono text-sm">{{ dateTime }}</div>
@@ -391,11 +391,11 @@ watch([inputValue, unit, dateFormat], () => {
             <!-- 日期转时间戳结果 -->
             <template v-else>
               <div class="flex items-center gap-4">
-                <div class="p-3 bg-white rounded border flex-1">
+                <div class="p-3 bg-background rounded border flex-1">
                   <div class="text-xs text-muted-foreground mb-1">秒级时间戳</div>
                   <div class="font-mono text-lg">{{ result.timestampSec }}</div>
                 </div>
-                <div class="p-3 bg-white rounded border flex-1">
+                <div class="p-3 bg-background rounded border flex-1">
                   <div class="text-xs text-muted-foreground mb-1">毫秒级时间戳</div>
                   <div class="font-mono text-lg">{{ result.timestampMs }}</div>
                 </div>
@@ -419,16 +419,16 @@ watch([inputValue, unit, dateFormat], () => {
         </div>
 
         <!-- 当前时间参考 -->
-        <div class="p-3 bg-blue-50/50 rounded-lg border border-blue-100">
-          <div class="text-xs text-blue-600 font-medium mb-2">当前时间参考:</div>
+        <div class="p-3 bg-primary/5 rounded-lg border border-primary/10">
+          <div class="text-xs text-primary font-medium mb-2">当前时间参考:</div>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
             <div class="flex items-center gap-1">
               <span class="text-muted-foreground">秒:</span>
-              <code class="bg-white px-1.5 py-0.5 rounded border font-mono">{{ currentTimestamp }}</code>
+              <code class="bg-background px-1.5 py-0.5 rounded border font-mono">{{ currentTimestamp }}</code>
             </div>
             <div class="flex items-center gap-1">
               <span class="text-muted-foreground">毫秒:</span>
-              <code class="bg-white px-1.5 py-0.5 rounded border font-mono">{{ currentTimestampMs }}</code>
+              <code class="bg-background px-1.5 py-0.5 rounded border font-mono">{{ currentTimestampMs }}</code>
             </div>
             <div class="flex items-center gap-1 col-span-2">
               <span class="text-muted-foreground">本地时间:</span>

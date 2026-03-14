@@ -33,14 +33,14 @@ useHead({
 })
 
 // HTTP 方法列表
-const httpMethods = [
-  { value: 'GET', label: 'GET', color: 'text-green-600', bgColor: 'bg-green-50' },
-  { value: 'POST', label: 'POST', color: 'text-blue-600', bgColor: 'bg-blue-50' },
-  { value: 'PUT', label: 'PUT', color: 'text-amber-600', bgColor: 'bg-amber-50' },
-  { value: 'DELETE', label: 'DELETE', color: 'text-red-600', bgColor: 'bg-red-50' },
-  { value: 'PATCH', label: 'PATCH', color: 'text-purple-600', bgColor: 'bg-purple-50' },
-  { value: 'HEAD', label: 'HEAD', color: 'text-gray-600', bgColor: 'bg-gray-50' },
-  { value: 'OPTIONS', label: 'OPTIONS', color: 'text-teal-600', bgColor: 'bg-teal-50' }
+  const httpMethods = [
+  { value: 'GET', label: 'GET', color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-50 dark:bg-green-950/30' },
+  { value: 'POST', label: 'POST', color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-50 dark:bg-blue-950/30' },
+  { value: 'PUT', label: 'PUT', color: 'text-amber-600 dark:text-amber-400', bgColor: 'bg-amber-50 dark:bg-amber-950/30' },
+  { value: 'DELETE', label: 'DELETE', color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-50 dark:bg-red-950/30' },
+  { value: 'PATCH', label: 'PATCH', color: 'text-purple-600 dark:text-purple-400', bgColor: 'bg-purple-50 dark:bg-purple-950/30' },
+  { value: 'HEAD', label: 'HEAD', color: 'text-gray-600 dark:text-gray-400', bgColor: 'bg-gray-50 dark:bg-gray-950/30' },
+  { value: 'OPTIONS', label: 'OPTIONS', color: 'text-teal-600 dark:text-teal-400', bgColor: 'bg-teal-50 dark:bg-teal-950/30' }
 ]
 
 // 常用请求头
@@ -245,11 +245,11 @@ const reset = () => {
 
 // 获取状态码颜色
 const getStatusColor = (code: number) => {
-  if (code >= 200 && code < 300) return 'text-green-600 bg-green-50'
-  if (code >= 300 && code < 400) return 'text-amber-600 bg-amber-50'
-  if (code >= 400 && code < 500) return 'text-orange-600 bg-orange-50'
-  if (code >= 500) return 'text-red-600 bg-red-50'
-  return 'text-gray-600 bg-gray-50'
+  if (code >= 200 && code < 300) return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30'
+  if (code >= 300 && code < 400) return 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30'
+  if (code >= 400 && code < 500) return 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30'
+  if (code >= 500) return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30'
+  return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-950/30'
 }
 
 // 格式化 JSON 响应
@@ -283,9 +283,9 @@ const fullUrl = computed(() => {
     <div class="max-w-6xl mx-auto space-y-6">
       <!-- 请求配置区域 -->
       <ToolCard>
-        <div class="flex items-center gap-2 mb-6">
-          <Globe class="w-6 h-6 text-blue-500" />
-          <h2 class="text-lg font-semibold text-gray-900">HTTP 请求测试</h2>
+          <div class="flex items-center gap-2 mb-6">
+          <Globe class="w-6 h-6 text-primary" />
+          <h2 class="text-lg font-semibold text-foreground">HTTP 请求测试</h2>
         </div>
 
         <div class="space-y-6">
@@ -293,7 +293,7 @@ const fullUrl = computed(() => {
           <div class="flex flex-col sm:flex-row gap-3">
             <select
               v-model="method"
-              class="px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 shrink-0"
+              class="px-4 py-2.5 bg-background border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary shrink-0"
             >
               <option
                 v-for="m in httpMethods"
@@ -323,12 +323,12 @@ const fullUrl = computed(() => {
           </div>
 
           <!-- 完整 URL 预览 -->
-          <div v-if="fullUrl && fullUrl !== url" class="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg break-all">
-            <span class="text-gray-400">完整 URL：</span>{{ fullUrl }}
+          <div v-if="fullUrl && fullUrl !== url" class="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg break-all">
+            <span class="text-muted-foreground/60">完整 URL：</span>{{ fullUrl }}
           </div>
 
           <!-- 选项卡 -->
-          <div class="border-b border-gray-200">
+          <div class="border-b border-border">
             <div class="flex gap-1">
               <button
                 v-for="tab in ['params', 'headers', 'body']"
@@ -337,20 +337,20 @@ const fullUrl = computed(() => {
                 :class="[
                   'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
                   activeTab === tab
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
                 ]"
               >
                 {{ tab === 'params' ? '查询参数' : tab === 'headers' ? '请求头' : '请求体' }}
                 <span
                   v-if="tab === 'params' && params.filter(p => p.enabled && p.key).length > 0"
-                  class="ml-1 px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded text-xs"
+                  class="ml-1 px-1.5 py-0.5 bg-primary/10 text-primary rounded text-xs"
                 >
                   {{ params.filter(p => p.enabled && p.key).length }}
                 </span>
                 <span
                   v-if="tab === 'headers' && headers.filter(h => h.enabled && h.key).length > 0"
-                  class="ml-1 px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded text-xs"
+                  class="ml-1 px-1.5 py-0.5 bg-primary/10 text-primary rounded text-xs"
                 >
                   {{ headers.filter(h => h.enabled && h.key).length }}
                 </span>
@@ -360,8 +360,8 @@ const fullUrl = computed(() => {
                 :class="[
                   'px-4 py-2 text-sm font-medium border-b-2 transition-colors ml-auto',
                   showSettings
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
                 ]"
               >
                 <Settings class="w-4 h-4" />
@@ -379,7 +379,7 @@ const fullUrl = computed(() => {
               <input
                 type="checkbox"
                 v-model="param.enabled"
-                class="w-4 h-4 text-blue-500 rounded focus:ring-blue-500"
+                class="w-4 h-4 text-primary rounded focus:ring-primary"
               />
               <Input
                 v-model="param.key"
@@ -395,7 +395,7 @@ const fullUrl = computed(() => {
               />
               <button
                 @click="removeParam(index)"
-                class="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                class="p-2 text-muted-foreground hover:text-red-500 transition-colors"
               >
                 <Trash2 class="w-4 h-4" />
               </button>
@@ -410,12 +410,12 @@ const fullUrl = computed(() => {
           <div v-if="activeTab === 'headers'" class="space-y-3">
             <!-- 常用请求头快捷添加 -->
             <div class="flex flex-wrap gap-2 mb-4">
-              <span class="text-xs text-gray-500 py-1">常用：</span>
+              <span class="text-xs text-muted-foreground py-1">常用：</span>
               <button
                 v-for="header in commonHeaders"
                 :key="header.key"
                 @click="addCommonHeader(header)"
-                class="px-2 py-1 text-xs bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600 rounded transition-colors"
+                class="px-2 py-1 text-xs bg-muted hover:bg-primary/10 text-muted-foreground hover:text-primary rounded transition-colors"
               >
                 {{ header.key }}
               </button>
@@ -429,7 +429,7 @@ const fullUrl = computed(() => {
               <input
                 type="checkbox"
                 v-model="header.enabled"
-                class="w-4 h-4 text-blue-500 rounded focus:ring-blue-500"
+                class="w-4 h-4 text-primary rounded focus:ring-primary"
               />
               <Input
                 v-model="header.key"
@@ -445,7 +445,7 @@ const fullUrl = computed(() => {
               />
               <button
                 @click="removeHeader(index)"
-                class="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                class="p-2 text-muted-foreground hover:text-red-500 transition-colors"
               >
                 <Trash2 class="w-4 h-4" />
               </button>
@@ -459,7 +459,7 @@ const fullUrl = computed(() => {
           <!-- 请求体 -->
           <div v-if="activeTab === 'body'" class="space-y-3">
             <div class="flex items-center justify-between">
-              <span class="text-sm text-gray-600">请求体内容</span>
+              <span class="text-sm text-muted-foreground">请求体内容</span>
               <ToolButton variant="secondary" size="sm" @click="formatBody">
                 <Code2 class="w-4 h-4 mr-1" />
                 格式化 JSON
@@ -473,11 +473,11 @@ const fullUrl = computed(() => {
           </div>
 
           <!-- 设置 -->
-          <div v-if="showSettings" class="bg-gray-50 rounded-lg p-4 space-y-4">
-            <h3 class="font-medium text-gray-900">高级设置</h3>
+          <div v-if="showSettings" class="bg-muted/50 rounded-lg p-4 space-y-4">
+            <h3 class="font-medium text-foreground">高级设置</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm text-gray-600 mb-1">超时时间（毫秒）</label>
+                <label class="block text-sm text-muted-foreground mb-1">超时时间（毫秒）</label>
                 <Input
                   v-model.number="timeout"
                   type="number"
@@ -490,7 +490,7 @@ const fullUrl = computed(() => {
           </div>
 
           <!-- 错误提示 -->
-          <div v-if="error" class="bg-red-50 text-red-700 p-4 rounded-lg">
+          <div v-if="error" class="bg-destructive/10 text-destructive p-4 rounded-lg">
             <AlertCircle class="w-5 h-5 inline mr-2" />
             {{ error }}
           </div>
@@ -502,7 +502,7 @@ const fullUrl = computed(() => {
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-2">
             <Zap class="w-6 h-6 text-amber-500" />
-            <h2 class="text-lg font-semibold text-gray-900">响应结果</h2>
+            <h2 class="text-lg font-semibold text-foreground">响应结果</h2>
           </div>
           <div class="flex items-center gap-3">
             <span
@@ -513,7 +513,7 @@ const fullUrl = computed(() => {
             >
               {{ response.statusCode }}
             </span>
-            <span class="flex items-center gap-1 text-sm text-gray-500">
+            <span class="flex items-center gap-1 text-sm text-muted-foreground">
               <Clock class="w-4 h-4" />
               {{ response.duration }}ms
             </span>
@@ -521,7 +521,7 @@ const fullUrl = computed(() => {
         </div>
 
         <!-- 响应选项卡 -->
-        <div class="border-b border-gray-200 mb-4">
+        <div class="border-b border-border mb-4">
           <div class="flex gap-1">
             <button
               v-for="tab in ['body', 'headers', 'analysis']"
@@ -531,7 +531,7 @@ const fullUrl = computed(() => {
                 'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
                 responseTab === tab
                   ? 'border-amber-500 text-amber-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               ]"
             >
               {{ tab === 'body' ? '响应体' : tab === 'headers' ? '响应头' : '分析' }}
@@ -551,12 +551,12 @@ const fullUrl = computed(() => {
 
         <!-- 响应体 -->
         <div v-if="responseTab === 'body'" class="space-y-4">
-          <div class="flex items-center gap-4 text-sm text-gray-600">
+          <div class="flex items-center gap-4 text-sm text-muted-foreground">
             <span>大小：{{ (response.bodySize / 1024).toFixed(2) }} KB</span>
             <span>类型：{{ response.contentType }}</span>
             <span v-if="response.bodyHash">MD5：{{ response.bodyHash.substring(0, 16) }}...</span>
           </div>
-          <div v-if="response.bodyTruncated" class="bg-amber-50 text-amber-700 p-3 rounded-lg text-sm">
+          <div v-if="response.bodyTruncated" class="bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 p-3 rounded-lg text-sm">
             <AlertCircle class="w-4 h-4 inline mr-1" />
             响应体过大，已截断显示
           </div>
@@ -568,53 +568,53 @@ const fullUrl = computed(() => {
           <div
             v-for="(values, key) in response.headers"
             :key="key"
-            class="flex items-start gap-4 py-2 border-b border-gray-100 last:border-0"
+            class="flex items-start gap-4 py-2 border-b border-border last:border-0"
           >
-            <span class="text-sm font-medium text-gray-700 min-w-[200px]">{{ key }}</span>
-            <span class="text-sm text-gray-600">{{ values.join(', ') }}</span>
+            <span class="text-sm font-medium text-foreground min-w-[200px]">{{ key }}</span>
+            <span class="text-sm text-muted-foreground">{{ values.join(', ') }}</span>
           </div>
         </div>
 
         <!-- 分析 -->
         <div v-if="responseTab === 'analysis'" class="space-y-4">
           <div v-if="response.analysis" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-gray-50 rounded-lg p-4">
-              <div class="text-sm text-gray-500 mb-1">状态分类</div>
-              <div class="text-lg font-medium text-gray-900">{{ response.analysis.statusCategory }}</div>
-              <div class="text-sm text-gray-600">{{ response.analysis.statusDescription }}</div>
+            <div class="bg-muted/50 rounded-lg p-4">
+              <div class="text-sm text-muted-foreground mb-1">状态分类</div>
+              <div class="text-lg font-medium text-foreground">{{ response.analysis.statusCategory }}</div>
+              <div class="text-sm text-muted-foreground">{{ response.analysis.statusDescription }}</div>
             </div>
-            <div class="bg-gray-50 rounded-lg p-4">
-              <div class="text-sm text-gray-500 mb-1">性能评估</div>
+            <div class="bg-muted/50 rounded-lg p-4">
+              <div class="text-sm text-muted-foreground mb-1">性能评估</div>
               <div class="text-lg font-medium" :class="{
                 'text-green-600': response.analysis.performance === '极快' || response.analysis.performance === '快',
                 'text-amber-600': response.analysis.performance === '正常',
                 'text-orange-600': response.analysis.performance === '较慢',
                 'text-red-600': response.analysis.performance === '慢'
               }">{{ response.analysis.performance }}</div>
-              <div class="text-sm text-gray-600">耗时 {{ response.duration }}ms</div>
+              <div class="text-sm text-muted-foreground">耗时 {{ response.duration }}ms</div>
             </div>
-            <div class="bg-gray-50 rounded-lg p-4">
-              <div class="text-sm text-gray-500 mb-1">缓存</div>
-              <div class="text-lg font-medium" :class="response.analysis.cacheable ? 'text-green-600' : 'text-gray-600'">
+            <div class="bg-muted/50 rounded-lg p-4">
+              <div class="text-sm text-muted-foreground mb-1">缓存</div>
+              <div class="text-lg font-medium" :class="response.analysis.cacheable ? 'text-green-600' : 'text-muted-foreground'">
                 {{ response.analysis.cacheable ? '可缓存' : '不可缓存' }}
               </div>
             </div>
-            <div class="bg-gray-50 rounded-lg p-4">
-              <div class="text-sm text-gray-500 mb-1">压缩</div>
-              <div class="text-lg font-medium" :class="response.analysis.compressed ? 'text-green-600' : 'text-gray-600'">
+            <div class="bg-muted/50 rounded-lg p-4">
+              <div class="text-sm text-muted-foreground mb-1">压缩</div>
+              <div class="text-lg font-medium" :class="response.analysis.compressed ? 'text-green-600' : 'text-muted-foreground'">
                 {{ response.analysis.compressed ? '已压缩' : '未压缩' }}
               </div>
             </div>
           </div>
 
           <!-- 请求信息 -->
-          <div v-if="response.request" class="border-t pt-4">
-            <h3 class="font-medium text-gray-900 mb-3">请求信息</h3>
-            <div class="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-              <div><span class="text-gray-500">方法：</span>{{ response.request.method }}</div>
-              <div><span class="text-gray-500">URL：</span>{{ response.request.url }}</div>
+          <div v-if="response.request" class="border-t border-border pt-4">
+            <h3 class="font-medium text-foreground mb-3">请求信息</h3>
+            <div class="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
+              <div><span class="text-muted-foreground">方法：</span>{{ response.request.method }}</div>
+              <div><span class="text-muted-foreground">URL：</span>{{ response.request.url }}</div>
               <div v-if="response.request.finalUrl !== response.request.url">
-                <span class="text-gray-500">最终 URL：</span>{{ response.request.finalUrl }}
+                <span class="text-muted-foreground">最终 URL：</span>{{ response.request.finalUrl }}
               </div>
             </div>
           </div>
@@ -624,20 +624,20 @@ const fullUrl = computed(() => {
       <!-- 快速示例 -->
       <ToolCard>
         <div class="flex items-center gap-2 mb-4">
-          <Globe2 class="w-5 h-5 text-blue-500" />
-          <h3 class="font-semibold text-gray-900">快速示例</h3>
+          <Globe2 class="w-5 h-5 text-primary" />
+          <h3 class="font-semibold text-foreground">快速示例</h3>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <button
             v-for="example in examples"
             :key="example.url"
             @click="useExample(example.url)"
-            class="flex items-center gap-3 p-3 text-left rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all"
+            class="flex items-center gap-3 p-3 text-left rounded-lg border border-border hover:border-primary/50 hover:bg-primary/5 transition-all"
           >
-            <FileJson class="w-5 h-5 text-blue-500" />
+            <FileJson class="w-5 h-5 text-primary" />
             <div>
-              <div class="text-sm font-medium text-gray-900">{{ example.desc }}</div>
-              <div class="text-xs text-gray-500 truncate">{{ example.url }}</div>
+              <div class="text-sm font-medium text-foreground">{{ example.desc }}</div>
+              <div class="text-xs text-muted-foreground truncate">{{ example.url }}</div>
             </div>
           </button>
         </div>
@@ -647,12 +647,12 @@ const fullUrl = computed(() => {
       <ToolCard v-if="history.length > 0">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
-            <History class="w-5 h-5 text-blue-500" />
-            <h3 class="font-semibold text-gray-900">历史记录</h3>
+            <History class="w-5 h-5 text-primary" />
+            <h3 class="font-semibold text-foreground">历史记录</h3>
           </div>
           <button
             @click="clearHistory"
-            class="text-sm text-red-500 hover:text-red-600"
+            class="text-sm text-destructive hover:text-destructive/80"
           >
             清空
           </button>
@@ -662,7 +662,7 @@ const fullUrl = computed(() => {
             v-for="(entry, index) in history"
             :key="index"
             @click="loadFromHistory(entry)"
-            class="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors"
+            class="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-muted/50 transition-colors"
           >
             <span
               :class="[
@@ -673,8 +673,8 @@ const fullUrl = computed(() => {
             >
               {{ entry.method }}
             </span>
-            <span class="flex-1 text-sm text-gray-700 truncate">{{ entry.url }}</span>
-            <span class="text-xs text-gray-400">
+            <span class="flex-1 text-sm text-foreground truncate">{{ entry.url }}</span>
+            <span class="text-xs text-muted-foreground">
               {{ new Date(entry.timestamp).toLocaleTimeString() }}
             </span>
           </button>
@@ -684,16 +684,16 @@ const fullUrl = computed(() => {
       <!-- 使用说明 -->
       <ToolCard>
         <div class="flex items-center gap-2 mb-4">
-          <CheckCircle2 class="w-5 h-5 text-blue-500" />
-          <h3 class="font-semibold text-gray-900">使用说明</h3>
+          <CheckCircle2 class="w-5 h-5 text-primary" />
+          <h3 class="font-semibold text-foreground">使用说明</h3>
         </div>
-        <div class="space-y-3 text-sm text-gray-600">
-          <p><strong>支持方法：</strong>GET、POST、PUT、DELETE、PATCH、HEAD、OPTIONS 等所有标准 HTTP 方法</p>
-          <p><strong>查询参数：</strong>在 Params 标签页添加 URL 查询参数，自动编码并拼接到 URL</p>
-          <p><strong>请求头：</strong>在 Headers 标签页添加自定义请求头，支持常用请求头快捷添加</p>
-          <p><strong>请求体：</strong>在 Body 标签页输入请求体内容，支持 JSON 格式化</p>
-          <p><strong>响应分析：</strong>自动分析响应状态、性能、缓存和压缩情况</p>
-          <p><strong>安全提示：</strong>请勿在生产环境发送包含敏感信息的请求</p>
+        <div class="space-y-3 text-sm text-muted-foreground">
+          <p><strong class="text-foreground">支持方法：</strong>GET、POST、PUT、DELETE、PATCH、HEAD、OPTIONS 等所有标准 HTTP 方法</p>
+          <p><strong class="text-foreground">查询参数：</strong>在 Params 标签页添加 URL 查询参数，自动编码并拼接到 URL</p>
+          <p><strong class="text-foreground">请求头：</strong>在 Headers 标签页添加自定义请求头，支持常用请求头快捷添加</p>
+          <p><strong class="text-foreground">请求体：</strong>在 Body 标签页输入请求体内容，支持 JSON 格式化</p>
+          <p><strong class="text-foreground">响应分析：</strong>自动分析响应状态、性能、缓存和压缩情况</p>
+          <p><strong class="text-foreground">安全提示：</strong>请勿在生产环境发送包含敏感信息的请求</p>
         </div>
       </ToolCard>
     </div>

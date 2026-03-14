@@ -291,7 +291,7 @@ const formatQuickValue = (value: number): string => {
     <div class="max-w-4xl mx-auto space-y-6">
       <!-- 分类选择 -->
       <ToolCard>
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">选择换算类型</h2>
+        <h2 class="text-lg font-semibold text-foreground mb-4">选择换算类型</h2>
         <div class="grid grid-cols-4 sm:grid-cols-8 gap-2">
           <button
             v-for="(cat, key) in categories"
@@ -299,8 +299,8 @@ const formatQuickValue = (value: number): string => {
             @click="currentCategory = key"
             class="flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200"
             :class="currentCategory === key
-              ? 'bg-linear-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-200'
-              : 'bg-gray-50 text-gray-600 hover:bg-rose-50 hover:text-rose-600'"
+              ? 'bg-linear-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-200 dark:shadow-none'
+              : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'"
           >
             <component :is="cat.icon" class="w-5 h-5 mb-1" />
             <span class="text-xs font-medium">{{ cat.name }}</span>
@@ -311,8 +311,8 @@ const formatQuickValue = (value: number): string => {
       <!-- 换算器 -->
       <ToolCard>
         <div class="flex items-center gap-2 mb-6">
-          <component :is="categories[currentCategory].icon" class="w-6 h-6 text-rose-500" />
-          <h2 class="text-lg font-semibold text-gray-900">
+          <component :is="categories[currentCategory].icon" class="w-6 h-6 text-primary" />
+          <h2 class="text-lg font-semibold text-foreground">
             {{ categories[currentCategory].name }}换算
           </h2>
         </div>
@@ -320,7 +320,7 @@ const formatQuickValue = (value: number): string => {
         <div class="grid md:grid-cols-[1fr,auto,1fr] gap-4 items-end">
           <!-- 输入 -->
           <div class="space-y-2">
-            <label class="text-sm font-medium text-gray-700">输入值</label>
+            <label class="text-sm font-medium text-foreground">输入值</label>
             <ToolInput
               v-model.number="inputValue"
               type="number"
@@ -328,7 +328,7 @@ const formatQuickValue = (value: number): string => {
             />
             <select
               v-model="fromUnit"
-              class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+              class="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             >
               <option
                 v-for="(unit, key) in currentUnits"
@@ -344,7 +344,7 @@ const formatQuickValue = (value: number): string => {
           <div class="flex justify-center md:pb-8">
             <button
               @click="swapUnits"
-              class="p-3 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
+              class="p-3 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
             >
               <ArrowRightLeft class="w-5 h-5" />
             </button>
@@ -352,13 +352,13 @@ const formatQuickValue = (value: number): string => {
 
           <!-- 输出 -->
           <div class="space-y-2">
-            <label class="text-sm font-medium text-gray-700">换算结果</label>
-            <div class="px-4 py-2.5 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 font-mono text-lg min-h-[46px] flex items-center">
+            <label class="text-sm font-medium text-foreground">换算结果</label>
+            <div class="px-4 py-2.5 bg-primary/5 border border-primary/10 rounded-xl text-primary font-mono text-lg min-h-[46px] flex items-center">
               {{ formattedResult }}
             </div>
             <select
               v-model="toUnit"
-              class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+              class="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             >
               <option
                 v-for="(unit, key) in currentUnits"
@@ -372,12 +372,12 @@ const formatQuickValue = (value: number): string => {
         </div>
 
         <!-- 结果展示 -->
-        <div class="mt-6 p-4 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
+        <div class="mt-6 p-4 bg-primary/5 rounded-xl border border-primary/10">
           <div class="text-center">
-            <div class="text-sm text-gray-500 mb-1">换算结果</div>
-            <div class="text-3xl font-bold text-gray-900">
+            <div class="text-sm text-muted-foreground mb-1">换算结果</div>
+            <div class="text-3xl font-bold text-foreground">
               {{ inputValue }} {{ currentUnits[fromUnit]?.symbol }}
-              <span class="text-rose-500 mx-2">=</span>
+              <span class="text-primary mx-2">=</span>
               {{ formattedResult }} {{ currentUnits[toUnit]?.symbol }}
             </div>
           </div>
@@ -386,15 +386,15 @@ const formatQuickValue = (value: number): string => {
 
       <!-- 快速换算表 -->
       <ToolCard>
-        <h3 class="text-base font-semibold text-gray-900 mb-4">快速换算参考</h3>
+        <h3 class="text-base font-semibold text-foreground mb-4">快速换算参考</h3>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           <div
             v-for="conv in quickConversions"
             :key="conv.unit"
-            class="p-3 bg-gray-50 rounded-lg"
+            class="p-3 bg-muted/50 rounded-lg"
           >
-            <div class="text-xs text-gray-500 mb-1">{{ conv.name }}</div>
-            <div class="font-mono text-sm text-gray-900 truncate">
+            <div class="text-xs text-muted-foreground mb-1">{{ conv.name }}</div>
+            <div class="font-mono text-sm text-foreground truncate">
               {{ formatQuickValue(conv.value) }} {{ conv.symbol }}
             </div>
           </div>

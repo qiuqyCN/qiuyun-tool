@@ -225,7 +225,7 @@ const modes = [
     <div class="max-w-4xl mx-auto space-y-6">
       <!-- 模式选择 -->
       <ToolCard>
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">选择计算类型</h2>
+        <h2 class="text-lg font-semibold text-foreground mb-4">选择计算类型</h2>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <button
             v-for="mode in modes"
@@ -234,7 +234,7 @@ const modes = [
             class="flex items-center justify-center gap-2 p-3 rounded-xl transition-all duration-200"
             :class="currentMode === mode.key
               ? 'bg-linear-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-200'
-              : 'bg-gray-50 text-gray-600 hover:bg-rose-50 hover:text-rose-600'"
+              : 'bg-muted/50 text-muted-foreground hover:bg-primary/5 hover:text-primary'"
           >
             <component :is="mode.icon" class="w-5 h-5" />
             <span class="font-medium">{{ mode.label }}</span>
@@ -245,53 +245,53 @@ const modes = [
       <!-- 日期差计算 -->
       <ToolCard v-if="currentMode === CalcMode.DIFF">
         <div class="flex items-center gap-2 mb-6">
-          <Calendar class="w-6 h-6 text-rose-500" />
-          <h2 class="text-lg font-semibold text-gray-900">日期差计算</h2>
+          <Calendar class="w-6 h-6 text-primary" />
+          <h2 class="text-lg font-semibold text-foreground">日期差计算</h2>
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">开始日期</label>
+              <label class="block text-sm font-medium text-foreground mb-2">开始日期</label>
               <input
                 v-model="startDate"
                 type="date"
-                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                class="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">结束日期</label>
+              <label class="block text-sm font-medium text-foreground mb-2">结束日期</label>
               <input
                 v-model="endDate"
                 type="date"
-                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                class="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
           </div>
 
-          <div v-if="dateDiffResult" class="p-4 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
+          <div v-if="dateDiffResult" class="p-4 bg-primary/5 rounded-xl">
             <div class="text-center mb-4">
-              <div class="text-sm text-gray-500">相差天数</div>
-              <div class="text-4xl font-bold text-rose-600">
+              <div class="text-sm text-muted-foreground">相差天数</div>
+              <div class="text-4xl font-bold text-primary">
                 {{ Math.abs(dateDiffResult.days) }}
                 <span class="text-lg">天</span>
               </div>
-              <div class="text-sm text-gray-500 mt-1">
+              <div class="text-sm text-muted-foreground mt-1">
                 {{ dateDiffResult.isFuture ? '结束日期在开始日期之后' : '结束日期在开始日期之前' }}
               </div>
             </div>
             <div class="grid grid-cols-2 gap-3 text-center">
-              <div class="p-2 bg-white rounded-lg">
-                <div class="text-xs text-gray-500">周数</div>
-                <div class="font-semibold text-gray-900">{{ Math.abs(dateDiffResult.weeks) }} 周</div>
+              <div class="p-2 bg-background rounded-lg">
+                <div class="text-xs text-muted-foreground">周数</div>
+                <div class="font-semibold text-foreground">{{ Math.abs(dateDiffResult.weeks) }} 周</div>
               </div>
-              <div class="p-2 bg-white rounded-lg">
-                <div class="text-xs text-gray-500">月数</div>
-                <div class="font-semibold text-gray-900">{{ Math.abs(dateDiffResult.months) }} 个月</div>
+              <div class="p-2 bg-background rounded-lg">
+                <div class="text-xs text-muted-foreground">月数</div>
+                <div class="font-semibold text-foreground">{{ Math.abs(dateDiffResult.months) }} 个月</div>
               </div>
-              <div class="p-2 bg-white rounded-lg col-span-2">
-                <div class="text-xs text-gray-500">年数月数</div>
-                <div class="font-semibold text-gray-900">
+              <div class="p-2 bg-background rounded-lg col-span-2">
+                <div class="text-xs text-muted-foreground">年数月数</div>
+                <div class="font-semibold text-foreground">
                   {{ Math.abs(dateDiffResult.years) }} 年 {{ Math.abs(dateDiffResult.remainingMonths) }} 个月
                 </div>
               </div>
@@ -303,45 +303,45 @@ const modes = [
       <!-- 日期推算 -->
       <ToolCard v-if="currentMode === CalcMode.ADD">
         <div class="flex items-center gap-2 mb-6">
-          <CalendarDays class="w-6 h-6 text-rose-500" />
-          <h2 class="text-lg font-semibold text-gray-900">日期推算</h2>
+          <CalendarDays class="w-6 h-6 text-primary" />
+          <h2 class="text-lg font-semibold text-foreground">日期推算</h2>
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">基准日期</label>
+              <label class="block text-sm font-medium text-foreground mb-2">基准日期</label>
               <input
                 v-model="baseDate"
                 type="date"
-                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                class="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
             <div class="grid grid-cols-3 gap-3">
               <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">年</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">年</label>
                 <ToolInput v-model="yearsToAdd" type="number" placeholder="0" />
               </div>
               <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">月</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">月</label>
                 <ToolInput v-model="monthsToAdd" type="number" placeholder="0" />
               </div>
               <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">日</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">日</label>
                 <ToolInput v-model="daysToAdd" type="number" placeholder="0" />
               </div>
             </div>
-            <p class="text-xs text-gray-500">正值表示未来日期，负值表示过去日期</p>
+            <p class="text-xs text-muted-foreground">正值表示未来日期，负值表示过去日期</p>
           </div>
 
-          <div v-if="addDateResult" class="p-4 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
+          <div v-if="addDateResult" class="p-4 bg-primary/5 rounded-xl">
             <div class="text-center">
-              <div class="text-sm text-gray-500 mb-2">推算结果</div>
-              <div class="text-2xl font-bold text-gray-900">{{ addDateResult.formatted }}</div>
-              <div class="text-rose-600 font-medium mt-1">{{ addDateResult.weekday }}</div>
-              <div class="mt-3 p-2 bg-white rounded-lg">
-                <div class="text-xs text-gray-500">标准格式</div>
-                <div class="font-mono text-gray-900">{{ addDateResult.result }}</div>
+              <div class="text-sm text-muted-foreground mb-2">推算结果</div>
+              <div class="text-2xl font-bold text-foreground">{{ addDateResult.formatted }}</div>
+              <div class="text-primary font-medium mt-1">{{ addDateResult.weekday }}</div>
+              <div class="mt-3 p-2 bg-background rounded-lg">
+                <div class="text-xs text-muted-foreground">标准格式</div>
+                <div class="font-mono text-foreground">{{ addDateResult.result }}</div>
               </div>
             </div>
           </div>
@@ -351,22 +351,22 @@ const modes = [
       <!-- 工作日计算 -->
       <ToolCard v-if="currentMode === CalcMode.WORKDAY">
         <div class="flex items-center gap-2 mb-6">
-          <CalendarClock class="w-6 h-6 text-rose-500" />
-          <h2 class="text-lg font-semibold text-gray-900">工作日计算</h2>
+          <CalendarClock class="w-6 h-6 text-primary" />
+          <h2 class="text-lg font-semibold text-foreground">工作日计算</h2>
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">开始日期</label>
+              <label class="block text-sm font-medium text-foreground mb-2">开始日期</label>
               <input
                 v-model="workStartDate"
                 type="date"
-                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                class="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">工作日数量</label>
+              <label class="block text-sm font-medium text-foreground mb-2">工作日数量</label>
               <ToolInput v-model="workDays" type="number" placeholder="请输入工作日数" :min="1" />
             </div>
             <div class="flex items-center gap-2">
@@ -374,26 +374,26 @@ const modes = [
                 v-model="includeEndDay"
                 type="checkbox"
                 id="includeEnd"
-                class="w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                class="w-4 h-4 text-primary border-border rounded focus:ring-primary"
               />
-              <label for="includeEnd" class="text-sm text-gray-600">包含结束当天</label>
+              <label for="includeEnd" class="text-sm text-muted-foreground">包含结束当天</label>
             </div>
           </div>
 
-          <div v-if="workdayResult" class="p-4 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
+          <div v-if="workdayResult" class="p-4 bg-primary/5 rounded-xl">
             <div class="text-center mb-4">
-              <div class="text-sm text-gray-500">结束日期</div>
-              <div class="text-2xl font-bold text-gray-900">{{ workdayResult.formatted }}</div>
-              <div class="text-rose-600 font-medium mt-1">{{ workdayResult.weekday }}</div>
+              <div class="text-sm text-muted-foreground">结束日期</div>
+              <div class="text-2xl font-bold text-foreground">{{ workdayResult.formatted }}</div>
+              <div class="text-primary font-medium mt-1">{{ workdayResult.weekday }}</div>
             </div>
             <div class="grid grid-cols-2 gap-3">
-              <div class="p-2 bg-white rounded-lg text-center">
-                <div class="text-xs text-gray-500">总天数</div>
-                <div class="font-semibold text-gray-900">{{ workdayResult.totalDays }} 天</div>
+              <div class="p-2 bg-background rounded-lg text-center">
+                <div class="text-xs text-muted-foreground">总天数</div>
+                <div class="font-semibold text-foreground">{{ workdayResult.totalDays }} 天</div>
               </div>
-              <div class="p-2 bg-white rounded-lg text-center">
-                <div class="text-xs text-gray-500">周末天数</div>
-                <div class="font-semibold text-gray-900">{{ workdayResult.weekendDays }} 天</div>
+              <div class="p-2 bg-background rounded-lg text-center">
+                <div class="text-xs text-muted-foreground">周末天数</div>
+                <div class="font-semibold text-foreground">{{ workdayResult.weekendDays }} 天</div>
               </div>
             </div>
           </div>
@@ -403,59 +403,59 @@ const modes = [
       <!-- 年龄计算 -->
       <ToolCard v-if="currentMode === CalcMode.AGE">
         <div class="flex items-center gap-2 mb-6">
-          <Clock class="w-6 h-6 text-rose-500" />
-          <h2 class="text-lg font-semibold text-gray-900">年龄计算</h2>
+          <Clock class="w-6 h-6 text-primary" />
+          <h2 class="text-lg font-semibold text-foreground">年龄计算</h2>
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">出生日期</label>
+              <label class="block text-sm font-medium text-foreground mb-2">出生日期</label>
               <input
                 v-model="birthDate"
                 type="date"
-                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                class="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">计算日期</label>
+              <label class="block text-sm font-medium text-foreground mb-2">计算日期</label>
               <input
                 v-model="calcDate"
                 type="date"
-                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                class="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
-              <p class="text-xs text-gray-500 mt-1">默认为今天，可修改计算特定日期的年龄</p>
+              <p class="text-xs text-muted-foreground mt-1">默认为今天，可修改计算特定日期的年龄</p>
             </div>
           </div>
 
-          <div v-if="ageResult" class="p-4 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
+          <div v-if="ageResult" class="p-4 bg-primary/5 rounded-xl">
             <div class="text-center mb-4">
-              <div class="text-sm text-gray-500">年龄</div>
-              <div class="text-4xl font-bold text-rose-600">
+              <div class="text-sm text-muted-foreground">年龄</div>
+              <div class="text-4xl font-bold text-primary">
                 {{ ageResult.years }}
                 <span class="text-xl">岁</span>
               </div>
-              <div class="text-gray-600 mt-1">
+              <div class="text-muted-foreground mt-1">
                 {{ ageResult.months }} 个月 {{ ageResult.days }} 天
               </div>
             </div>
             <div class="space-y-2">
-              <div class="p-2 bg-white rounded-lg flex justify-between">
-                <span class="text-sm text-gray-500">总天数</span>
-                <span class="font-medium text-gray-900">{{ ageResult.totalDays.toLocaleString() }} 天</span>
+              <div class="p-2 bg-background rounded-lg flex justify-between">
+                <span class="text-sm text-muted-foreground">总天数</span>
+                <span class="font-medium text-foreground">{{ ageResult.totalDays.toLocaleString() }} 天</span>
               </div>
-              <div class="p-2 bg-white rounded-lg flex justify-between">
-                <span class="text-sm text-gray-500">距离下次生日</span>
-                <span class="font-medium text-rose-600">{{ ageResult.daysToNextBirthday }} 天</span>
+              <div class="p-2 bg-background rounded-lg flex justify-between">
+                <span class="text-sm text-muted-foreground">距离下次生日</span>
+                <span class="font-medium text-primary">{{ ageResult.daysToNextBirthday }} 天</span>
               </div>
               <div class="grid grid-cols-2 gap-2">
-                <div class="p-2 bg-white rounded-lg text-center">
-                  <div class="text-xs text-gray-500">生肖</div>
-                  <div class="font-semibold text-gray-900">{{ ageResult.zodiac }}</div>
+                <div class="p-2 bg-background rounded-lg text-center">
+                  <div class="text-xs text-muted-foreground">生肖</div>
+                  <div class="font-semibold text-foreground">{{ ageResult.zodiac }}</div>
                 </div>
-                <div class="p-2 bg-white rounded-lg text-center">
-                  <div class="text-xs text-gray-500">星座</div>
-                  <div class="font-semibold text-gray-900">{{ ageResult.constellation }}</div>
+                <div class="p-2 bg-background rounded-lg text-center">
+                  <div class="text-xs text-muted-foreground">星座</div>
+                  <div class="font-semibold text-foreground">{{ ageResult.constellation }}</div>
                 </div>
               </div>
             </div>

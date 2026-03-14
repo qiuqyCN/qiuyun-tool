@@ -205,14 +205,14 @@ onUnmounted(() => {
     <div class="max-w-4xl mx-auto space-y-6">
       <!-- 模式选择 -->
       <ToolCard>
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">选择模式</h2>
+        <h2 class="text-lg font-semibold text-foreground mb-4">选择模式</h2>
         <div class="grid grid-cols-2 gap-3">
           <button
             @click="currentMode = TimerMode.COUNTDOWN"
             class="flex items-center justify-center gap-2 p-4 rounded-xl transition-all duration-200"
             :class="currentMode === TimerMode.COUNTDOWN
-              ? 'bg-linear-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-200'
-              : 'bg-gray-50 text-gray-600 hover:bg-rose-50 hover:text-rose-600'"
+              ? 'bg-linear-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-200 dark:shadow-none'
+              : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'"
           >
             <Timer class="w-5 h-5" />
             <span class="font-medium">倒计时</span>
@@ -221,8 +221,8 @@ onUnmounted(() => {
             @click="currentMode = TimerMode.STOPWATCH"
             class="flex items-center justify-center gap-2 p-4 rounded-xl transition-all duration-200"
             :class="currentMode === TimerMode.STOPWATCH
-              ? 'bg-linear-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-200'
-              : 'bg-gray-50 text-gray-600 hover:bg-rose-50 hover:text-rose-600'"
+              ? 'bg-linear-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-200 dark:shadow-none'
+              : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'"
           >
             <Clock class="w-5 h-5" />
             <span class="font-medium">秒表</span>
@@ -235,19 +235,19 @@ onUnmounted(() => {
         <!-- 添加倒计时 -->
         <ToolCard>
           <div class="flex items-center gap-2 mb-6">
-            <Timer class="w-6 h-6 text-rose-500" />
-            <h2 class="text-lg font-semibold text-gray-900">新建倒计时</h2>
+            <Timer class="w-6 h-6 text-primary" />
+            <h2 class="text-lg font-semibold text-foreground">新建倒计时</h2>
           </div>
 
           <!-- 预设时间 -->
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">快速选择</label>
+            <label class="block text-sm font-medium text-foreground mb-2">快速选择</label>
             <div class="flex flex-wrap gap-2">
               <button
                 v-for="preset in presets"
                 :key="preset.name"
                 @click="applyPreset(preset.totalSeconds)"
-                class="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-rose-100 hover:text-rose-700 transition-colors"
+                class="px-3 py-1.5 text-sm bg-muted text-foreground rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
               >
                 {{ preset.name }}
               </button>
@@ -257,22 +257,22 @@ onUnmounted(() => {
           <!-- 自定义时间 -->
           <div class="grid grid-cols-3 gap-4 mb-4">
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">小时</label>
+              <label class="block text-xs font-medium text-muted-foreground mb-1">小时</label>
               <ToolInput v-model="hours" type="number" placeholder="0" :min="0" :max="99" />
             </div>
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">分钟</label>
+              <label class="block text-xs font-medium text-muted-foreground mb-1">分钟</label>
               <ToolInput v-model="minutes" type="number" placeholder="0" :min="0" :max="59" />
             </div>
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">秒</label>
+              <label class="block text-xs font-medium text-muted-foreground mb-1">秒</label>
               <ToolInput v-model="seconds" type="number" placeholder="0" :min="0" :max="59" />
             </div>
           </div>
 
           <!-- 名称输入 -->
           <div class="mb-4">
-            <label class="block text-xs font-medium text-gray-600 mb-1">倒计时名称 (可选)</label>
+            <label class="block text-xs font-medium text-muted-foreground mb-1">倒计时名称 (可选)</label>
             <ToolInput v-model="timerName" type="text" placeholder="例如：煮鸡蛋、休息时间..." />
           </div>
 
@@ -289,8 +289,8 @@ onUnmounted(() => {
 
         <!-- 活动倒计时列表 -->
         <ToolCard v-if="activeCountdowns.length > 0">
-          <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Bell class="w-5 h-5 text-rose-500" />
+          <h3 class="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Bell class="w-5 h-5 text-primary" />
             进行中的倒计时
           </h3>
 
@@ -298,23 +298,23 @@ onUnmounted(() => {
             <div
               v-for="countdown in activeCountdowns"
               :key="countdown.id"
-              class="p-4 bg-gray-50 rounded-xl"
-              :class="{ 'bg-red-50': countdown.isExpired }"
+              class="p-4 bg-muted/50 rounded-xl"
+              :class="{ 'bg-destructive/10': countdown.isExpired }"
             >
               <div class="flex items-center justify-between mb-3">
-                <span class="font-medium text-gray-900">{{ countdown.name }}</span>
+                <span class="font-medium text-foreground">{{ countdown.name }}</span>
                 <div class="flex items-center gap-2">
                   <button
                     v-if="!countdown.isExpired"
                     @click="toggleCountdown(countdown.id)"
-                    class="p-2 rounded-lg bg-white text-gray-600 hover:text-rose-600 transition-colors"
+                    class="p-2 rounded-lg bg-background text-muted-foreground hover:text-primary transition-colors"
                   >
                     <Play v-if="!countdown.isRunning" class="w-4 h-4" />
                     <Pause v-else class="w-4 h-4" />
                   </button>
                   <button
                     @click="removeCountdown(countdown.id)"
-                    class="p-2 rounded-lg bg-white text-gray-600 hover:text-red-600 transition-colors"
+                    class="p-2 rounded-lg bg-background text-muted-foreground hover:text-destructive transition-colors"
                   >
                     <Trash2 class="w-4 h-4" />
                   </button>
@@ -324,7 +324,7 @@ onUnmounted(() => {
               <div class="text-center py-4">
                 <div
                   class="text-4xl font-mono font-bold"
-                  :class="countdown.isExpired ? 'text-red-600' : 'text-gray-900'"
+                  :class="countdown.isExpired ? 'text-destructive' : 'text-foreground'"
                 >
                   <template v-if="!countdown.isExpired">
                     {{ formatTime(
@@ -340,7 +340,7 @@ onUnmounted(() => {
               </div>
 
               <!-- 进度条 -->
-              <div v-if="!countdown.isExpired" class="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div v-if="!countdown.isExpired" class="h-2 bg-muted rounded-full overflow-hidden">
                 <div
                   class="h-full bg-linear-to-r from-rose-400 to-pink-500 rounded-full transition-all"
                   :style="{ width: getRemainingTime(countdown).percentage + '%' }"
@@ -355,13 +355,13 @@ onUnmounted(() => {
       <template v-else>
         <ToolCard>
           <div class="flex items-center gap-2 mb-6">
-            <Clock class="w-6 h-6 text-rose-500" />
-            <h2 class="text-lg font-semibold text-gray-900">秒表</h2>
+            <Clock class="w-6 h-6 text-primary" />
+            <h2 class="text-lg font-semibold text-foreground">秒表</h2>
           </div>
 
           <!-- 时间显示 -->
           <div class="text-center py-8">
-            <div class="text-6xl font-mono font-bold text-gray-900">
+            <div class="text-6xl font-mono font-bold text-foreground">
               {{ formatStopwatchTime(stopwatchTime) }}
             </div>
           </div>
@@ -387,13 +387,13 @@ onUnmounted(() => {
             <button
               @click="recordLap"
               :disabled="!isStopwatchRunning"
-              class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              class="px-6 py-3 bg-muted text-foreground rounded-xl font-medium hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               计次
             </button>
             <button
               @click="resetStopwatch"
-              class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all flex items-center gap-2"
+              class="px-6 py-3 bg-muted text-foreground rounded-xl font-medium hover:bg-muted/80 transition-all flex items-center gap-2"
             >
               <RotateCcw class="w-5 h-5" />
               重置
@@ -401,16 +401,16 @@ onUnmounted(() => {
           </div>
 
           <!-- 计次记录 -->
-          <div v-if="stopwatchLaps.length > 0" class="border-t pt-4">
-            <h3 class="text-sm font-medium text-gray-700 mb-3">计次记录</h3>
+          <div v-if="stopwatchLaps.length > 0" class="border-t border-border pt-4">
+            <h3 class="text-sm font-medium text-foreground mb-3">计次记录</h3>
             <div class="space-y-2 max-h-48 overflow-y-auto">
               <div
                 v-for="(lap, index) in stopwatchLaps"
                 :key="index"
-                class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                class="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
               >
-                <span class="text-sm text-gray-500">计次 {{ stopwatchLaps.length - index }}</span>
-                <span class="font-mono font-medium text-gray-900">{{ formatStopwatchTime(lap) }}</span>
+                <span class="text-sm text-muted-foreground">计次 {{ stopwatchLaps.length - index }}</span>
+                <span class="font-mono font-medium text-foreground">{{ formatStopwatchTime(lap) }}</span>
               </div>
             </div>
           </div>

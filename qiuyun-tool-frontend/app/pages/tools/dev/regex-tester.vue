@@ -275,23 +275,23 @@ const getFlagDescription = (flag: string): string => {
         </div>
         
         <!-- 标志位说明 -->
-        <div class="mt-3 p-3 bg-blue-50/50 rounded-lg border border-blue-100">
-          <div class="text-xs text-blue-600 font-medium mb-2">标志位说明：</div>
+        <div class="mt-3 p-3 bg-primary/5 rounded-lg border border-primary/10">
+          <div class="text-xs text-primary font-medium mb-2">标志位说明：</div>
           <div class="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
             <div class="flex items-start gap-2">
-              <span class="font-mono bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">i</span>
+              <span class="font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">i</span>
               <span>忽略大小写，<code class="bg-muted px-1 rounded">/hello/i</code> 匹配 "Hello"</span>
             </div>
             <div class="flex items-start gap-2">
-              <span class="font-mono bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">m</span>
+              <span class="font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">m</span>
               <span>多行模式，<code class="bg-muted px-1 rounded">^$</code> 匹配每行开头结尾</span>
             </div>
             <div class="flex items-start gap-2">
-              <span class="font-mono bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">s</span>
+              <span class="font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">s</span>
               <span>单行模式，<code class="bg-muted px-1 rounded">.</code> 可匹配换行符</span>
             </div>
             <div class="flex items-start gap-2">
-              <span class="font-mono bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">x</span>
+              <span class="font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">x</span>
               <span>忽略空白，可在正则中添加注释和换行</span>
             </div>
           </div>

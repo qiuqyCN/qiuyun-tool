@@ -370,8 +370,8 @@ const convertFormat = (targetFormat: CronFormat) => {
       <!-- 格式选择 -->
       <ToolCard>
         <div class="flex items-center gap-2 mb-4">
-          <Settings class="w-5 h-5 text-rose-500" />
-          <h2 class="text-lg font-semibold text-gray-900">选择 Cron 格式</h2>
+          <Settings class="w-5 h-5 text-primary" />
+          <h2 class="text-lg font-semibold text-foreground">选择 Cron 格式</h2>
         </div>
         
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -381,18 +381,18 @@ const convertFormat = (targetFormat: CronFormat) => {
             @click="currentFormat = format as CronFormat"
             class="p-3 rounded-xl border-2 text-left transition-all"
             :class="currentFormat === format
-              ? 'border-rose-500 bg-rose-50 text-rose-700'
-              : 'border-gray-200 text-gray-600 hover:border-rose-200'"
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-border text-muted-foreground hover:border-primary/30'"
           >
             <div class="font-medium text-sm">{{ config.name }}</div>
             <div class="text-xs mt-1 opacity-70">{{ config.fields.length }} 位</div>
           </button>
         </div>
         
-        <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+        <div class="mt-4 p-3 bg-primary/5 rounded-lg border border-primary/10">
           <div class="flex items-start gap-2">
-            <Info class="w-4 h-4 text-blue-500 mt-0.5" />
-            <div class="text-sm text-blue-700">
+            <Info class="w-4 h-4 text-primary mt-0.5" />
+            <div class="text-sm text-primary">
               <strong>{{ currentConfig.name }}</strong>：{{ currentConfig.description }}
               <div class="mt-1 text-xs">
                 支持的字段：{{ currentConfig.fields.map(f => f.label).join('、') }}
@@ -418,7 +418,7 @@ const convertFormat = (targetFormat: CronFormat) => {
           class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all"
           :class="currentMode === mode.key
             ? 'bg-linear-to-r from-rose-500 to-pink-600 text-white'
-            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+            : 'bg-muted text-muted-foreground hover:bg-muted/80'"
         >
           <component :is="mode.icon" class="w-4 h-4" />
           {{ mode.label }}
@@ -429,8 +429,8 @@ const convertFormat = (targetFormat: CronFormat) => {
       <template v-if="currentMode === ToolMode.GENERATOR">
         <ToolCard>
           <div class="flex items-center gap-2 mb-6">
-            <Settings class="w-6 h-6 text-rose-500" />
-            <h2 class="text-lg font-semibold text-gray-900">Cron 表达式生成器</h2>
+            <Settings class="w-6 h-6 text-primary" />
+            <h2 class="text-lg font-semibold text-foreground">Cron 表达式生成器</h2>
           </div>
 
           <!-- 字段选择 -->
@@ -440,15 +440,15 @@ const convertFormat = (targetFormat: CronFormat) => {
               :key="field.name"
               class="grid md:grid-cols-3 gap-4 items-center"
             >
-              <label class="font-medium text-gray-700">{{ field.label }}</label>
+              <label class="font-medium text-foreground">{{ field.label }}</label>
               <div class="md:col-span-2">
                 <input
                   v-model="fieldValues[field.name]"
                   type="text"
                   :placeholder="`* (${field.min}-${field.max})`"
-                  class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                  class="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 />
-                <div class="text-xs text-gray-500 mt-1">
+                <div class="text-xs text-muted-foreground mt-1">
                   范围：{{ field.min }}-{{ field.max }}
                   <span v-if="field.names">({{ field.names.slice(0, 3).join('、') }}...)</span>
                 </div>
@@ -472,13 +472,13 @@ const convertFormat = (targetFormat: CronFormat) => {
 
           <!-- 常用预设 -->
           <div class="mt-6">
-            <label class="block text-sm font-medium text-gray-700 mb-3">常用预设</label>
+            <label class="block text-sm font-medium text-foreground mb-3">常用预设</label>
             <div class="flex flex-wrap gap-2">
               <button
                 v-for="preset in presets"
                 :key="preset.name"
                 @click="applyPreset(preset)"
-                class="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-rose-100 hover:text-rose-700 transition-colors"
+                class="px-3 py-1.5 text-sm bg-muted text-foreground rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
               >
                 {{ preset.name }}
               </button>
@@ -491,19 +491,19 @@ const convertFormat = (targetFormat: CronFormat) => {
       <template v-if="currentMode === ToolMode.PARSER">
         <ToolCard>
           <div class="flex items-center gap-2 mb-6">
-            <ArrowRightLeft class="w-6 h-6 text-rose-500" />
-            <h2 class="text-lg font-semibold text-gray-900">Cron 表达式解析器</h2>
+            <ArrowRightLeft class="w-6 h-6 text-primary" />
+            <h2 class="text-lg font-semibold text-foreground">Cron 表达式解析器</h2>
           </div>
 
           <!-- 输入框 -->
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">输入 Cron 表达式</label>
+            <label class="block text-sm font-medium text-foreground mb-2">输入 Cron 表达式</label>
             <div class="flex gap-3">
               <input
                 v-model="parseInput"
                 type="text"
                 placeholder="例如：0 0 * * *"
-                class="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                class="flex-1 px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 @keyup.enter="parseCron"
               />
               <button
@@ -513,34 +513,34 @@ const convertFormat = (targetFormat: CronFormat) => {
                 解析
               </button>
             </div>
-            <p class="text-xs text-gray-500 mt-1">
+            <p class="text-xs text-muted-foreground mt-1">
               {{ currentConfig.name }} 格式：{{ currentConfig.fields.map(f => f.label).join(' ') }}
             </p>
           </div>
 
           <!-- 错误提示 -->
-          <div v-if="parseError" class="mb-6 p-4 bg-red-50 rounded-xl flex items-center gap-2">
-            <AlertCircle class="w-5 h-5 text-red-500" />
-            <span class="text-red-700">{{ parseError }}</span>
+          <div v-if="parseError" class="mb-6 p-4 bg-destructive/10 rounded-xl flex items-center gap-2">
+            <AlertCircle class="w-5 h-5 text-destructive" />
+            <span class="text-destructive">{{ parseError }}</span>
           </div>
 
           <!-- 解析结果 -->
           <div v-if="parseResult" class="space-y-4">
-            <div class="p-4 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
-              <div class="text-sm text-gray-600 mb-1">执行规则</div>
-              <div class="text-lg font-semibold text-gray-900">{{ parseResult.description }}</div>
+            <div class="p-4 bg-primary/5 rounded-xl border border-primary/10">
+              <div class="text-sm text-muted-foreground mb-1">执行规则</div>
+              <div class="text-lg font-semibold text-foreground">{{ parseResult.description }}</div>
             </div>
 
             <div class="grid gap-3">
               <div
                 v-for="field in parseResult.fields"
                 :key="field.name"
-                class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                class="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
               >
-                <span class="text-sm text-gray-600">{{ field.label }}</span>
+                <span class="text-sm text-muted-foreground">{{ field.label }}</span>
                 <div class="text-right">
-                  <code class="text-sm font-mono text-gray-900">{{ field.value }}</code>
-                  <div class="text-xs text-gray-500">{{ field.description }}</div>
+                  <code class="text-sm font-mono text-foreground">{{ field.value }}</code>
+                  <div class="text-xs text-muted-foreground">{{ field.description }}</div>
                 </div>
               </div>
             </div>
@@ -552,24 +552,24 @@ const convertFormat = (targetFormat: CronFormat) => {
       <template v-if="currentMode === ToolMode.PREVIEW">
         <ToolCard>
           <div class="flex items-center gap-2 mb-6">
-            <Calendar class="w-6 h-6 text-rose-500" />
-            <h2 class="text-lg font-semibold text-gray-900">执行时间预览</h2>
+            <Calendar class="w-6 h-6 text-primary" />
+            <h2 class="text-lg font-semibold text-foreground">执行时间预览</h2>
           </div>
 
           <!-- 输入 -->
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Cron 表达式</label>
+            <label class="block text-sm font-medium text-foreground mb-2">Cron 表达式</label>
             <input
               v-model="parseInput"
               type="text"
               placeholder="例如：0 0 * * *"
-              class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+              class="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
           </div>
 
           <!-- 预览数量 -->
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">预览次数</label>
+            <label class="block text-sm font-medium text-foreground mb-2">预览次数</label>
             <div class="flex gap-2">
               <button
                 v-for="count in [5, 10, 20, 50]"
@@ -577,8 +577,8 @@ const convertFormat = (targetFormat: CronFormat) => {
                 @click="previewCount = count; calculateNextExecutions()"
                 class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
                 :class="previewCount === count
-                  ? 'bg-rose-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'"
               >
                 {{ count }}次
               </button>
@@ -590,19 +590,19 @@ const convertFormat = (targetFormat: CronFormat) => {
             <div
               v-for="(time, index) in nextExecutions"
               :key="index"
-              class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg"
+              class="flex items-center gap-4 p-3 bg-muted/50 rounded-lg"
             >
-              <span class="w-8 h-8 flex items-center justify-center bg-rose-100 text-rose-600 rounded-full text-sm font-medium">
+              <span class="w-8 h-8 flex items-center justify-center bg-primary/10 text-primary rounded-full text-sm font-medium">
                 {{ index + 1 }}
               </span>
-              <span class="font-mono text-gray-900">{{ time.toLocaleString('zh-CN') }}</span>
-              <span class="text-sm text-gray-500">
+              <span class="font-mono text-foreground">{{ time.toLocaleString('zh-CN') }}</span>
+              <span class="text-sm text-muted-foreground">
                 {{ Math.ceil((time.getTime() - Date.now()) / 60000) }} 分钟后
               </span>
             </div>
           </div>
 
-          <div v-else class="text-center py-8 text-gray-500">
+          <div v-else class="text-center py-8 text-muted-foreground">
             请输入有效的 Cron 表达式查看执行时间
           </div>
         </ToolCard>
@@ -610,8 +610,8 @@ const convertFormat = (targetFormat: CronFormat) => {
 
       <!-- 格式说明 -->
       <ToolCard>
-        <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Info class="w-5 h-5 text-rose-500" />
+        <h3 class="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Info class="w-5 h-5 text-primary" />
           Cron 格式说明
         </h3>
 
@@ -660,42 +660,42 @@ const convertFormat = (targetFormat: CronFormat) => {
           </div>
 
           <div class="grid md:grid-cols-2 gap-4">
-            <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div class="font-medium text-gray-900 dark:text-gray-100 mb-2">Linux / Unix (5位)</div>
-              <code class="text-xs bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">分 时 日 月 周</code>
-              <div class="text-gray-600 dark:text-gray-300 mt-2">最通用的格式，广泛用于 Linux/Unix 系统的 crontab</div>
+            <div class="p-3 bg-muted/50 rounded-lg">
+              <div class="font-medium text-foreground mb-2">Linux / Unix (5位)</div>
+              <code class="text-xs bg-muted px-2 py-1 rounded text-foreground">分 时 日 月 周</code>
+              <div class="text-muted-foreground mt-2">最通用的格式，广泛用于 Linux/Unix 系统的 crontab</div>
             </div>
 
-            <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div class="font-medium text-gray-900 dark:text-gray-100 mb-2">Quartz (6-7位)</div>
-              <code class="text-xs bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">秒 分 时 日 月 周 [年]</code>
-              <div class="text-gray-600 dark:text-gray-300 mt-2">Java Quartz 框架使用，支持秒级精度和年字段</div>
+            <div class="p-3 bg-muted/50 rounded-lg">
+              <div class="font-medium text-foreground mb-2">Quartz (6-7位)</div>
+              <code class="text-xs bg-muted px-2 py-1 rounded text-foreground">秒 分 时 日 月 周 [年]</code>
+              <div class="text-muted-foreground mt-2">Java Quartz 框架使用，支持秒级精度和年字段</div>
             </div>
 
-            <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div class="font-medium text-gray-900 dark:text-gray-100 mb-2">Spring (6位)</div>
-              <code class="text-xs bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">秒 分 时 日 月 周</code>
-              <div class="text-gray-600 dark:text-gray-300 mt-2">Spring 框架使用，支持秒级，默认秒为 0</div>
+            <div class="p-3 bg-muted/50 rounded-lg">
+              <div class="font-medium text-foreground mb-2">Spring (6位)</div>
+              <code class="text-xs bg-muted px-2 py-1 rounded text-foreground">秒 分 时 日 月 周</code>
+              <div class="text-muted-foreground mt-2">Spring 框架使用，支持秒级，默认秒为 0</div>
             </div>
 
-            <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div class="font-medium text-gray-900 dark:text-gray-100 mb-2">AWS CloudWatch (6位)</div>
-              <code class="text-xs bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded text-gray-800 dark:text-gray-200">分 时 日 月 周 年</code>
-              <div class="text-gray-600 dark:text-gray-300 mt-2">AWS 使用，不支持 ? L W # 等特殊字符</div>
+            <div class="p-3 bg-muted/50 rounded-lg">
+              <div class="font-medium text-foreground mb-2">AWS CloudWatch (6位)</div>
+              <code class="text-xs bg-muted px-2 py-1 rounded text-foreground">分 时 日 月 周 年</code>
+              <div class="text-muted-foreground mt-2">AWS 使用，不支持 ? L W # 等特殊字符</div>
             </div>
           </div>
 
-          <div class="border-t border-gray-200 dark:border-gray-600 pt-4">
-            <div class="font-medium text-gray-900 dark:text-white mb-2 text-base">特殊字符说明</div>
+          <div class="border-t border-border pt-4">
+            <div class="font-medium text-foreground mb-2 text-base">特殊字符说明</div>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-              <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300"><code class="text-rose-600 dark:text-rose-400">*</code> 任意值</div>
-              <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300"><code class="text-rose-600 dark:text-rose-400">,</code> 列表分隔</div>
-              <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300"><code class="text-rose-600 dark:text-rose-400">-</code> 范围</div>
-              <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300"><code class="text-rose-600 dark:text-rose-400">/</code> 步进</div>
-              <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300"><code class="text-rose-600 dark:text-rose-400">?</code> 不指定（Quartz/Spring）</div>
-              <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300"><code class="text-rose-600 dark:text-rose-400">L</code> 最后（Quartz/Spring）</div>
-              <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300"><code class="text-rose-600 dark:text-rose-400">W</code> 最近工作日（Quartz/Spring）</div>
-              <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300"><code class="text-rose-600 dark:text-rose-400">#</code> 第N个星期X（Quartz/Spring）</div>
+              <div class="p-2 bg-muted/50 rounded text-muted-foreground"><code class="text-primary">*</code> 任意值</div>
+              <div class="p-2 bg-muted/50 rounded text-muted-foreground"><code class="text-primary">,</code> 列表分隔</div>
+              <div class="p-2 bg-muted/50 rounded text-muted-foreground"><code class="text-primary">-</code> 范围</div>
+              <div class="p-2 bg-muted/50 rounded text-muted-foreground"><code class="text-primary">/</code> 步进</div>
+              <div class="p-2 bg-muted/50 rounded text-muted-foreground"><code class="text-primary">?</code> 不指定（Quartz/Spring）</div>
+              <div class="p-2 bg-muted/50 rounded text-muted-foreground"><code class="text-primary">L</code> 最后（Quartz/Spring）</div>
+              <div class="p-2 bg-muted/50 rounded text-muted-foreground"><code class="text-primary">W</code> 最近工作日（Quartz/Spring）</div>
+              <div class="p-2 bg-muted/50 rounded text-muted-foreground"><code class="text-primary">#</code> 第N个星期X（Quartz/Spring）</div>
             </div>
           </div>
         </div>

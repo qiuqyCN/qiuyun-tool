@@ -22,16 +22,24 @@ export const toolIconNames: Record<string, string> = {
   'Type': 'Type',
   'Dices': 'Dices',
   'Scale': 'Scale',
+  'Globe': 'Globe',
+  'Layout': 'Layout',
+  'Palette': 'Palette',
+  'Video': 'Video',
 }
 
-// 工具分类
+// 工具分类（按使用频率和重要性排序）
 export const categories = [
   { id: 'dev', name: '开发工具', icon: 'Code', description: 'JSON格式化、代码压缩、正则测试等开发常用工具' },
+  { id: 'frontend', name: '前端工具', icon: 'Layout', description: 'CSS格式化、颜色选择器、布局生成器等前端开发工具' },
   { id: 'image', name: '图片工具', icon: 'Image', description: '图片压缩、格式转换、Base64编码等图片处理工具' },
   { id: 'document', name: '文档转换', icon: 'FileText', description: 'PDF转换、Word转换、Markdown编辑等文档工具' },
   { id: 'crypto', name: '加密工具', icon: 'Lock', description: 'MD5加密、Base64、URL编码等加密解密工具' },
   { id: 'text', name: '文本工具', icon: 'Type', description: '文本对比、字数统计、大小写转换等文本处理工具' },
   { id: 'number', name: '数字工具', icon: 'Calculator', description: '进制转换、单位换算、随机数生成等数字工具' },
+  { id: 'network', name: '网络工具', icon: 'Globe', description: 'IP查询、端口扫描、DNS查询等网络诊断工具' },
+  { id: 'media', name: '视频/音频工具', icon: 'Video', description: '视频格式转换、音频剪辑、文字转语音等多媒体工具' },
+  { id: 'design', name: '设计工具', icon: 'Palette', description: 'Logo生成器、流程图、海报设计等创意设计工具' },
 ]
 
 // 工具列表
@@ -321,6 +329,48 @@ export const tools = [
     visits: 34567,
     rating: 4.3,
     reviewCount: 89,
+    tags: [],
+  },
+
+  // 前端工具
+  {
+    id: 'css-formatter',
+    name: 'CSS格式化',
+    description: 'CSS代码美化、压缩、格式化工具',
+    category: 'frontend',
+    icon: 'Palette',
+    isVip: false,
+    visits: 12345,
+    rating: 4.5,
+    reviewCount: 67,
+    tags: [],
+  },
+
+  // 网络工具
+  {
+    id: 'ip-query',
+    name: 'IP地址查询',
+    description: '查询IP地址的地理位置、运营商等信息',
+    category: 'network',
+    icon: 'Globe',
+    isVip: false,
+    visits: 23456,
+    rating: 4.6,
+    reviewCount: 89,
+    tags: [],
+  },
+
+  // 设计工具
+  {
+    id: 'color-palette',
+    name: '配色方案生成',
+    description: '生成和谐的配色方案，支持多种配色模式',
+    category: 'design',
+    icon: 'Palette',
+    isVip: false,
+    visits: 15678,
+    rating: 4.4,
+    reviewCount: 45,
     tags: [],
   },
 ]

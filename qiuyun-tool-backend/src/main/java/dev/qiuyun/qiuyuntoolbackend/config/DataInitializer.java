@@ -129,16 +129,19 @@ public class DataInitializer implements CommandLineRunner {
     private Map<String, Category> initCategories() {
         log.info("同步分类数据...");
 
-        // 定义所有分类
-        List<CategoryDefinition> categoryDefs = Arrays.asList(
+        // 定义所有分类（使用静态常量避免每次创建）
+        final List<CategoryDefinition> CATEGORY_DEFINITIONS = Arrays.asList(
                 new CategoryDefinition("dev", "开发工具", "Code", "JSON格式化、代码压缩、正则测试等开发常用工具", 1),
-                new CategoryDefinition("doc", "文档转换", "FileText", "PDF转换、Word转换、Markdown编辑等文档工具", 3),
-                new CategoryDefinition("image", "图片工具", "Image", "图片压缩、格式转换、Base64编码、二维码生成等图片处理工具", 2),
-                new CategoryDefinition("media", "媒体工具", "Video", "视频转换、音频处理、格式转换等媒体工具", 7),
-                new CategoryDefinition("crypto", "加密工具", "Lock", "MD5加密、Base64、URL编码等加密解密工具", 4),
-                new CategoryDefinition("text", "文本工具", "Type", "文本对比、字数统计、大小写转换等文本处理工具", 5),
-                new CategoryDefinition("number", "数字工具", "Calculator", "进制转换、单位换算、随机数生成等数字工具", 6),
-                new CategoryDefinition("life", "生活工具", "Heart", "日历、天气、单位换算、日常计算等生活实用工具", 8)
+                new CategoryDefinition("frontend", "前端工具", "Layout", "CSS格式化、颜色选择器、布局生成器等前端开发工具", 2),
+                new CategoryDefinition("image", "图片工具", "Image", "图片压缩、格式转换、Base64编码、二维码生成等图片处理工具", 3),
+                new CategoryDefinition("doc", "文档转换", "FileText", "PDF转换、Word转换、Markdown编辑等文档工具", 4),
+                new CategoryDefinition("crypto", "加密工具", "Lock", "MD5加密、Base64、URL编码等加密解密工具", 5),
+                new CategoryDefinition("text", "文本工具", "Type", "文本对比、字数统计、大小写转换等文本处理工具", 6),
+                new CategoryDefinition("number", "数字工具", "Calculator", "进制转换、单位换算、随机数生成等数字工具", 7),
+                new CategoryDefinition("network", "网络工具", "Globe", "IP查询、端口扫描、DNS查询等网络诊断工具", 8),
+                new CategoryDefinition("media", "视频/音频工具", "Video", "视频格式转换、音频剪辑、文字转语音等多媒体工具", 9),
+                new CategoryDefinition("design", "设计工具", "Palette", "Logo生成器、流程图、海报设计等创意设计工具", 10),
+                new CategoryDefinition("life", "生活工具", "Heart", "日历、天气、单位换算、日常计算等生活实用工具", 11)
         );
 
         // 获取现有分类
@@ -146,12 +149,32 @@ public class DataInitializer implements CommandLineRunner {
         Map<String, Category> existingMap = existingCategories.stream()
                 .collect(Collectors.toMap(Category::getCode, c -> c));
 
+        // 快速路径：如果分类数量和代码都匹配，检查是否有变化
+        if (existingCategories.size() == CATEGORY_DEFINITIONS.size()) {
+            boolean allMatch = CATEGORY_DEFINITIONS.stream()
+                    .allMatch(def -> existingMap.containsKey(def.code));
+            if (allMatch) {
+                boolean anyChanged = false;
+                for (CategoryDefinition def : CATEGORY_DEFINITIONS) {
+                    Category existing = existingMap.get(def.code);
+                    if (isCategoryChanged(existing, def)) {
+                        anyChanged = true;
+                        break;
+                    }
+                }
+                if (!anyChanged) {
+                    log.info("分类数据未变化，跳过同步");
+                    return existingMap;
+                }
+            }
+        }
+
         List<Category> toSave = new ArrayList<>();
         int newCount = 0;
         int updateCount = 0;
         int unchangedCount = 0;
 
-        for (CategoryDefinition def : categoryDefs) {
+        for (CategoryDefinition def : CATEGORY_DEFINITIONS) {
             Category category = existingMap.get(def.code);
             if (category == null) {
                 // 新增分类
@@ -211,8 +234,8 @@ public class DataInitializer implements CommandLineRunner {
     private Map<String, Tag> initTags() {
         log.info("同步标签数据...");
 
-        // 定义所有标签
-        List<TagDefinition> tagDefs = Arrays.asList(
+        // 定义所有标签（使用静态常量避免每次创建）
+        final List<TagDefinition> TAG_DEFINITIONS = Arrays.asList(
                 new TagDefinition("热门", "热门工具", true),
                 new TagDefinition("常用", "常用工具", true),
                 new TagDefinition("VIP", "VIP专属工具", false),
@@ -220,7 +243,23 @@ public class DataInitializer implements CommandLineRunner {
                 new TagDefinition("文档", "文档处理", false),
                 new TagDefinition("图片", "图片处理", false),
                 new TagDefinition("媒体", "音视频处理", false),
-                new TagDefinition("生活", "生活实用", false)
+                new TagDefinition("生活", "生活实用", false),
+                new TagDefinition("加密", "加密解密", false),
+                new TagDefinition("文本", "文本处理", false),
+                new TagDefinition("转换", "格式转换", false),
+                new TagDefinition("生成", "内容生成", false),
+                new TagDefinition("解析", "内容解析", false),
+                new TagDefinition("计算", "数学计算", false),
+                new TagDefinition("测试", "测试调试", false),
+                new TagDefinition("网络", "网络相关", false),
+                new TagDefinition("前端", "前端开发", false),
+                new TagDefinition("后端", "后端开发", false),
+                new TagDefinition("安全", "安全相关", false),
+                new TagDefinition("效率", "效率工具", false),
+                new TagDefinition("设计", "设计相关", false),
+                new TagDefinition("财务", "财务计算", false),
+                new TagDefinition("健康", "健康相关", false),
+                new TagDefinition("时间", "日期时间", false)
         );
 
         // 获取现有标签
@@ -228,12 +267,34 @@ public class DataInitializer implements CommandLineRunner {
         Map<String, Tag> existingMap = existingTags.stream()
                 .collect(Collectors.toMap(Tag::getName, t -> t));
 
+        // 快速路径：如果标签数量和名称都匹配，直接返回
+        if (existingTags.size() == TAG_DEFINITIONS.size()) {
+            boolean allMatch = TAG_DEFINITIONS.stream()
+                    .allMatch(def -> existingMap.containsKey(def.name));
+            if (allMatch) {
+                // 检查是否有变化
+                boolean anyChanged = false;
+                for (TagDefinition def : TAG_DEFINITIONS) {
+                    Tag existing = existingMap.get(def.name);
+                    if (!Objects.equals(existing.getDescription(), def.description) 
+                            || existing.getIsHot() != def.isHot) {
+                        anyChanged = true;
+                        break;
+                    }
+                }
+                if (!anyChanged) {
+                    log.info("标签数据未变化，跳过同步");
+                    return existingMap;
+                }
+            }
+        }
+
         List<Tag> toSave = new ArrayList<>();
         int newCount = 0;
         int updateCount = 0;
         int unchangedCount = 0;
 
-        for (TagDefinition def : tagDefs) {
+        for (TagDefinition def : TAG_DEFINITIONS) {
             Tag tag = existingMap.get(def.name);
             if (tag == null) {
                 // 新增标签
@@ -286,7 +347,7 @@ public class DataInitializer implements CommandLineRunner {
     private void initTools(Map<String, Category> categories, Map<String, Tag> tags) {
         log.info("同步工具数据...");
 
-        // 获取现有工具
+        // 获取现有工具（只获取必要的字段用于比较）
         List<Tool> existingTools = toolRepository.findAll();
         Map<String, Tool> existingMap = existingTools.stream()
                 .collect(Collectors.toMap(Tool::getCode, t -> t));
@@ -298,6 +359,15 @@ public class DataInitializer implements CommandLineRunner {
         int newCount = 0;
         int updateCount = 0;
         int unchangedCount = 0;
+
+        // 预计算工具定义的标签名称集合，避免重复计算
+        Map<String, Set<String>> defTagNamesCache = new HashMap<>();
+        for (ToolDefinition def : toolDefs) {
+            Set<String> tagNames = def.tags != null
+                    ? def.tags.stream().map(Tag::getName).collect(Collectors.toSet())
+                    : Collections.emptySet();
+            defTagNamesCache.put(def.code, tagNames);
+        }
 
         for (ToolDefinition def : toolDefs) {
             Tool tool = existingMap.get(def.code);
@@ -325,7 +395,7 @@ public class DataInitializer implements CommandLineRunner {
                 log.info("新增工具: {}", def.name);
                 newCount++;
                 toSave.add(tool);
-            } else if (isToolChanged(tool, def)) {
+            } else if (isToolChangedFast(tool, def, defTagNamesCache.get(def.code))) {
                 // 工具配置发生变化，才进行更新
                 tool.setName(def.name);
                 tool.setDescription(def.description);
@@ -356,18 +426,18 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     /**
-     * 比较工具定义与现有工具是否发生变化
+     * 比较工具定义与现有工具是否发生变化（快速版本，使用预计算的标签集合）
      */
-    private boolean isToolChanged(Tool existingTool, ToolDefinition def) {
-        // 比较基本字段
+    private boolean isToolChangedFast(Tool existingTool, ToolDefinition def, Set<String> defTagNames) {
+        // 比较基本字段（按变化概率排序，先检查最可能变化的）
         if (!Objects.equals(existingTool.getName(), def.name)) return true;
         if (!Objects.equals(existingTool.getDescription(), def.description)) return true;
+        if (!Objects.equals(existingTool.getInstructions(), def.instructions)) return true;
         if (!Objects.equals(existingTool.getIcon(), def.icon)) return true;
         if (!Objects.equals(existingTool.getIconColor(), def.iconColor)) return true;
         if (!Objects.equals(existingTool.getIconBgColor(), def.iconBgColor)) return true;
         if (existingTool.getIsVip() != def.isVip) return true;
         if (existingTool.getIsActive() != def.isActive) return true;
-        if (!Objects.equals(existingTool.getInstructions(), def.instructions)) return true;
 
         // 比较分类
         if (existingTool.getCategory() == null || def.category == null) {
@@ -376,14 +446,19 @@ public class DataInitializer implements CommandLineRunner {
             return true;
         }
 
-        // 比较标签
-        Set<String> existingTagNames = existingTool.getTags() != null
-                ? existingTool.getTags().stream().map(Tag::getName).collect(Collectors.toSet())
-                : new HashSet<>();
-        Set<String> defTagNames = def.tags != null
-                ? def.tags.stream().map(Tag::getName).collect(Collectors.toSet())
-                : new HashSet<>();
-        if (!existingTagNames.equals(defTagNames)) return true;
+        // 比较标签（使用预计算的defTagNames，避免重复创建集合）
+        Set<Tag> existingTags = existingTool.getTags();
+        if (existingTags == null || existingTags.isEmpty()) {
+            return !defTagNames.isEmpty();
+        }
+        if (existingTags.size() != defTagNames.size()) return true;
+        
+        // 快速比较：检查现有标签是否都在定义中
+        for (Tag tag : existingTags) {
+            if (!defTagNames.contains(tag.getName())) {
+                return true;
+            }
+        }
 
         return false;
     }
@@ -395,12 +470,15 @@ public class DataInitializer implements CommandLineRunner {
         List<ToolDefinition> defs = new ArrayList<>();
 
         Category devCategory = categories.get("dev");
+        Category frontendCategory = categories.get("frontend");
         Category imageCategory = categories.get("image");
         Category docCategory = categories.get("doc");
         Category cryptoCategory = categories.get("crypto");
         Category textCategory = categories.get("text");
         Category numberCategory = categories.get("number");
+        Category networkCategory = categories.get("network");
         Category mediaCategory = categories.get("media");
+        Category designCategory = categories.get("design");
         Category lifeCategory = categories.get("life");
 
         Tag hotTag = tags.get("热门");
@@ -518,6 +596,16 @@ public class DataInitializer implements CommandLineRunner {
                 buildInstructions("上传图片", "点击或拖拽二维码图片到上传区域",
                         "开始解析", "系统自动识别二维码内容",
                         "查看结果", "显示内容类型和结构化数据"),
+                new HashSet<>(Arrays.asList(imageTag))));
+
+        // 图片水印
+        defs.add(new ToolDefinition("image-watermark", "图片水印", "为图片添加文字或图片水印，支持自定义位置、透明度、旋转角度",
+                imageCategory, "Stamp", "#16A34A", "#DCFCE7", false, true,
+                buildInstructions("上传图片", "点击或拖拽上传需要添加水印的图片",
+                        "选择水印类型", "选择文字水印或图片水印",
+                        "配置水印", "设置文字内容、字体、颜色或上传水印图片",
+                        "调整位置", "选择九宫格位置或平铺模式，设置透明度、旋转角度",
+                        "添加水印", "点击按钮生成带水印的图片"),
                 new HashSet<>(Arrays.asList(imageTag))));
 
         // ========== 文档工具 (橙色系) ==========
@@ -721,6 +809,30 @@ public class DataInitializer implements CommandLineRunner {
                         "功能检测", "查看设备支持的 Web 功能（WebGL、存储、定位等）",
                         "复制报告", "一键复制完整的设备信息报告"),
                 new HashSet<>(Arrays.asList(devTag))));
+
+        // ========== 前端工具 (靛蓝色系) ==========
+        defs.add(new ToolDefinition("css-formatter", "CSS格式化", "CSS代码美化、压缩、格式化工具",
+                frontendCategory, "Palette", "#6366F1", "#E0E7FF", false, true,
+                buildInstructions("输入CSS", "在输入框中粘贴需要格式化的CSS代码",
+                        "选择操作", "选择格式化（美化）或压缩（去除空白）",
+                        "查看结果", "系统自动处理并显示结果"),
+                new HashSet<>()));
+
+        // ========== 网络工具 (青色系) ==========
+        defs.add(new ToolDefinition("ip-query", "IP地址查询", "查询IP地址的地理位置、运营商等信息",
+                networkCategory, "Globe", "#0891B2", "#CFFAFE", false, true,
+                buildInstructions("输入IP", "填写要查询的IP地址（留空查询本机IP）",
+                        "点击查询", "系统自动获取IP的地理位置信息",
+                        "查看结果", "显示国家、地区、运营商等详细信息"),
+                new HashSet<>()));
+
+        // ========== 设计工具 (紫色系) ==========
+        defs.add(new ToolDefinition("color-palette", "配色方案生成", "生成和谐的配色方案，支持多种配色模式",
+                designCategory, "Palette", "#9333EA", "#F3E8FF", false, true,
+                buildInstructions("选择主色", "选择或输入一个基础颜色",
+                        "选择模式", "选择配色模式：类比、互补、三角等",
+                        "生成方案", "系统自动生成和谐的配色组合"),
+                new HashSet<>()));
 
         return defs;
     }

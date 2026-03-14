@@ -258,8 +258,8 @@ const useExample = (num: string) => {
       <!-- 输入区域 -->
       <ToolCard>
         <div class="flex items-center gap-2 mb-6">
-          <Banknote class="w-6 h-6 text-rose-500" />
-          <h2 class="text-lg font-semibold text-gray-900">数字转中文大写</h2>
+          <Banknote class="w-6 h-6 text-primary" />
+          <h2 class="text-lg font-semibold text-foreground">数字转中文大写</h2>
         </div>
 
         <div class="space-y-6">
@@ -270,24 +270,24 @@ const useExample = (num: string) => {
                 type="radio" 
                 v-model="showRMB" 
                 :value="true"
-                class="w-4 h-4 text-rose-500 focus:ring-rose-500"
+                class="w-4 h-4 text-primary focus:ring-primary"
               />
-              <span class="text-sm text-gray-700">金额格式（元角分）</span>
+              <span class="text-sm text-foreground">金额格式（元角分）</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
               <input 
                 type="radio" 
                 v-model="showRMB" 
                 :value="false"
-                class="w-4 h-4 text-rose-500 focus:ring-rose-500"
+                class="w-4 h-4 text-primary focus:ring-primary"
               />
-              <span class="text-sm text-gray-700">普通数字</span>
+              <span class="text-sm text-foreground">普通数字</span>
             </label>
           </div>
 
           <!-- 数字输入 -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-foreground mb-2">
               输入数字
             </label>
             <ToolInput
@@ -299,9 +299,9 @@ const useExample = (num: string) => {
           </div>
 
           <!-- 结果显示 -->
-          <div v-if="result" class="bg-linear-to-r from-rose-50 to-pink-50 rounded-xl p-6 border border-rose-100">
+          <div v-if="result" class="bg-primary/5 rounded-xl p-6 border border-primary/10">
             <div class="flex items-center justify-between mb-3">
-              <span class="text-sm text-gray-600">转换结果</span>
+              <span class="text-sm text-muted-foreground">转换结果</span>
               <ToolButton 
                 variant="secondary" 
                 size="sm"
@@ -313,12 +313,12 @@ const useExample = (num: string) => {
             </div>
             
             <!-- 原始数字 -->
-            <div class="text-sm text-gray-500 mb-2">
+            <div class="text-sm text-muted-foreground mb-2">
               {{ formattedNumber }}
             </div>
             
             <!-- 中文大写 -->
-            <div class="text-2xl font-bold text-gray-900 tracking-wider leading-relaxed">
+            <div class="text-2xl font-bold text-foreground tracking-wider leading-relaxed">
               {{ result }}
             </div>
           </div>
@@ -347,18 +347,18 @@ const useExample = (num: string) => {
       <!-- 快速示例 -->
       <ToolCard>
         <div class="flex items-center gap-2 mb-4">
-          <Calculator class="w-5 h-5 text-rose-500" />
-          <h3 class="font-semibold text-gray-900">快速示例</h3>
+          <Calculator class="w-5 h-5 text-primary" />
+          <h3 class="font-semibold text-foreground">快速示例</h3>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <button
             v-for="example in examples"
             :key="example.num"
             @click="useExample(example.num)"
-            class="p-3 text-left rounded-lg border border-gray-200 hover:border-rose-300 hover:bg-rose-50 transition-all"
+            class="p-3 text-left rounded-lg border border-border hover:border-primary/50 hover:bg-primary/5 transition-all"
           >
-            <div class="text-sm font-medium text-gray-900">{{ example.num }}</div>
-            <div class="text-xs text-gray-500">{{ example.desc }}</div>
+            <div class="text-sm font-medium text-foreground">{{ example.num }}</div>
+            <div class="text-xs text-muted-foreground">{{ example.desc }}</div>
           </button>
         </div>
       </ToolCard>
@@ -366,31 +366,31 @@ const useExample = (num: string) => {
       <!-- 使用说明 -->
       <ToolCard>
         <div class="flex items-center gap-2 mb-4">
-          <CheckCircle2 class="w-5 h-5 text-rose-500" />
-          <h3 class="font-semibold text-gray-900">使用说明</h3>
+          <CheckCircle2 class="w-5 h-5 text-primary" />
+          <h3 class="font-semibold text-foreground">使用说明</h3>
         </div>
-        <div class="space-y-3 text-sm text-gray-600">
-          <p><strong>金额格式：</strong>自动添加"元角分"单位，如 123.45 → 壹佰贰拾叁元肆角伍分</p>
-          <p><strong>普通数字：</strong>纯数字大写转换，如 12345 → 壹万贰仟叁佰肆拾伍</p>
-          <p><strong>小数处理：</strong>金额格式最多支持到分（2位小数），普通数字支持更多小数位</p>
-          <p><strong>负数支持：</strong>自动添加"负"字前缀</p>
-          <p><strong>零的处理：</strong>自动优化连续的零，如 1001 → 壹仟零壹</p>
+        <div class="space-y-3 text-sm text-muted-foreground">
+          <p><strong class="text-foreground">金额格式：</strong>自动添加"元角分"单位，如 123.45 → 壹佰贰拾叁元肆角伍分</p>
+          <p><strong class="text-foreground">普通数字：</strong>纯数字大写转换，如 12345 → 壹万贰仟叁佰肆拾伍</p>
+          <p><strong class="text-foreground">小数处理：</strong>金额格式最多支持到分（2位小数），普通数字支持更多小数位</p>
+          <p><strong class="text-foreground">负数支持：</strong>自动添加"负"字前缀</p>
+          <p><strong class="text-foreground">零的处理：</strong>自动优化连续的零，如 1001 → 壹仟零壹</p>
         </div>
       </ToolCard>
 
       <!-- 历史记录 -->
       <ToolCard v-if="history.length > 0">
         <div class="flex items-center gap-2 mb-4">
-          <History class="w-5 h-5 text-rose-500" />
-          <h3 class="font-semibold text-gray-900">历史记录</h3>
+          <History class="w-5 h-5 text-primary" />
+          <h3 class="font-semibold text-foreground">历史记录</h3>
         </div>
         <div class="space-y-2">
           <div
             v-for="(item, index) in history"
             :key="index"
-            class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            class="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
           >
-            <span class="text-sm text-gray-700">{{ item }}</span>
+            <span class="text-sm text-foreground">{{ item }}</span>
             <ToolButton
               variant="secondary"
               size="sm"

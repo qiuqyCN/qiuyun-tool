@@ -361,20 +361,20 @@ const currentYearLeapMonth = computed(() => {
       <!-- 输入区域 -->
       <ToolCard>
         <div class="flex items-center gap-2 mb-6">
-          <Calendar class="w-6 h-6 text-rose-500" />
-          <h2 class="text-lg font-semibold text-gray-900">年龄计算器</h2>
+          <Calendar class="w-6 h-6 text-primary" />
+          <h2 class="text-lg font-semibold text-foreground">年龄计算器</h2>
         </div>
 
         <!-- 日期类型选择 -->
         <div class="mb-6">
-          <label class="block text-sm font-medium text-gray-700 mb-2">出生日期类型</label>
+          <label class="block text-sm font-medium text-foreground mb-2">出生日期类型</label>
           <div class="grid grid-cols-2 gap-3">
             <button
               @click="birthDateType = DateType.SOLAR"
               class="flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all"
               :class="birthDateType === DateType.SOLAR
-                ? 'border-rose-500 bg-rose-50 text-rose-700'
-                : 'border-gray-200 text-gray-600 hover:border-rose-200'"
+                ? 'border-primary bg-primary/5 text-primary'
+                : 'border-border text-muted-foreground hover:border-primary/50'"
             >
               <Sun class="w-5 h-5" />
               <span class="font-medium">公历（阳历）</span>
@@ -383,8 +383,8 @@ const currentYearLeapMonth = computed(() => {
               @click="birthDateType = DateType.LUNAR"
               class="flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all"
               :class="birthDateType === DateType.LUNAR
-                ? 'border-rose-500 bg-rose-50 text-rose-700'
-                : 'border-gray-200 text-gray-600 hover:border-rose-200'"
+                ? 'border-primary bg-primary/5 text-primary'
+                : 'border-border text-muted-foreground hover:border-primary/50'"
             >
               <Moon class="w-5 h-5" />
               <span class="font-medium">农历（阴历）</span>
@@ -396,11 +396,11 @@ const currentYearLeapMonth = computed(() => {
           <!-- 公历输入 -->
           <div v-if="birthDateType === DateType.SOLAR" class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">出生日期（公历）</label>
+              <label class="block text-sm font-medium text-foreground mb-2">出生日期（公历）</label>
               <input
                 v-model="birthDate"
                 type="date"
-                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                class="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
           </div>
@@ -408,23 +408,23 @@ const currentYearLeapMonth = computed(() => {
           <!-- 农历输入 -->
           <div v-else class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">出生日期（农历）</label>
+              <label class="block text-sm font-medium text-foreground mb-2">出生日期（农历）</label>
               <div class="grid grid-cols-3 gap-2">
                 <select
                   v-model="lunarYear"
-                  class="px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                  class="px-3 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 >
                   <option v-for="year in yearOptions" :key="year" :value="year">{{ year }}年</option>
                 </select>
                 <select
                   v-model="lunarMonth"
-                  class="px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                  class="px-3 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 >
                   <option v-for="month in monthOptions" :key="month" :value="month">{{ lunarMonths[month - 1] }}月</option>
                 </select>
                 <select
                   v-model="lunarDay"
-                  class="px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                  class="px-3 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 >
                   <option v-for="day in dayOptions" :key="day" :value="day">{{ lunarDays[day - 1] }}</option>
                 </select>
@@ -435,9 +435,9 @@ const currentYearLeapMonth = computed(() => {
                   <input
                     v-model="isLeapMonth"
                     type="checkbox"
-                    class="w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                    class="w-4 h-4 text-primary border-border rounded focus:ring-primary"
                   />
-                  <span class="text-sm text-gray-600">闰月</span>
+                  <span class="text-sm text-muted-foreground">闰月</span>
                 </label>
               </div>
             </div>
@@ -445,24 +445,24 @@ const currentYearLeapMonth = computed(() => {
 
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">计算日期</label>
+              <label class="block text-sm font-medium text-foreground mb-2">计算日期</label>
               <input
                 v-model="calcDate"
                 type="date"
-                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                class="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
-              <p class="text-xs text-gray-500 mt-1">默认为今天，可修改计算特定日期的年龄</p>
+              <p class="text-xs text-muted-foreground mt-1">默认为今天，可修改计算特定日期的年龄</p>
             </div>
           </div>
         </div>
 
         <!-- 农历显示 -->
-        <div v-if="ageResult?.lunarDisplay" class="mt-4 p-4 bg-linear-to-r from-amber-50 to-yellow-50 rounded-xl">
-          <div class="flex items-center gap-2 text-amber-700">
+        <div v-if="ageResult?.lunarDisplay" class="mt-4 p-4 bg-amber-500/10 rounded-xl">
+          <div class="flex items-center gap-2 text-amber-600">
             <Moon class="w-5 h-5" />
             <span class="font-medium">农历信息</span>
           </div>
-          <div class="mt-2 text-amber-800">
+          <div class="mt-2 text-amber-600">
             <span class="text-lg font-bold">{{ ageResult.lunarDisplay.yearGanZhi }}年</span>
             <span class="mx-2">·</span>
             <span>{{ ageResult.lunarDisplay.monthName }}</span>
@@ -476,45 +476,45 @@ const currentYearLeapMonth = computed(() => {
       <!-- 主要结果 -->
       <ToolCard v-if="ageResult">
         <div class="text-center mb-6">
-          <div class="text-sm text-gray-500 mb-2">您的年龄</div>
-          <div class="text-5xl font-bold text-rose-600">
+          <div class="text-sm text-muted-foreground mb-2">您的年龄</div>
+          <div class="text-5xl font-bold text-primary">
             {{ ageResult.years }}
             <span class="text-2xl">岁</span>
           </div>
-          <div class="text-gray-600 mt-2">
+          <div class="text-muted-foreground mt-2">
             {{ ageResult.months }} 个月 {{ ageResult.days }} 天
           </div>
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="p-4 bg-gray-50 rounded-xl text-center">
-            <div class="text-xs text-gray-500 mb-1">总天数</div>
-            <div class="text-xl font-bold text-gray-900">{{ ageResult.totalDays.toLocaleString() }}</div>
+          <div class="p-4 bg-muted/50 rounded-xl text-center">
+            <div class="text-xs text-muted-foreground mb-1">总天数</div>
+            <div class="text-xl font-bold text-foreground">{{ ageResult.totalDays.toLocaleString() }}</div>
           </div>
-          <div class="p-4 bg-gray-50 rounded-xl text-center">
-            <div class="text-xs text-gray-500 mb-1">总周数</div>
-            <div class="text-xl font-bold text-gray-900">{{ ageResult.totalWeeks.toLocaleString() }}</div>
+          <div class="p-4 bg-muted/50 rounded-xl text-center">
+            <div class="text-xs text-muted-foreground mb-1">总周数</div>
+            <div class="text-xl font-bold text-foreground">{{ ageResult.totalWeeks.toLocaleString() }}</div>
           </div>
-          <div class="p-4 bg-gray-50 rounded-xl text-center">
-            <div class="text-xs text-gray-500 mb-1">总小时</div>
-            <div class="text-xl font-bold text-gray-900">{{ ageResult.totalHours.toLocaleString() }}</div>
+          <div class="p-4 bg-muted/50 rounded-xl text-center">
+            <div class="text-xs text-muted-foreground mb-1">总小时</div>
+            <div class="text-xl font-bold text-foreground">{{ ageResult.totalHours.toLocaleString() }}</div>
           </div>
-          <div class="p-4 bg-gray-50 rounded-xl text-center">
-            <div class="text-xs text-gray-500 mb-1">总分钟</div>
-            <div class="text-xl font-bold text-gray-900">{{ ageResult.totalMinutes.toLocaleString() }}</div>
+          <div class="p-4 bg-muted/50 rounded-xl text-center">
+            <div class="text-xs text-muted-foreground mb-1">总分钟</div>
+            <div class="text-xl font-bold text-foreground">{{ ageResult.totalMinutes.toLocaleString() }}</div>
           </div>
         </div>
 
         <!-- 生命进度条 -->
-        <div class="mt-6 p-4 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
+        <div class="mt-6 p-4 bg-primary/5 rounded-xl">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-medium text-gray-700 flex items-center gap-1">
+            <span class="text-sm font-medium text-foreground flex items-center gap-1">
               <Clock class="w-4 h-4" />
               人生进度 (假设80岁)
             </span>
-            <span class="text-sm font-bold text-rose-600">{{ ageResult.lifeProgress }}%</span>
+            <span class="text-sm font-bold text-primary">{{ ageResult.lifeProgress }}%</span>
           </div>
-          <div class="h-3 bg-white rounded-full overflow-hidden">
+          <div class="h-3 bg-background rounded-full overflow-hidden">
             <div
               class="h-full bg-linear-to-r from-rose-400 to-pink-500 rounded-full transition-all duration-500"
               :style="{ width: ageResult.lifeProgress + '%' }"
@@ -525,18 +525,18 @@ const currentYearLeapMonth = computed(() => {
 
       <!-- 生肖星座 -->
       <ToolCard v-if="ageResult">
-        <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Sparkles class="w-5 h-5 text-rose-500" />
+        <h3 class="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Sparkles class="w-5 h-5 text-primary" />
           生肖与星座
         </h3>
         <div class="grid md:grid-cols-2 gap-4">
           <div class="p-4 bg-linear-to-br from-red-50 to-orange-50 rounded-xl text-center">
-            <div class="text-sm text-gray-500 mb-2">生肖</div>
+            <div class="text-sm text-muted-foreground mb-2">生肖</div>
             <div class="text-4xl font-bold text-red-600">{{ ageResult.zodiac }}</div>
-            <div v-if="ageResult.lunarYearGanZhi" class="text-sm text-gray-500 mt-1">{{ ageResult.lunarYearGanZhi }}年</div>
+            <div v-if="ageResult.lunarYearGanZhi" class="text-sm text-muted-foreground mt-1">{{ ageResult.lunarYearGanZhi }}年</div>
           </div>
           <div class="p-4 bg-linear-to-br from-purple-50 to-indigo-50 rounded-xl text-center">
-            <div class="text-sm text-gray-500 mb-2">星座</div>
+            <div class="text-sm text-muted-foreground mb-2">星座</div>
             <div class="text-2xl font-bold text-purple-600">{{ ageResult.constellation }}</div>
           </div>
         </div>
@@ -544,27 +544,27 @@ const currentYearLeapMonth = computed(() => {
 
       <!-- 下一个生日 -->
       <ToolCard v-if="ageResult">
-        <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Gift class="w-5 h-5 text-rose-500" />
+        <h3 class="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Gift class="w-5 h-5 text-primary" />
           下一个生日
         </h3>
         <div class="grid md:grid-cols-2 gap-4">
           <!-- 公历生日 -->
-          <div class="p-6 bg-linear-to-r from-rose-50 to-pink-50 rounded-xl">
+          <div class="p-6 bg-primary/5 rounded-xl">
             <div class="flex items-center gap-2 mb-3">
-              <Sun class="w-5 h-5 text-rose-500" />
-              <span class="font-medium text-gray-700">公历生日</span>
+              <Sun class="w-5 h-5 text-primary" />
+              <span class="font-medium text-foreground">公历生日</span>
             </div>
-            <div class="text-2xl font-bold text-gray-900">{{ ageResult.nextSolarBirthday }}</div>
-            <div class="text-rose-600 mt-1">距离还有 {{ ageResult.daysToNextSolarBirthday }} 天</div>
+            <div class="text-2xl font-bold text-foreground">{{ ageResult.nextSolarBirthday }}</div>
+            <div class="text-primary mt-1">距离还有 {{ ageResult.daysToNextSolarBirthday }} 天</div>
           </div>
           <!-- 农历生日 -->
-          <div class="p-6 bg-linear-to-r from-amber-50 to-yellow-50 rounded-xl">
+          <div class="p-6 bg-amber-500/10 rounded-xl">
             <div class="flex items-center gap-2 mb-3">
               <Moon class="w-5 h-5 text-amber-600" />
-              <span class="font-medium text-gray-700">农历生日</span>
+              <span class="font-medium text-foreground">农历生日</span>
             </div>
-            <div class="text-2xl font-bold text-gray-900">{{ ageResult.nextLunarBirthday || '无闰月' }}</div>
+            <div class="text-2xl font-bold text-foreground">{{ ageResult.nextLunarBirthday || '无闰月' }}</div>
             <div v-if="ageResult.nextLunarBirthday" class="text-amber-600 mt-1">
               距离还有 {{ ageResult.daysToNextLunarBirthday }} 天
             </div>

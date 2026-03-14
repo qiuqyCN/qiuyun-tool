@@ -417,7 +417,7 @@ onMounted(() => {
             <span>{{ copySuccess ? '已复制' : '复制信息' }}</span>
           </ToolButton>
         </div>
-        <div class="text-sm text-gray-500">
+        <div class="text-sm text-muted-foreground">
           窗口尺寸: {{ deviceInfo.windowWidth }} x {{ deviceInfo.windowHeight }}
         </div>
       </div>
@@ -427,29 +427,29 @@ onMounted(() => {
         <!-- 基础信息 -->
         <ToolCard>
           <div class="flex items-center gap-2 mb-4">
-            <Globe class="w-5 h-5 text-rose-500" />
-            <h3 class="font-semibold text-gray-900">基础信息</h3>
+            <Globe class="w-5 h-5 text-primary" />
+            <h3 class="font-semibold text-foreground">基础信息</h3>
           </div>
           <div class="space-y-1">
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">操作系统</span>
-              <span class="text-sm font-medium text-gray-900">{{ deviceInfo.osName }} {{ deviceInfo.osVersion }}</span>
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">操作系统</span>
+              <span class="text-sm font-medium text-foreground">{{ deviceInfo.osName }} {{ deviceInfo.osVersion }}</span>
             </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">浏览器</span>
-              <span class="text-sm font-medium text-gray-900">{{ deviceInfo.browserName }} {{ deviceInfo.browserVersion }}</span>
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">浏览器</span>
+              <span class="text-sm font-medium text-foreground">{{ deviceInfo.browserName }} {{ deviceInfo.browserVersion }}</span>
             </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">语言</span>
-              <span class="text-sm font-medium text-gray-900">{{ deviceInfo.language }}</span>
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">语言</span>
+              <span class="text-sm font-medium text-foreground">{{ deviceInfo.language }}</span>
             </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">时区</span>
-              <span class="text-sm font-medium text-gray-900">{{ deviceInfo.timezone }}</span>
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">时区</span>
+              <span class="text-sm font-medium text-foreground">{{ deviceInfo.timezone }}</span>
             </div>
             <div class="flex justify-between py-2">
-              <span class="text-sm text-gray-600">Cookie</span>
-              <span class="text-sm font-medium" :class="deviceInfo.cookieEnabled ? 'text-green-600' : 'text-red-600'">
+              <span class="text-sm text-muted-foreground">Cookie</span>
+              <span class="text-sm font-medium" :class="deviceInfo.cookieEnabled ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
                 {{ deviceInfo.cookieEnabled ? '已启用' : '已禁用' }}
               </span>
             </div>
@@ -459,29 +459,29 @@ onMounted(() => {
         <!-- 屏幕信息 -->
         <ToolCard>
           <div class="flex items-center gap-2 mb-4">
-            <Monitor class="w-5 h-5 text-rose-500" />
-            <h3 class="font-semibold text-gray-900">屏幕信息</h3>
+            <Monitor class="w-5 h-5 text-primary" />
+            <h3 class="font-semibold text-foreground">屏幕信息</h3>
           </div>
           <div class="space-y-1">
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">屏幕分辨率</span>
-              <span class="text-sm font-medium text-gray-900">{{ deviceInfo.screenWidth }} × {{ deviceInfo.screenHeight }}</span>
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">屏幕分辨率</span>
+              <span class="text-sm font-medium text-foreground">{{ deviceInfo.screenWidth }} × {{ deviceInfo.screenHeight }}</span>
             </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">可用分辨率</span>
-              <span class="text-sm font-medium text-gray-900">{{ deviceInfo.screenAvailWidth }} × {{ deviceInfo.screenAvailHeight }}</span>
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">可用分辨率</span>
+              <span class="text-sm font-medium text-foreground">{{ deviceInfo.screenAvailWidth }} × {{ deviceInfo.screenAvailHeight }}</span>
             </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">像素比 (DPR)</span>
-              <span class="text-sm font-medium text-gray-900">{{ deviceInfo.screenPixelRatio }}x</span>
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">像素比 (DPR)</span>
+              <span class="text-sm font-medium text-foreground">{{ deviceInfo.screenPixelRatio }}x</span>
             </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">色深</span>
-              <span class="text-sm font-medium text-gray-900">{{ deviceInfo.screenColorDepth }} bit</span>
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">色深</span>
+              <span class="text-sm font-medium text-foreground">{{ deviceInfo.screenColorDepth }} bit</span>
             </div>
             <div class="flex justify-between py-2">
-              <span class="text-sm text-gray-600">触摸支持</span>
-              <span class="text-sm font-medium text-gray-900">
+              <span class="text-sm text-muted-foreground">触摸支持</span>
+              <span class="text-sm font-medium text-foreground">
                 {{ deviceInfo.maxTouchPoints > 0 ? `支持 (${deviceInfo.maxTouchPoints}点)` : '不支持' }}
               </span>
             </div>
@@ -491,27 +491,27 @@ onMounted(() => {
         <!-- 硬件信息 -->
         <ToolCard>
           <div class="flex items-center gap-2 mb-4">
-            <Cpu class="w-5 h-5 text-rose-500" />
-            <h3 class="font-semibold text-gray-900">硬件信息</h3>
+            <Cpu class="w-5 h-5 text-primary" />
+            <h3 class="font-semibold text-foreground">硬件信息</h3>
           </div>
           <div class="space-y-1">
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">CPU 核心数</span>
-              <span class="text-sm font-medium text-gray-900">{{ deviceInfo.hardwareConcurrency }} 核</span>
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">CPU 核心数</span>
+              <span class="text-sm font-medium text-foreground">{{ deviceInfo.hardwareConcurrency }} 核</span>
             </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">设备内存</span>
-              <span class="text-sm font-medium text-gray-900">
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">设备内存</span>
+              <span class="text-sm font-medium text-foreground">
                 {{ deviceInfo.deviceMemory ? deviceInfo.deviceMemory + ' GB' : '未知' }}
               </span>
             </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">硬件并发</span>
-              <span class="text-sm font-medium text-gray-900">{{ deviceInfo.hardwareConcurrency }} 线程</span>
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">硬件并发</span>
+              <span class="text-sm font-medium text-foreground">{{ deviceInfo.hardwareConcurrency }} 线程</span>
             </div>
             <div class="flex justify-between py-2">
-              <span class="text-sm text-gray-600">平台</span>
-              <span class="text-sm font-medium text-gray-900">{{ platformDisplayName }}</span>
+              <span class="text-sm text-muted-foreground">平台</span>
+              <span class="text-sm font-medium text-foreground">{{ platformDisplayName }}</span>
             </div>
           </div>
         </ToolCard>
@@ -519,31 +519,31 @@ onMounted(() => {
         <!-- 电池信息 -->
         <ToolCard>
           <div class="flex items-center gap-2 mb-4">
-            <Battery class="w-5 h-5 text-rose-500" />
-            <h3 class="font-semibold text-gray-900">电池信息</h3>
+            <Battery class="w-5 h-5 text-primary" />
+            <h3 class="font-semibold text-foreground">电池信息</h3>
           </div>
           <div class="space-y-1">
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">电量</span>
-              <span class="text-sm font-medium text-gray-900">
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">电量</span>
+              <span class="text-sm font-medium text-foreground">
                 {{ deviceInfo.batteryLevel !== null ? deviceInfo.batteryLevel + '%' : '不支持' }}
               </span>
             </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">充电状态</span>
-              <span class="text-sm font-medium" :class="deviceInfo.batteryCharging ? 'text-green-600' : 'text-gray-900'">
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">充电状态</span>
+              <span class="text-sm font-medium" :class="deviceInfo.batteryCharging ? 'text-green-600 dark:text-green-400' : 'text-foreground'">
                 {{ deviceInfo.batteryCharging !== null ? (deviceInfo.batteryCharging ? '充电中' : '未充电') : '不支持' }}
               </span>
             </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">充满时间</span>
-              <span class="text-sm font-medium text-gray-900">
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">充满时间</span>
+              <span class="text-sm font-medium text-foreground">
                 {{ deviceInfo.batteryChargingTime && deviceInfo.batteryChargingTime !== Infinity ? Math.round(deviceInfo.batteryChargingTime / 60) + ' 分钟' : '未知' }}
               </span>
             </div>
             <div class="flex justify-between py-2">
-              <span class="text-sm text-gray-600">剩余时间</span>
-              <span class="text-sm font-medium text-gray-900">
+              <span class="text-sm text-muted-foreground">剩余时间</span>
+              <span class="text-sm font-medium text-foreground">
                 {{ deviceInfo.batteryDischargingTime && deviceInfo.batteryDischargingTime !== Infinity ? Math.round(deviceInfo.batteryDischargingTime / 60) + ' 分钟' : '未知' }}
               </span>
             </div>
@@ -553,29 +553,29 @@ onMounted(() => {
         <!-- 网络信息 -->
         <ToolCard>
           <div class="flex items-center gap-2 mb-4">
-            <Wifi class="w-5 h-5 text-rose-500" />
-            <h3 class="font-semibold text-gray-900">网络信息</h3>
+            <Wifi class="w-5 h-5 text-primary" />
+            <h3 class="font-semibold text-foreground">网络信息</h3>
           </div>
           <div class="space-y-1">
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">在线状态</span>
-              <span class="text-sm font-medium" :class="deviceInfo.online ? 'text-green-600' : 'text-red-600'">
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">在线状态</span>
+              <span class="text-sm font-medium" :class="deviceInfo.online ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
                 {{ deviceInfo.online ? '在线' : '离线' }}
               </span>
             </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">网络类型</span>
-              <span class="text-sm font-medium text-gray-900">{{ deviceInfo.connectionEffectiveType || '未知' }}</span>
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">网络类型</span>
+              <span class="text-sm font-medium text-foreground">{{ deviceInfo.connectionEffectiveType || '未知' }}</span>
             </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-              <span class="text-sm text-gray-600">下行速度</span>
-              <span class="text-sm font-medium text-gray-900">
+            <div class="flex justify-between py-2 border-b border-border">
+              <span class="text-sm text-muted-foreground">下行速度</span>
+              <span class="text-sm font-medium text-foreground">
                 {{ deviceInfo.connectionDownlink ? deviceInfo.connectionDownlink + ' Mbps' : '未知' }}
               </span>
             </div>
             <div class="flex justify-between py-2">
-              <span class="text-sm text-gray-600">往返延迟 (RTT)</span>
-              <span class="text-sm font-medium text-gray-900">
+              <span class="text-sm text-muted-foreground">往返延迟 (RTT)</span>
+              <span class="text-sm font-medium text-foreground">
                 {{ deviceInfo.connectionRtt ? deviceInfo.connectionRtt + ' ms' : '未知' }}
               </span>
             </div>
@@ -585,8 +585,8 @@ onMounted(() => {
         <!-- 功能支持检测 -->
         <ToolCard>
           <div class="flex items-center gap-2 mb-4">
-            <Smartphone class="w-5 h-5 text-rose-500" />
-            <h3 class="font-semibold text-gray-900">功能支持检测</h3>
+            <Smartphone class="w-5 h-5 text-primary" />
+            <h3 class="font-semibold text-foreground">功能支持检测</h3>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div 
@@ -610,9 +610,9 @@ onMounted(() => {
               <component 
                 :is="supported ? CheckCircle2 : XCircle" 
                 class="w-4 h-4"
-                :class="supported ? 'text-green-500' : 'text-gray-300'"
+                :class="supported ? 'text-green-500' : 'text-muted-foreground/30'"
               />
-              <span class="text-sm text-gray-700">{{ name }}</span>
+              <span class="text-sm text-foreground">{{ name }}</span>
             </div>
           </div>
         </ToolCard>
@@ -621,11 +621,11 @@ onMounted(() => {
       <!-- User Agent -->
       <ToolCard>
         <div class="flex items-center gap-2 mb-4">
-          <Globe class="w-5 h-5 text-rose-500" />
-          <h3 class="font-semibold text-gray-900">User Agent</h3>
+          <Globe class="w-5 h-5 text-primary" />
+          <h3 class="font-semibold text-foreground">User Agent</h3>
         </div>
-        <div class="bg-gray-50 rounded-lg p-4">
-          <code class="text-xs text-gray-700 break-all font-mono">
+        <div class="bg-muted/50 rounded-lg p-4">
+          <code class="text-xs text-foreground break-all font-mono">
             {{ deviceInfo.userAgent }}
           </code>
         </div>
