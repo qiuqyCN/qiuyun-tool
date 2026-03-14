@@ -23,7 +23,7 @@ const emit = defineEmits<{
     :type="type"
     :disabled="disabled"
     @click="emit('click')"
-    class="font-medium rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+    class="inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
     :class="{
       // Variants
       'bg-linear-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700': variant === 'primary',

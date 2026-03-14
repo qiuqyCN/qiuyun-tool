@@ -60,7 +60,7 @@ const numberToChinese = (numStr: string, isRMB: boolean = false): string => {
   } else {
     // 普通数字转换
     const parts = numStr.split('.')
-    const integerPart = parseInt(parts[0], 10) || 0
+    const integerPart = parseInt(parts[0] || '0', 10) || 0
     const result = convertToChinese(integerPart)
     
     // 处理小数部分
@@ -151,7 +151,7 @@ const convertSegment = (num: number): string => {
         result = '零' + result
         zeroFlag = false
       }
-      result = chineseDigits[digit] + chineseUnits[i] + result
+      result = (chineseDigits[digit] || '') + (chineseUnits[i] || '') + result
     }
     num = Math.floor(num / 10)
   }
@@ -163,9 +163,11 @@ const convertSegment = (num: number): string => {
 const convertDecimalStr = (decimalStr: string): string => {
   let result = ''
   for (let i = 0; i < decimalStr.length && i < 10; i++) {
-    const digit = parseInt(decimalStr[i], 10)
+    const char = decimalStr[i]
+    if (char === undefined) continue
+    const digit = parseInt(char, 10)
     if (!isNaN(digit)) {
-      result += chineseDigits[digit]
+      result += chineseDigits[digit] || ''
     }
   }
   return result
@@ -192,17 +194,25 @@ const formattedNumber = computed(() => {
   return num.toLocaleString('zh-CN')
 })
 
+// 复制文本到剪贴板
+const copyText = async (text: string) => {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    return false
+  }
+}
+
 // 复制结果
 const copyResult = async () => {
   if (!result.value) return
-  
-  try {
-    await navigator.clipboard.writeText(result.value)
+
+  const success = await copyText(result.value)
+  if (success) {
     copySuccess.value = true
     addToHistory(result.value)
     setTimeout(() => copySuccess.value = false, 2000)
-  } catch {
-    // 复制失败
   }
 }
 
@@ -289,7 +299,7 @@ const useExample = (num: string) => {
           </div>
 
           <!-- 结果显示 -->
-          <div v-if="result" class="bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl p-6 border border-rose-100">
+          <div v-if="result" class="bg-linear-to-r from-rose-50 to-pink-50 rounded-xl p-6 border border-rose-100">
             <div class="flex items-center justify-between mb-3">
               <span class="text-sm text-gray-600">转换结果</span>
               <ToolButton 
@@ -381,10 +391,10 @@ const useExample = (num: string) => {
             class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
           >
             <span class="text-sm text-gray-700">{{ item }}</span>
-            <ToolButton 
-              variant="secondary" 
+            <ToolButton
+              variant="secondary"
               size="sm"
-              @click="navigator.clipboard.writeText(item)"
+              @click="copyText(item)"
             >
               <Copy class="w-3 h-3" />
             </ToolButton>

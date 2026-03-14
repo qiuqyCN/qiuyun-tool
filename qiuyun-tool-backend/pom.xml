@@ -221,6 +221,18 @@
             <artifactId>javase</artifactId>
             <version>3.5.3</version>
         </dependency>
+        <!-- Pinyin4j for Chinese to Pinyin conversion -->
+        <dependency>
+            <groupId>com.belerweb</groupId>
+            <artifactId>pinyin4j</artifactId>
+            <version>2.5.1</version>
+        </dependency>
+        <!-- Yauaa for User-Agent parsing -->
+        <dependency>
+            <groupId>nl.basjes.parse.useragent</groupId>
+            <artifactId>yauaa</artifactId>
+            <version>8.1.0</version>
+        </dependency>
 
     </dependencies>
 

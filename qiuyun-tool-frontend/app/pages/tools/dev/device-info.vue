@@ -399,22 +399,22 @@ onMounted(() => {
       <!-- 操作栏 -->
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-2">
-          <ToolButton 
-            variant="primary" 
+          <ToolButton
+            variant="primary"
             size="sm"
             @click="refreshDeviceInfo"
             :disabled="loading"
           >
-            <RefreshCw class="w-4 h-4 mr-1" :class="{ 'animate-spin': loading }" />
-            刷新信息
+            <RefreshCw class="w-4 h-4 mr-1.5 shrink-0" :class="{ 'animate-spin': loading }" />
+            <span>刷新信息</span>
           </ToolButton>
-          <ToolButton 
-            variant="secondary" 
+          <ToolButton
+            variant="secondary"
             size="sm"
             @click="copyDeviceInfo"
           >
-            <Copy class="w-4 h-4 mr-1" />
-            {{ copySuccess ? '已复制' : '复制信息' }}
+            <Copy class="w-4 h-4 mr-1.5 shrink-0" />
+            <span>{{ copySuccess ? '已复制' : '复制信息' }}</span>
           </ToolButton>
         </div>
         <div class="text-sm text-gray-500">

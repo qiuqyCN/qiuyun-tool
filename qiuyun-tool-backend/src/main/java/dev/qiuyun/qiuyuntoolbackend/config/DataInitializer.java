@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  *   图标: ImageMinus, ImagePlus, Image, QrCode, ScanLine
  *   使用建议: 图片处理类工具使用绿色系，传达自然、清晰感
  *
- * 文档工具 (document) - 橙色系
+ * 文档工具 (doc) - 橙色系
  *   主色: #EA580C (亮橙), #F97316 (中橙), #C2410C (深橙)
  *   背景: #FFEDD5 (浅橙), #FFF7ED (极浅橙), #FED7AA (淡橙)
  *   图标: FileText, FileEdit
@@ -132,7 +132,7 @@ public class DataInitializer implements CommandLineRunner {
         // 定义所有分类
         List<CategoryDefinition> categoryDefs = Arrays.asList(
                 new CategoryDefinition("dev", "开发工具", "Code", "JSON格式化、代码压缩、正则测试等开发常用工具", 1),
-                new CategoryDefinition("document", "文档转换", "FileText", "PDF转换、Word转换、Markdown编辑等文档工具", 3),
+                new CategoryDefinition("doc", "文档转换", "FileText", "PDF转换、Word转换、Markdown编辑等文档工具", 3),
                 new CategoryDefinition("image", "图片工具", "Image", "图片压缩、格式转换、Base64编码、二维码生成等图片处理工具", 2),
                 new CategoryDefinition("media", "媒体工具", "Video", "视频转换、音频处理、格式转换等媒体工具", 7),
                 new CategoryDefinition("crypto", "加密工具", "Lock", "MD5加密、Base64、URL编码等加密解密工具", 4),
@@ -396,7 +396,7 @@ public class DataInitializer implements CommandLineRunner {
 
         Category devCategory = categories.get("dev");
         Category imageCategory = categories.get("image");
-        Category docCategory = categories.get("document");
+        Category docCategory = categories.get("doc");
         Category cryptoCategory = categories.get("crypto");
         Category textCategory = categories.get("text");
         Category numberCategory = categories.get("number");
@@ -465,6 +465,23 @@ public class DataInitializer implements CommandLineRunner {
                 buildInstructions("JSON → Java", "输入JSON数据，生成对应的Java POJO类",
                         "Java → JSON", "输入Java对象的JSON表示，格式化输出",
                         "设置选项", "可设置包名、根类名、是否使用Lombok"),
+                new HashSet<>(Arrays.asList(devTag))));
+
+        // HTTP 请求测试
+        defs.add(new ToolDefinition("http-request", "HTTP 请求测试", "在线 HTTP 请求测试工具，支持各种方法和自定义请求头",
+                devCategory, "Globe", "#2563EB", "#DBEAFE", false, true,
+                buildInstructions("选择方法", "选择 HTTP 方法：GET、POST、PUT、DELETE 等",
+                        "输入 URL", "填写请求的完整地址",
+                        "配置参数", "添加查询参数、请求头、请求体",
+                        "发送请求", "点击发送按钮查看响应结果"),
+                new HashSet<>(Arrays.asList(hotTag, commonTag, devTag))));
+
+        // User-Agent 解析
+        defs.add(new ToolDefinition("user-agent-parser", "User-Agent 解析", "解析 User-Agent 字符串，获取浏览器、操作系统、设备等信息",
+                devCategory, "Smartphone", "#3B82F6", "#EFF6FF", false, true,
+                buildInstructions("输入 User-Agent", "粘贴需要解析的 User-Agent 字符串",
+                        "自动解析", "系统自动识别浏览器、操作系统、设备等信息",
+                        "查看详情", "查看完整的解析结果"),
                 new HashSet<>(Arrays.asList(devTag))));
 
         // ========== 图片工具 (绿色系) ==========
@@ -582,6 +599,15 @@ public class DataInitializer implements CommandLineRunner {
                         "实时统计", "系统自动显示字数、字符数、行数",
                         "详细数据", "查看中文字数、英文单词数、标点符号等"),
                 new HashSet<>(Arrays.asList(commonTag))));
+
+        // 汉字转拼音
+        defs.add(new ToolDefinition("chinese-to-pinyin", "汉字转拼音", "将汉字转换为拼音，支持声调、首字母提取、多音字检测",
+                textCategory, "Type", "#9333EA", "#F3E8FF", false, true,
+                buildInstructions("输入中文", "在文本框中输入需要转换的中文内容",
+                        "选择选项", "设置声调显示、大小写、分隔符等选项",
+                        "开始转换", "点击转换按钮获取拼音结果",
+                        "高级功能", "可选提取首字母、检测多音字、查看逐字详情"),
+                new HashSet<>(Arrays.asList(hotTag, commonTag))));
 
         // ========== 数字工具 (琥珀/黄色系) ==========
         defs.add(new ToolDefinition("radix-converter", "进制转换", "二进制、八进制、十进制、十六进制互转",
