@@ -134,10 +134,13 @@ const testRegex = async () => {
 
 // 选择预设
 const selectPreset = (key: string) => {
-  pattern.value = presets[key]
-  selectedPreset.value = key
-  showPresets.value = false
-  testRegex()
+  const presetValue = presets[key]
+  if (presetValue) {
+    pattern.value = presetValue
+    selectedPreset.value = key
+    showPresets.value = false
+    testRegex()
+  }
 }
 
 // 清空

@@ -154,7 +154,7 @@ const useCurrentDate = () => {
       }).replace(/\//g, '-')
     },
     'yyyy-MM-dd': () => {
-      return now.toISOString().split('T')[0]
+      return now.toISOString().split('T')[0] ?? ''
     },
     'yyyy/MM/dd HH:mm:ss': () => {
       return now.toLocaleString('zh-CN', {
@@ -169,7 +169,8 @@ const useCurrentDate = () => {
     }
   }
   
-  inputValue.value = (formatMap[dateFormat.value] || formatMap['yyyy-MM-dd HH:mm:ss'])()
+  const formatFn = formatMap[dateFormat.value] || formatMap['yyyy-MM-dd HH:mm:ss']
+  inputValue.value = formatFn ? formatFn() : ''
   convert()
 }
 

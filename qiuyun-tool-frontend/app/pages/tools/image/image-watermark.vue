@@ -314,6 +314,10 @@ const addWatermark = async () => {
     // 读取原图为 Base64
     const base64 = await fileToBase64(selectedFile.value)
     const base64Data = base64.split(',')[1]
+    if (!base64Data) {
+      showToast('图片处理失败，请重试')
+      return
+    }
 
     const params: ImageWatermarkParams = {
       imageData: base64Data,

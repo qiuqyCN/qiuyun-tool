@@ -529,6 +529,15 @@ public class DataInitializer implements CommandLineRunner {
                         "多种格式", "支持多种日期格式输出"),
                 new HashSet<>(Arrays.asList(hotTag))));
 
+        // WebSocket 测试
+        defs.add(new ToolDefinition("websocket-tester", "WebSocket测试", "WebSocket连接测试工具，支持实时消息收发和心跳保活",
+                devCategory, "Wifi", "#8B5CF6", "#F5F3FF", false, true,
+                buildInstructions("输入URL", "输入WebSocket地址（ws://或wss://开头）",
+                        "建立连接", "点击连接按钮建立WebSocket连接",
+                        "收发消息", "在发送区输入消息，实时查看服务器返回的消息",
+                        "高级设置", "支持自动重连、心跳保活等功能"),
+                new HashSet<>(Arrays.asList(devTag))));
+
 
 
         defs.add(new ToolDefinition("yaml-properties-converter", "YAML/Properties互转", "YAML格式与Java Properties配置文件双向转换",

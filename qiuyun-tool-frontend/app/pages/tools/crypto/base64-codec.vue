@@ -37,7 +37,7 @@ const error = ref('')
 
 // 使用通用 composables
 const { toast, showSuccess, showError } = useToast()
-const { copy } = useClipboard(showSuccess)
+const { copy } = useClipboard()
 
 // 使用工具执行器
 const { execute, isLoading } = useToolExecutor<Base64Params, Base64Result>({
@@ -89,7 +89,12 @@ const switchOperation = (op: CodecOperation) => {
 // 复制结果
 const copyResult = async () => {
   if (result.value?.output) {
-    await copy(result.value.output, '已复制到剪贴板', '复制失败')
+    const success = await copy(result.value.output)
+    if (success) {
+      showSuccess('已复制到剪贴板')
+    } else {
+      showError('复制失败')
+    }
   }
 }
 

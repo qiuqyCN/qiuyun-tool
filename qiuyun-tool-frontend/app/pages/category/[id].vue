@@ -110,15 +110,17 @@ await useAsyncData('category-store-init', async () => {
 })
 
 const categoryId = computed(() => route.params.id as string || 'all')
-const searchQuery = ref('')
+
+// 从 URL 查询参数中读取筛选状态
+const searchQuery = ref((route.query.q as string) || '')
 
 // 价格模式筛选：免费和VIP复选框，默认都选中
-const showFree = ref(true)
-const showVip = ref(true)
+const showFree = ref(route.query.free !== 'false')
+const showVip = ref(route.query.vip !== 'false')
 
-// 排序方式：visits-访问量, rating-评分, newest-最新创建, name-名称
-type SortMode = 'visits' | 'rating' | 'newest' | 'name'
-const sortMode = ref<SortMode>('visits')
+// 排序方式：name-名称, visits-访问量, newest-最新创建
+type SortMode = 'name' | 'visits' | 'newest'
+const sortMode = ref<SortMode>((route.query.sort as SortMode) || 'name')
 
 // 从 localStorage 读取视图模式，默认 grid
 const viewMode = ref<'grid' | 'list'>('grid')
@@ -139,6 +141,25 @@ watch(viewMode, (newMode) => {
     localStorage.setItem('categoryViewMode', newMode)
   }
 })
+
+// 监听筛选状态变化并同步到 URL（使用防抖避免频繁更新）
+let updateTimeout: NodeJS.Timeout | null = null
+const updateQueryParams = () => {
+  if (updateTimeout) clearTimeout(updateTimeout)
+  updateTimeout = setTimeout(() => {
+    const query: Record<string, string> = {}
+
+    if (searchQuery.value) query.q = searchQuery.value
+    if (!showFree.value) query.free = 'false'
+    if (!showVip.value) query.vip = 'false'
+    if (sortMode.value !== 'name') query.sort = sortMode.value
+
+    router.replace({ query: Object.keys(query).length > 0 ? query : undefined })
+  }, 300)
+}
+
+// 监听筛选状态变化
+watch([searchQuery, showFree, showVip, sortMode], updateQueryParams, { deep: true })
 
 // 从 store 获取分类列表
 const categories = computed(() => toolStore.categories)
@@ -202,8 +223,6 @@ const filteredTools = computed(() => {
     switch (sortMode.value) {
       case 'visits':
         return (b.visits || 0) - (a.visits || 0)
-      case 'rating':
-        return (b.rating || 0) - (a.rating || 0)
       case 'newest':
         // 使用 createdAt 排序，如果没有则使用 id 倒序
         if (a.createdAt && b.createdAt) {
@@ -231,12 +250,20 @@ const formatVisits = (visits: number) => {
   return visits.toString()
 }
 
-// 切换分类
+// 切换分类 - 保留当前筛选状态到 URL
 const switchCategory = (code: string) => {
+  const query: Record<string, string> = {}
+
+  // 保留筛选状态
+  if (searchQuery.value) query.q = searchQuery.value
+  if (!showFree.value) query.free = 'false'
+  if (!showVip.value) query.vip = 'false'
+  if (sortMode.value !== 'name') query.sort = sortMode.value
+
   if (code === 'all') {
-    router.push('/category')
+    router.push({ path: '/category', query: Object.keys(query).length > 0 ? query : undefined })
   } else {
-    router.push(`/category/${code}`)
+    router.push({ path: `/category/${code}`, query: Object.keys(query).length > 0 ? query : undefined })
   }
 }
 </script>
@@ -420,17 +447,6 @@ const switchCategory = (code: string) => {
                   最新
                   <span
                     v-if="sortMode === 'newest'"
-                    class="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-primary rounded-full"
-                  />
-                </button>
-                <button
-                  @click="sortMode = 'rating'"
-                  class="px-3 py-1.5 text-sm transition-colors relative"
-                  :class="sortMode === 'rating' ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'"
-                >
-                  推荐
-                  <span
-                    v-if="sortMode === 'rating'"
                     class="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-primary rounded-full"
                   />
                 </button>

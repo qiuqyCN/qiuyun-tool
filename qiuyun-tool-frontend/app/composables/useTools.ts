@@ -26,6 +26,7 @@ export const toolIconNames: Record<string, string> = {
   'Layout': 'Layout',
   'Palette': 'Palette',
   'Video': 'Video',
+  'Wifi': 'Wifi',
 }
 
 // 工具分类（按使用频率和重要性排序）
@@ -106,10 +107,22 @@ export const tools = [
     tags: ['热门'],
   },
   {
+    id: 'websocket-tester',
+    name: 'WebSocket测试',
+    description: 'WebSocket连接测试工具，支持实时消息收发和心跳保活',
+    category: 'dev',
+    icon: 'Wifi',
+    isVip: false,
+    visits: 0,
+    rating: 4.5,
+    reviewCount: 0,
+    tags: [],
+  },
+  {
     id: 'base64-codec',
     name: 'Base64编解码',
     description: 'Base64编码和解码工具',
-    category: 'dev',
+    category: 'crypto',
     icon: 'Binary',
     isVip: false,
     visits: 76543,
