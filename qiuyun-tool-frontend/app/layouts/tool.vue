@@ -233,7 +233,8 @@ import {
   Dices,
   PenTool,
   Filter,
-  Palette
+  Palette,
+  Layout
 } from 'lucide-vue-next'
 
 // 图标映射表 - 支持 PascalCase (后端存储格式) 和 kebab-case
@@ -265,6 +266,7 @@ const iconMap: Record<string, any> = {
   'PenTool': PenTool,
   'Filter': Filter,
   'Palette': Palette,
+  'Layout': Layout,
   // kebab-case (兼容格式)
   'lucide:braces': Braces,
   'lucide:file-json': FileJson,
@@ -292,6 +294,7 @@ const iconMap: Record<string, any> = {
   'lucide:pen-tool': PenTool,
   'lucide:filter': Filter,
   'lucide:palette': Palette,
+  'lucide:layout': Layout,
   'lucide:tool': Wrench
 }
 

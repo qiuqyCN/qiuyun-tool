@@ -33,13 +33,19 @@ import java.util.stream.Collectors;
  * 开发工具 (dev) - 蓝色系
  *   主色: #2563EB (亮蓝), #3B82F6 (中蓝), #1D4ED8 (深蓝)
  *   背景: #DBEAFE (浅蓝), #EFF6FF (极浅蓝), #BFDBFE (淡蓝)
- *   图标: Braces, ArrowRightLeft, Code2, Search, Clock, Binary, Coffee
+ *   图标: Braces, ArrowRightLeft, Code2, Search, Clock, Binary, Coffee, Wifi
  *   使用建议: 开发类工具使用蓝色系，传达专业、技术感
+ *
+ * 前端工具 (frontend) - 靛蓝色系
+ *   主色: #6366F1 (靛蓝), #818CF8 (中靛蓝), #4F46E5 (深靛蓝)
+ *   背景: #E0E7FF (浅靛蓝), #EEF2FF (极浅靛蓝), #C7D2FE (淡靛蓝)
+ *   图标: Layout, Palette, Component, Layers
+ *   使用建议: 前端开发类工具使用靛蓝色系，传达现代、创意感
  *
  * 图片工具 (image) - 绿色系
  *   主色: #16A34A (翠绿), #22C55E (亮绿), #15803D (深绿)
  *   背景: #DCFCE7 (浅绿), #F0FDF4 (极浅绿), #BBF7D0 (淡绿)
- *   图标: ImageMinus, ImagePlus, Image, QrCode, ScanLine
+ *   图标: ImageMinus, ImagePlus, Image, QrCode, ScanLine, Stamp
  *   使用建议: 图片处理类工具使用绿色系，传达自然、清晰感
  *
  * 文档工具 (doc) - 橙色系
@@ -51,7 +57,7 @@ import java.util.stream.Collectors;
  * 加密工具 (crypto) - 红色系
  *   主色: #DC2626 (亮红), #EF4444 (中红), #B91C1C (深红)
  *   背景: #FEE2E2 (浅红), #FEF2F2 (极浅红), #FECACA (淡红)
- *   图标: Hash, Link
+ *   图标: Hash, Link, Lock, Key, Binary
  *   使用建议: 安全加密类工具使用红色系，传达警示、重要性
  *
  * 文本工具 (text) - 紫色系
@@ -66,11 +72,23 @@ import java.util.stream.Collectors;
  *   图标: Binary, Dices, Calculator, Hash
  *   使用建议: 数字计算类工具使用琥珀色系，传达计算、逻辑感
  *
- * 媒体工具 (media) - 青色系
+ * 网络工具 (network) - 青色系
  *   主色: #0891B2 (青蓝), #06B6D4 (亮青), #0E7490 (深青)
  *   背景: #CFFAFE (浅青), #ECFEFF (极浅青), #A5F3FC (淡青)
+ *   图标: Globe, Wifi, Server, Network, Link
+ *   使用建议: 网络诊断类工具使用青色系，传达连接、科技感
+ *
+ * 媒体工具 (media) - 紫红色系
+ *   主色: #C026D3 (紫红), #D946EF (亮紫红), #A21CAF (深紫红)
+ *   背景: #FAE8FF (浅紫红), #FDF4FF (极浅紫红), #F5D0FE (淡紫红)
  *   图标: Video, Music, Play, Film, Mic
- *   使用建议: 音视频类工具使用青色系，传达现代、科技感
+ *   使用建议: 音视频类工具使用紫红色系，传达现代、创意感
+ *
+ * 设计工具 (design) - 渐变/彩虹系
+ *   主色: #8B5CF6 (紫), #EC4899 (粉), #F59E0B (橙)
+ *   背景: #F5F3FF (浅紫), #FDF2F8 (浅粉), #FFFBEB (浅橙)
+ *   图标: Palette, PenTool, Sparkles, Frame, Image
+ *   使用建议: 设计创意类工具使用渐变色系，传达创意、艺术感
  *
  * 生活工具 (life) - 粉色/玫瑰系
  *   主色: #E11D48 (玫瑰), #F43F5E (亮粉), #BE123C (深玫瑰)
@@ -634,13 +652,6 @@ public class DataInitializer {
                 new HashSet<>(Arrays.asList(hotTag, imageTag))));
 
         // ========== 文档工具 (橙色系) ==========
-        defs.add(new ToolDefinition("pdf-to-word", "PDF转Word", "PDF文档转换为Word格式",
-                docCategory, "FileText", "#EA580C", "#FFEDD5", true, true,
-                buildInstructions("上传PDF", "选择要转换的PDF文件",
-                        "开始转换", "点击转换按钮，等待处理完成",
-                        "下载Word", "转换完成后下载.docx文件"),
-                new HashSet<>(Arrays.asList(hotTag, vipTag, docTag))));
-
         defs.add(new ToolDefinition("markdown-editor", "Markdown编辑器", "在线Markdown编辑和预览",
                 docCategory, "FileEdit", "#F97316", "#FFF7ED", false, true,
                 buildInstructions("编辑Markdown", "在左侧编辑器中输入Markdown语法",
@@ -853,14 +864,6 @@ public class DataInitializer {
                         "复制报告", "一键复制完整的设备信息报告"),
                 new HashSet<>(Arrays.asList(devTag))));
 
-        // ========== 前端工具 (靛蓝色系) ==========
-        defs.add(new ToolDefinition("css-formatter", "CSS格式化", "CSS代码美化、压缩、格式化工具",
-                frontendCategory, "Palette", "#6366F1", "#E0E7FF", false, true,
-                buildInstructions("输入CSS", "在输入框中粘贴需要格式化的CSS代码",
-                        "选择操作", "选择格式化（美化）或压缩（去除空白）",
-                        "查看结果", "系统自动处理并显示结果"),
-                new HashSet<>()));
-
         // ========== 网络工具 (青色系) ==========
         defs.add(new ToolDefinition("ip-query", "IP地址查询", "查询IP地址的地理位置、运营商等信息",
                 networkCategory, "Globe", "#0891B2", "#CFFAFE", false, true,
@@ -875,6 +878,14 @@ public class DataInitializer {
                 buildInstructions("选择主色", "选择或输入一个基础颜色",
                         "选择模式", "选择配色模式：类比、互补、三角等",
                         "生成方案", "系统自动生成和谐的配色组合"),
+                new HashSet<>()));
+
+        defs.add(new ToolDefinition("layout-generator", "Flex/Grid布局生成器", "可视化生成CSS Flexbox和Grid布局",
+                designCategory, "Layout", "#7C3AED", "#E9D5FF", false, true,
+                buildInstructions("选择布局类型", "选择 Flexbox 或 Grid 布局",
+                        "调整参数", "实时调整布局参数",
+                        "预览效果", "即时查看布局效果",
+                        "复制代码", "一键复制生成的CSS代码"),
                 new HashSet<>()));
 
         return defs;
