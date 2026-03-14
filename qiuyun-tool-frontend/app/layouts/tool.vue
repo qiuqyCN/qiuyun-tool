@@ -230,7 +230,8 @@ import {
   Link,
   GitCompare,
   Text,
-  Dices
+  Dices,
+  PenTool
 } from 'lucide-vue-next'
 
 // 图标映射表 - 支持 PascalCase (后端存储格式) 和 kebab-case
@@ -259,6 +260,7 @@ const iconMap: Record<string, any> = {
   'GitCompare': GitCompare,
   'Text': Text,
   'Dices': Dices,
+  'PenTool': PenTool,
   // kebab-case (兼容格式)
   'lucide:braces': Braces,
   'lucide:file-json': FileJson,
@@ -283,6 +285,7 @@ const iconMap: Record<string, any> = {
   'lucide:git-compare': GitCompare,
   'lucide:text': Text,
   'lucide:dices': Dices,
+  'lucide:pen-tool': PenTool,
   'lucide:tool': Wrench
 }
 

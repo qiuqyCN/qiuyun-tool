@@ -27,6 +27,7 @@ export const toolIconNames: Record<string, string> = {
   'Palette': 'Palette',
   'Video': 'Video',
   'Wifi': 'Wifi',
+  'Calculator': 'Calculator',
 }
 
 // 工具分类（按使用频率和重要性排序）
@@ -318,6 +319,18 @@ export const tools = [
     visits: 56789,
     rating: 4.6,
     reviewCount: 178,
+    tags: [],
+  },
+  {
+    id: 'scientific-calculator',
+    name: '科学计算器',
+    description: '支持三角函数、对数、指数等科学运算的计算器',
+    category: 'number',
+    icon: 'Calculator',
+    isVip: false,
+    visits: 0,
+    rating: 4.5,
+    reviewCount: 0,
     tags: [],
   },
   {

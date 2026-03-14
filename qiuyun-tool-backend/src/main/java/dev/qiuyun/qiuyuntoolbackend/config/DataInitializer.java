@@ -624,6 +624,15 @@ public class DataInitializer {
                         "添加水印", "点击按钮生成带水印的图片"),
                 new HashSet<>(Arrays.asList(imageTag))));
 
+        // SVG编辑器
+        defs.add(new ToolDefinition("svg-editor", "SVG编辑器", "在线SVG编辑、优化、格式化和转换PNG工具",
+                imageCategory, "PenTool", "#22C55E", "#F0FDF4", false, true,
+                buildInstructions("输入SVG", "粘贴SVG代码或上传SVG文件",
+                        "选择操作", "格式化、优化、压缩、转PNG、验证",
+                        "转PNG设置", "转换为PNG时可设置输出尺寸",
+                        "下载结果", "下载处理后的SVG或PNG文件"),
+                new HashSet<>(Arrays.asList(hotTag, imageTag))));
+
         // ========== 文档工具 (橙色系) ==========
         defs.add(new ToolDefinition("pdf-to-word", "PDF转Word", "PDF文档转换为Word格式",
                 docCategory, "FileText", "#EA580C", "#FFEDD5", true, true,
@@ -714,6 +723,15 @@ public class DataInitializer {
                 new HashSet<>(Arrays.asList(hotTag, commonTag))));
 
         // ========== 数字工具 (琥珀/黄色系) ==========
+        // 科学计算器
+        defs.add(new ToolDefinition("scientific-calculator", "科学计算器", "支持三角函数、对数、指数等科学运算的计算器",
+                numberCategory, "Calculator", "#D97706", "#FEF3C7", false, true,
+                buildInstructions("基本运算", "支持加、减、乘、除四则运算",
+                        "科学运算", "支持三角函数、对数、指数、幂运算、阶乘等",
+                        "角度切换", "可切换弧度(RAD)和角度(DEG)模式",
+                        "内存操作", "使用M+/M-/MR/MC进行内存存储"),
+                new HashSet<>(Arrays.asList(hotTag))));
+
         defs.add(new ToolDefinition("radix-converter", "进制转换", "二进制、八进制、十进制、十六进制互转",
                 numberCategory, "Binary", "#D97706", "#FEF3C7", false, true,
                 buildInstructions("输入数值", "在输入框中填写要转换的数字",
