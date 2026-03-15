@@ -566,7 +566,7 @@ public class DataInitializer {
 
 
         defs.add(new ToolDefinition("yaml-properties-converter", "YAML/Properties互转", "YAML格式与Java Properties配置文件双向转换",
-                devCategory, "ArrowRightLeft", "#2563EB", "#DBEAFE", false, true,
+                devCategory, "FileCog", "#2563EB", "#DBEAFE", false, true,
                 buildInstructions("选择转换方向", "点击顶部标签切换 Properties→YAML 或 YAML→Properties",
                         "输入内容", "在输入框中粘贴需要转换的配置内容",
                         "嵌套结构", "支持嵌套结构转换（点号分隔键 ↔ YAML层级）"),
@@ -612,7 +612,7 @@ public class DataInitializer {
                 new HashSet<>(Arrays.asList(vipTag, imageTag))));
 
         defs.add(new ToolDefinition("image-to-base64", "图片转Base64", "图片转换为Base64编码",
-                imageCategory, "Image", "#15803D", "#BBF7D0", false, true,
+                imageCategory, "FileImage", "#15803D", "#BBF7D0", false, true,
                 buildInstructions("上传图片", "选择要转换的图片文件",
                         "自动转换", "系统自动将图片转换为Base64编码",
                         "复制结果", "一键复制Base64字符串"),
@@ -696,14 +696,14 @@ public class DataInitializer {
                 new HashSet<>(Arrays.asList(devTag))));
 
         defs.add(new ToolDefinition("rsa-key-generator", "RSA密钥生成器", "生成 RSA 公私钥对，支持多种密钥长度和格式",
-                cryptoCategory, "Key", "#991B1B", "#FEE2E2", false, true,
+                cryptoCategory, "KeyRound", "#991B1B", "#FEE2E2", false, true,
                 buildInstructions("选择密钥长度", "1024/2048/3072/4096 bit，推荐 2048",
                         "选择格式", "PKCS#1 或 PKCS#8 格式",
                         "生成密钥", "点击生成按钮获取公私钥对"),
                 new HashSet<>(Arrays.asList(devTag))));
 
         defs.add(new ToolDefinition("hmac-generator", "HMAC生成器", "生成 HMAC 消息认证码，支持多种哈希算法",
-                cryptoCategory, "Hash", "#DC2626", "#FEE2E2", false, true,
+                cryptoCategory, "Fingerprint", "#DC2626", "#FEE2E2", false, true,
                 buildInstructions("输入消息", "输入要计算 HMAC 的消息内容",
                         "输入密钥", "输入 Secret Key",
                         "选择算法", "支持 HMAC-SHA1/SHA256/SHA384/SHA512/MD5"),
@@ -800,7 +800,7 @@ public class DataInitializer {
                 new HashSet<>(Arrays.asList(hotTag, lifeTag))));
 
         defs.add(new ToolDefinition("salary-calculator", "薪资计算器", "计算税后工资、个人所得税、年终奖个税",
-                lifeCategory, "Banknote", "#BE123C", "#FECDD3", false, true,
+                lifeCategory, "Receipt", "#BE123C", "#FECDD3", false, true,
                 buildInstructions("选择计算类型", "税后工资、个人所得税、年终奖",
                         "输入收入信息", "填写税前工资、城市、五险一金",
                         "填写扣除项", "专项附加扣除、其他扣除",
@@ -848,7 +848,7 @@ public class DataInitializer {
 
         // ========== Cron 工具 (开发工具) ==========
         defs.add(new ToolDefinition("cron-generator", "Cron 生成与解析", "支持 Linux、Quartz、Spring、AWS 等多种格式的 Cron 表达式生成、解析和转换",
-                devCategory, "Clock", "#2563EB", "#DBEAFE", false, true,
+                devCategory, "AlarmClock", "#2563EB", "#DBEAFE", false, true,
                 buildInstructions("选择格式", "选择 Linux/Quartz/Spring/AWS 等 Cron 格式",
                         "生成表达式", "使用生成器可视化配置时间规则",
                         "解析表达式", "输入 Cron 表达式查看人类可读描述",
@@ -864,9 +864,65 @@ public class DataInitializer {
                         "复制报告", "一键复制完整的设备信息报告"),
                 new HashSet<>(Arrays.asList(devTag))));
 
+        // ========== 前端工具 (靛蓝色系) ==========
+        defs.add(new ToolDefinition("css-formatter", "CSS格式化", "CSS代码美化、压缩、格式化工具",
+                frontendCategory, "Paintbrush", "#6366F1", "#E0E7FF", false, true,
+                buildInstructions("输入CSS", "在输入框中粘贴需要格式化的CSS代码",
+                        "选择操作", "选择格式化（美化）或压缩（去除空白）",
+                        "查看结果", "系统自动处理并显示结果"),
+                new HashSet<>()));
+
+        defs.add(new ToolDefinition("layout-generator", "Flex/Grid布局生成器", "可视化生成CSS Flexbox和Grid布局",
+                frontendCategory, "Layout", "#818CF8", "#C7D2FE", false, true,
+                buildInstructions("选择布局类型", "选择 Flexbox 或 Grid 布局",
+                        "调整参数", "实时调整布局参数",
+                        "预览效果", "即时查看布局效果",
+                        "复制代码", "一键复制生成的CSS代码"),
+                new HashSet<>(Arrays.asList(commonTag))));
+
+        defs.add(new ToolDefinition("color-picker", "颜色选择器", "多功能颜色选择器，支持HEX/RGB/HSL互转",
+                frontendCategory, "Palette", "#6366F1", "#E0E7FF", false, true,
+                buildInstructions("选择颜色", "使用颜色选择器或手动输入",
+                        "格式转换", "支持HEX、RGB、RGBA、HSL、HSLA格式",
+                        "精确调整", "通过滑块精确调整RGB和HSL参数",
+                        "历史记录", "自动保存历史颜色，快速选择"),
+                new HashSet<>(Arrays.asList(commonTag))));
+
+        defs.add(new ToolDefinition("box-shadow-generator", "CSS阴影生成器", "可视化生成CSS box-shadow效果",
+                frontendCategory, "Layers", "#4F46E5", "#C7D2FE", false, true,
+                buildInstructions("添加阴影层", "支持多层阴影叠加效果",
+                        "调整参数", "设置水平/垂直偏移、模糊、扩散、颜色",
+                        "内阴影", "支持内阴影(inset)效果",
+                        "一键复制", "实时预览并复制CSS代码"),
+                new HashSet<>(Arrays.asList(commonTag))));
+
+        defs.add(new ToolDefinition("gradient-generator", "渐变生成器", "生成线性渐变和径向渐变背景",
+                frontendCategory, "Palette", "#818CF8", "#EEF2FF", false, true,
+                buildInstructions("渐变类型", "选择线性渐变或径向渐变",
+                        "线性角度", "线性渐变支持0-360度角度调整",
+                        "添加色标", "支持多个颜色停止点，可调整位置",
+                        "实时预览", "即时查看渐变效果，一键复制代码"),
+                new HashSet<>(Arrays.asList(commonTag))));
+
+        defs.add(new ToolDefinition("favicon-generator", "Favicon生成器", "快速生成网站图标，支持多种尺寸",
+                frontendCategory, "Image", "#6366F1", "#E0E7FF", false, true,
+                buildInstructions("图标模式", "使用文字和颜色快速生成简单图标",
+                        "文字模式", "自定义文字内容、颜色、背景、圆角",
+                        "图片模式", "上传图片直接转换为Favicon",
+                        "多尺寸下载", "支持16x16到512x512多种尺寸PNG格式"),
+                new HashSet<>(Arrays.asList(commonTag))));
+
+        defs.add(new ToolDefinition("animation-generator", "CSS动画生成器", "可视化生成CSS动画效果，支持多种预设和参数调整",
+                frontendCategory, "Play", "#4F46E5", "#C7D2FE", false, true,
+                buildInstructions("选择动画", "从20+种预设动画中选择",
+                        "调整参数", "设置持续时间、延迟、迭代次数等",
+                        "实时预览", "即时查看动画效果，支持暂停/播放",
+                        "一键复制", "复制完整的CSS代码和keyframes"),
+                new HashSet<>(Arrays.asList(commonTag))));
+
         // ========== 网络工具 (青色系) ==========
         defs.add(new ToolDefinition("ip-query", "IP地址查询", "查询IP地址的地理位置、运营商等信息",
-                networkCategory, "Globe", "#0891B2", "#CFFAFE", false, true,
+                networkCategory, "MapPin", "#0891B2", "#CFFAFE", false, true,
                 buildInstructions("输入IP", "填写要查询的IP地址（留空查询本机IP）",
                         "点击查询", "系统自动获取IP的地理位置信息",
                         "查看结果", "显示国家、地区、运营商等详细信息"),
@@ -874,18 +930,10 @@ public class DataInitializer {
 
         // ========== 设计工具 (紫色系) ==========
         defs.add(new ToolDefinition("color-palette", "配色方案生成", "生成和谐的配色方案，支持多种配色模式",
-                designCategory, "Palette", "#9333EA", "#F3E8FF", false, true,
+                designCategory, "SwatchBook", "#9333EA", "#F3E8FF", false, true,
                 buildInstructions("选择主色", "选择或输入一个基础颜色",
                         "选择模式", "选择配色模式：类比、互补、三角等",
                         "生成方案", "系统自动生成和谐的配色组合"),
-                new HashSet<>()));
-
-        defs.add(new ToolDefinition("layout-generator", "Flex/Grid布局生成器", "可视化生成CSS Flexbox和Grid布局",
-                designCategory, "Layout", "#7C3AED", "#E9D5FF", false, true,
-                buildInstructions("选择布局类型", "选择 Flexbox 或 Grid 布局",
-                        "调整参数", "实时调整布局参数",
-                        "预览效果", "即时查看布局效果",
-                        "复制代码", "一键复制生成的CSS代码"),
                 new HashSet<>()));
 
         return defs;

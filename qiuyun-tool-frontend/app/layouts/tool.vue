@@ -234,7 +234,17 @@ import {
   PenTool,
   Filter,
   Palette,
-  Layout
+  Layout,
+  Layers,
+  Download,
+  FileCode2,
+  FileMinus2,
+  RefreshCw,
+  Plus,
+  Trash2,
+  ArrowDownUp,
+  History,
+  Play
 } from 'lucide-vue-next'
 
 // 图标映射表 - 支持 PascalCase (后端存储格式) 和 kebab-case
@@ -267,6 +277,16 @@ const iconMap: Record<string, any> = {
   'Filter': Filter,
   'Palette': Palette,
   'Layout': Layout,
+  'Layers': Layers,
+  'Download': Download,
+  'FileCode2': FileCode2,
+  'FileMinus2': FileMinus2,
+  'RefreshCw': RefreshCw,
+  'Plus': Plus,
+  'Trash2': Trash2,
+  'ArrowDownUp': ArrowDownUp,
+  'History': History,
+  'Play': Play,
   // kebab-case (兼容格式)
   'lucide:braces': Braces,
   'lucide:file-json': FileJson,
@@ -295,6 +315,16 @@ const iconMap: Record<string, any> = {
   'lucide:filter': Filter,
   'lucide:palette': Palette,
   'lucide:layout': Layout,
+  'lucide:layers': Layers,
+  'lucide:download': Download,
+  'lucide:file-code-2': FileCode2,
+  'lucide:file-minus-2': FileMinus2,
+  'lucide:refresh-cw': RefreshCw,
+  'lucide:plus': Plus,
+  'lucide:trash-2': Trash2,
+  'lucide:arrow-down-up': ArrowDownUp,
+  'lucide:history': History,
+  'lucide:play': Play,
   'lucide:tool': Wrench
 }
 

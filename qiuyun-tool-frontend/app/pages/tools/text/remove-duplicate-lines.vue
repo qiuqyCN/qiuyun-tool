@@ -77,7 +77,7 @@ const removeDuplicates = () => {
   if (!keepFirst.value) {
     const uniqueLines = new Map<string, string>()
     for (let i = lines.length - 1; i >= 0; i--) {
-      let line = lines[i]
+      const line = lines[i]!
       let processedLine = line
       if (ignoreWhitespace.value) {
         processedLine = processedLine.trim()

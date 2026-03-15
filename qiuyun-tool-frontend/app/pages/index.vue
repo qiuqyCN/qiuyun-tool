@@ -43,7 +43,33 @@ import {
   Wrench,
   ArrowRightLeft,
   Coffee,
-  FileCode
+  FileCode,
+  FileCog,
+  AlarmClock,
+  KeyRound,
+  Paintbrush,
+  SwatchBook,
+  FileImage,
+  Receipt,
+  MapPin,
+  Wifi,
+  Smartphone,
+  ScanLine,
+  Stamp,
+  PenTool,
+  Music,
+  Home,
+  CalendarDays,
+  Cake,
+  Timer,
+  Monitor,
+  Layers,
+  Play,
+  Video,
+  Globe,
+  Layout,
+  Palette,
+  Filter
 } from 'lucide-vue-next'
 
 // SEO 配置
@@ -127,7 +153,7 @@ const fetchFavoriteTools = async () => {
     const { $api } = useNuxtApp()
     const response = await $api('/favorites', {
       params: { page: 0, size: 8 }
-    })
+    }) as any
 
     if (response.code === 200) {
       favoriteTools.value = response.data.content || []
@@ -170,11 +196,16 @@ const formatVisits = (visits: number) => {
 // 分类图标映射表
 const categoryIconMap: Record<string, any> = {
   'Code': Code,
+  'Layout': Layout,
   'Image': Image,
   'FileText': FileText,
   'Lock': Lock,
   'Type': Type,
   'Calculator': Calculator,
+  'Globe': Globe,
+  'Video': Video,
+  'Palette': Palette,
+  'Heart': Heart,
 }
 
 // 工具图标映射表
@@ -204,6 +235,32 @@ const toolIconMap: Record<string, any> = {
   'ArrowRightLeft': ArrowRightLeft,
   'Coffee': Coffee,
   'FileCode': FileCode,
+  'FileCog': FileCog,
+  'AlarmClock': AlarmClock,
+  'KeyRound': KeyRound,
+  'Paintbrush': Paintbrush,
+  'SwatchBook': SwatchBook,
+  'FileImage': FileImage,
+  'Receipt': Receipt,
+  'MapPin': MapPin,
+  'Wifi': Wifi,
+  'Smartphone': Smartphone,
+  'ScanLine': ScanLine,
+  'Stamp': Stamp,
+  'PenTool': PenTool,
+  'Music': Music,
+  'Home': Home,
+  'CalendarDays': CalendarDays,
+  'Cake': Cake,
+  'Timer': Timer,
+  'Monitor': Monitor,
+  'Layers': Layers,
+  'Play': Play,
+  'Video': Video,
+  'Globe': Globe,
+  'Layout': Layout,
+  'Palette': Palette,
+  'Filter': Filter,
 }
 
 // 获取分类图标组件
@@ -498,17 +555,26 @@ const reloadData = () => {
       <div class="container mx-auto px-4">
         <div v-for="categoryTool in categoryTools" :key="categoryTool.categoryCode" class="mb-12 last:mb-0">
           <!-- Category Header -->
-          <div class="mb-6">
-            <h2 class="text-xl font-bold text-foreground mb-2">{{ categoryTool.categoryName }}</h2>
-            <p class="text-sm text-muted-foreground">
-              {{ categories.find((c) => c.code === categoryTool.categoryCode)?.description || '' }}
-            </p>
+          <div class="mb-6 flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-bold text-foreground mb-2">{{ categoryTool.categoryName }}</h2>
+              <p class="text-sm text-muted-foreground">
+                {{ categories.find((c) => c.code === categoryTool.categoryCode)?.description || '' }}
+              </p>
+            </div>
+            <NuxtLink 
+              :to="`/category/${categoryTool.categoryCode}`"
+              class="flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors"
+            >
+              更多
+              <ArrowRight class="w-4 h-4" />
+            </NuxtLink>
           </div>
-          
+
           <!-- Tools Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div
-              v-for="tool in categoryTool.tools"
+              v-for="tool in categoryTool.tools.slice().sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))"
               :key="tool.id"
               class="group bg-background rounded-xl border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all p-5"
             >
