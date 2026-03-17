@@ -15,8 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -55,6 +54,9 @@ public class TaobaoIpApiClient {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private RetryTemplate retryTemplate;
 
     private final RestTemplate restTemplate;
 
@@ -105,7 +107,10 @@ public class TaobaoIpApiClient {
         }
 
         try {
-            CachedIpResponse apiResult = queryFromApiWithRetry(ip);
+            CachedIpResponse apiResult = retryTemplate.execute(context -> {
+                log.info("API查询尝试: ip={}, attempt={}", ip, context.getRetryCount() + 1);
+                return queryFromApi(ip);
+            });
             apiResult.setSource("api");
             apiResult.setQueryTime(System.currentTimeMillis());
 
@@ -168,23 +173,13 @@ public class TaobaoIpApiClient {
     }
 
     /**
-     * 带重试机制的API调用
-     *
-     * 重试策略：
-     * - 最多重试3次
-     * - 初始延迟1000毫秒
-     * - 每次重试延迟翻倍（指数退避）
+     * 调用淘宝API查询IP
      *
      * @param ip 要查询的IP地址
      * @return API返回的IP信息
      * @throws Exception 调用失败时抛出
      */
-    @Retryable(
-            retryFor = {Exception.class},
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 5000, multiplier = 2)
-    )
-    private CachedIpResponse queryFromApiWithRetry(String ip) {
+    private CachedIpResponse queryFromApi(String ip) {
         String url = API_URL + "?ip=" + ip + "&accessKey=" + ACCESS_KEY;
         log.debug("调用淘宝API: {}", url);
 
