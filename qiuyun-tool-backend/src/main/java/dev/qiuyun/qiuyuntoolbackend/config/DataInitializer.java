@@ -928,6 +928,32 @@ public class DataInitializer {
                         "查看结果", "显示国家、地区、运营商等详细信息"),
                 new HashSet<>()));
 
+        // 端口扫描器
+        defs.add(new ToolDefinition("port-scan", "端口扫描器", "扫描目标主机的开放端口，支持TCP和UDP协议",
+                networkCategory, "Network", "#06B6D4", "#ECFEFF", false, true,
+                buildInstructions("输入目标", "填写要扫描的主机地址或IP",
+                        "选择端口", "扫描常用端口或自定义端口范围",
+                        "选择协议", "选择TCP或UDP扫描模式",
+                        "开始扫描", "点击扫描按钮查看开放端口列表"),
+                new HashSet<>(Arrays.asList(tags.get("网络"), tags.get("测试")))));
+
+        // DNS查询
+        defs.add(new ToolDefinition("dns-query", "DNS查询", "查询域名的DNS记录，支持A/AAAA/MX/NS/SOA/TXT等多种记录类型",
+                networkCategory, "Server", "#0E7490", "#A5F3FC", false, true,
+                buildInstructions("输入域名", "填写要查询的域名",
+                        "选择记录类型", "选择A、AAAA、CNAME、MX、NS、SOA、TXT等",
+                        "可选DNS服务器", "可指定自定义DNS服务器进行查询",
+                        "查看结果", "显示所有DNS记录及其详细信息"),
+                new HashSet<>(Arrays.asList(tags.get("网络"), tags.get("解析")))));
+
+        // Whois查询
+        defs.add(new ToolDefinition("whois-query", "Whois查询", "查询域名或IP地址的Whois注册信息",
+                networkCategory, "Globe", "#0891B2", "#CFFAFE", false, true,
+                buildInstructions("输入查询内容", "填写域名或IP地址",
+                        "自动选择服务器", "系统根据域名后缀自动选择Whois服务器",
+                        "查看信息", "显示注册商、注册日期、过期日期、DNS等详细信息"),
+                new HashSet<>(Arrays.asList(tags.get("网络"), tags.get("解析")))));
+
         // ========== 设计工具 (紫色系) ==========
         defs.add(new ToolDefinition("color-palette", "配色方案生成", "生成和谐的配色方案，支持多种配色模式",
                 designCategory, "SwatchBook", "#9333EA", "#F3E8FF", false, true,
