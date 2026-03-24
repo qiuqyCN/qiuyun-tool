@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -34,13 +35,10 @@ public class FavoriteController {
      * @return 切换后的收藏状态
      */
     @PostMapping("/toggle/{toolId}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Map<String, Object>> toggleFavorite(
             @PathVariable Long toolId,
             @CurrentUser UserDetailsImpl user) {
-
-        if (user == null) {
-            return ApiResponse.error(401, "请先登录");
-        }
 
         boolean isFavorite = favoriteService.toggleFavorite(user.getId(), toolId);
         long favoriteCount = favoriteService.getFavoriteCount(toolId);
@@ -60,13 +58,10 @@ public class FavoriteController {
      * @return 操作结果
      */
     @PostMapping("/{toolId}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Map<String, Object>> addFavorite(
             @PathVariable Long toolId,
             @CurrentUser UserDetailsImpl user) {
-
-        if (user == null) {
-            return ApiResponse.error(401, "请先登录");
-        }
 
         favoriteService.addFavorite(user.getId(), toolId);
         long favoriteCount = favoriteService.getFavoriteCount(toolId);
@@ -86,13 +81,10 @@ public class FavoriteController {
      * @return 操作结果
      */
     @DeleteMapping("/{toolId}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Map<String, Object>> removeFavorite(
             @PathVariable Long toolId,
             @CurrentUser UserDetailsImpl user) {
-
-        if (user == null) {
-            return ApiResponse.error(401, "请先登录");
-        }
 
         favoriteService.removeFavorite(user.getId(), toolId);
         long favoriteCount = favoriteService.getFavoriteCount(toolId);
@@ -162,14 +154,11 @@ public class FavoriteController {
      * @return 收藏的工具列表
      */
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Page<ToolResponse>> getUserFavorites(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @CurrentUser UserDetailsImpl user) {
-
-        if (user == null) {
-            return ApiResponse.error(401, "请先登录");
-        }
 
         Pageable pageable = PageRequest.of(page, size);
         Page<Tool> toolPage = favoriteService.getUserFavorites(user.getId(), pageable);
@@ -186,12 +175,9 @@ public class FavoriteController {
      * @return 收藏数量
      */
     @GetMapping("/count")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Map<String, Long>> getUserFavoriteCount(
             @CurrentUser UserDetailsImpl user) {
-
-        if (user == null) {
-            return ApiResponse.error(401, "请先登录");
-        }
 
         long count = favoriteService.getUserFavoriteCount(user.getId());
 

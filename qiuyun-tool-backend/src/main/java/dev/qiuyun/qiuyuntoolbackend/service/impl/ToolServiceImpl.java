@@ -191,13 +191,13 @@ public class ToolServiceImpl implements ToolService {
             task.setStatus(TaskStatus.FAILED);
             task.setErrorMessage(e.getMessage());
             taskRepository.save(task);
-            e.printStackTrace();
+            log.error("任务执行失败: {}", task.getId(), e);
             throw e;
         } catch (Exception e) {
             task.setStatus(TaskStatus.FAILED);
             task.setErrorMessage("执行失败: " + e.getMessage());
             taskRepository.save(task);
-            e.printStackTrace();
+            log.error("任务执行失败: {}", task.getId(), e);
             throw new BusinessException("执行失败: " + e.getMessage());
         }
     }

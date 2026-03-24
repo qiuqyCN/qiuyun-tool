@@ -2,9 +2,13 @@ package dev.qiuyun.qiuyuntoolbackend.repository;
 
 import dev.qiuyun.qiuyuntoolbackend.entity.ToolReviewLike;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * 评论点赞Repository
@@ -31,4 +35,10 @@ public interface ToolReviewLikeRepository extends JpaRepository<ToolReviewLike, 
      * 统计评论的点赞数
      */
     long countByReviewId(Long reviewId);
+
+    /**
+     * 批量查询用户点赞的评论ID（解决N+1问题）
+     */
+    @Query("SELECT rl.reviewId FROM ToolReviewLike rl WHERE rl.reviewId IN :reviewIds AND rl.userId = :userId")
+    Set<Long> findLikedReviewIdsByUserId(@Param("reviewIds") List<Long> reviewIds, @Param("userId") Long userId);
 }

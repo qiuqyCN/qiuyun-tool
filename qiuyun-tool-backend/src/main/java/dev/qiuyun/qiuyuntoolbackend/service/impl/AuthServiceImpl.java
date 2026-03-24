@@ -151,7 +151,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+                .orElseThrow(() -> new BadCredentialsException("用户不存在"));
 
         // 生成新的令牌
         String newAccessToken = jwtUtil.generateAccessToken(user.getId(), user.getUsername());

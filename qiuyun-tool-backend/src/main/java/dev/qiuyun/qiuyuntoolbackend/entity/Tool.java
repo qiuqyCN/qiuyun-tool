@@ -19,7 +19,16 @@ import java.util.Set;
  * 工具实体
  */
 @Entity
-@Table(name = "tools")
+@Table(name = "tools", indexes = {
+        // 唯一索引：工具代码查询（高频查询，核心字段）
+        @Index(name = "idx_tool_code", columnList = "code", unique = true),
+        // 复合索引：按分类查询启用工具
+        // 覆盖场景：findByCategoryCodeAndIsActiveTrue - WHERE category_id=? AND is_active=?
+        @Index(name = "idx_tool_category_active", columnList = "category_id, is_active"),
+        // 复合索引：热门工具查询
+        // 覆盖场景：查询热门工具列表 - WHERE is_hot=? AND is_active=?
+        @Index(name = "idx_tool_hot_active", columnList = "is_hot, is_active")
+})
 @Getter
 @Setter
 @NoArgsConstructor

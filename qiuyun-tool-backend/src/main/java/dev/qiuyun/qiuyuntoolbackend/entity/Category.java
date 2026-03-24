@@ -14,7 +14,13 @@ import java.time.LocalDateTime;
  * 工具分类实体
  */
 @Entity
-@Table(name = "categories")
+@Table(name = "categories", indexes = {
+        // 唯一索引：分类代码查询
+        @Index(name = "idx_category_code", columnList = "code", unique = true),
+        // 复合索引：查询启用的分类并按排序号排序
+        // 覆盖场景：findByIsActiveTrueOrderBySortOrderAsc - WHERE is_active=? ORDER BY sort_order
+        @Index(name = "idx_category_active_sort", columnList = "is_active, sort_order")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

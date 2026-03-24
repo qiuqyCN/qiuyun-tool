@@ -18,7 +18,12 @@ import java.util.Set;
  * 用户实体
  */
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+        // 唯一索引：用户名查询（登录）
+        @Index(name = "idx_user_username", columnList = "username", unique = true),
+        // 唯一索引：邮箱查询
+        @Index(name = "idx_user_email", columnList = "email", unique = true)
+})
 @Getter
 @Setter
 @NoArgsConstructor

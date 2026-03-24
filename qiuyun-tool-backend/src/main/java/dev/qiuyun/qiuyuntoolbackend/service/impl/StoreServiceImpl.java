@@ -6,6 +6,8 @@ import dev.qiuyun.qiuyuntoolbackend.repository.CategoryRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.ToolRepository;
 import dev.qiuyun.qiuyuntoolbackend.service.StoreService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,12 +20,14 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@CacheConfig(cacheNames = "store")
 public class StoreServiceImpl implements StoreService {
 
     private final CategoryRepository categoryRepository;
     private final ToolRepository toolRepository;
 
     @Override
+    @Cacheable(key = "'categories'")
     public List<CategoryResponse> getAllCategories() {
         // 获取所有启用的分类，toolCount 由前端自行计算
         return categoryRepository.findByIsActiveTrueOrderBySortOrderAsc()
@@ -33,6 +37,7 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
+    @Cacheable(key = "'tools'")
     public List<ToolResponse> getAllTools() {
         // 使用 JOIN FETCH 一次性加载标签和分类，避免 N+1 查询问题
         return toolRepository.findByIsActiveTrueWithTags()

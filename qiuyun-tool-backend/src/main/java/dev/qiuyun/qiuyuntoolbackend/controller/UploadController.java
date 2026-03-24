@@ -4,8 +4,10 @@ import dev.qiuyun.qiuyuntoolbackend.payload.response.ApiResponse;
 import dev.qiuyun.qiuyuntoolbackend.security.UserDetailsImpl;
 import dev.qiuyun.qiuyuntoolbackend.service.FileStorageService;
 import dev.qiuyun.qiuyuntoolbackend.service.TempImageService;
+import dev.qiuyun.qiuyuntoolbackend.util.FileTypeValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,18 +32,20 @@ public class UploadController {
      * @param user 当前用户
      */
     @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Map<String, String>> uploadImage(
             @RequestPart("file") MultipartFile file,
             @AuthenticationPrincipal UserDetailsImpl user) {
 
-        if (user == null) {
-            return ApiResponse.error(401, "请先登录");
+        // 验证文件类型（基于文件头魔数）
+        if (!FileTypeValidator.isValidImage(file)) {
+            return ApiResponse.error(400, "只能上传有效的图片文件（JPEG、PNG、GIF、WebP、BMP）");
         }
 
-        // 验证文件类型
+        // 验证文件类型是否与声明的一致
         String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            return ApiResponse.error(400, "只能上传图片文件");
+        if (contentType == null || !FileTypeValidator.isContentTypeMatch(file, contentType)) {
+            return ApiResponse.error(400, "文件类型与声明的不一致");
         }
 
         // 验证文件大小（最大5MB）

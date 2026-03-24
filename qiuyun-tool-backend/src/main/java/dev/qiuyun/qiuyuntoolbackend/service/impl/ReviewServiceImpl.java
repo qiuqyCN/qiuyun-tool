@@ -16,9 +16,9 @@ import dev.qiuyun.qiuyuntoolbackend.repository.ToolReviewRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.UserRepository;
 import dev.qiuyun.qiuyuntoolbackend.service.ReviewService;
 import dev.qiuyun.qiuyuntoolbackend.service.TempImageService;
+import dev.qiuyun.qiuyuntoolbackend.util.converter.UserConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -44,9 +44,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final UserRepository userRepository;
     private final TempImageService tempImageService;
     private final ObjectMapper objectMapper;
-
-    @Value("${app.base-url:http://localhost:8080}")
-    private String baseUrl;
+    private final UserConverter userConverter;
 
     @Override
     @Transactional
@@ -80,10 +78,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         // 查询并设置用户信息
         User user = userRepository.findById(userId).orElse(null);
-        if (user != null) {
-            response.setUserNickname(user.getNickname());
-            response.setUserAvatar(resolveAvatarUrl(user.getAvatar()));
-        }
+        userConverter.setUserInfo(response, user);
 
         return response;
     }
@@ -111,7 +106,7 @@ public class ReviewServiceImpl implements ReviewService {
         if (request.getContent() != null) {
             review.setContent(request.getContent());
         }
-        
+
         // 获取更新前的图片列表
         List<String> oldImageUrls = parseImageUrls(review.getImageUrls());
         // 获取新的图片列表（为空则表示全部删除）
@@ -135,10 +130,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         // 查询并设置用户信息
         User user = userRepository.findById(userId).orElse(null);
-        if (user != null) {
-            response.setUserNickname(user.getNickname());
-            response.setUserAvatar(resolveAvatarUrl(user.getAvatar()));
-        }
+        userConverter.setUserInfo(response, user);
 
         return response;
     }
@@ -174,10 +166,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         // 查询并设置用户信息
         User user = userRepository.findById(userId).orElse(null);
-        if (user != null) {
-            response.setUserNickname(user.getNickname());
-            response.setUserAvatar(resolveAvatarUrl(user.getAvatar()));
-        }
+        userConverter.setUserInfo(response, user);
 
         return response;
     }
@@ -200,12 +189,11 @@ public class ReviewServiceImpl implements ReviewService {
         Map<Long, User> userMap = userRepository.findAllById(userIds).stream()
                 .collect(Collectors.toMap(User::getId, u -> u));
 
-        // 批量查询当前用户的点赞状态
+        // 批量查询当前用户的点赞状态（使用批量查询替代N+1查询）
         Set<Long> likedReviewIds = currentUserId != null ?
-                reviews.getContent().stream()
-                        .map(ToolReview::getId)
-                        .filter(id -> likeRepository.existsByReviewIdAndUserId(id, currentUserId))
-                        .collect(Collectors.toSet()) :
+                likeRepository.findLikedReviewIdsByUserId(
+                        reviews.getContent().stream().map(ToolReview::getId).toList(),
+                        currentUserId) :
                 Set.of();
 
         return reviews.map(review -> {
@@ -213,13 +201,7 @@ public class ReviewServiceImpl implements ReviewService {
 
             // 设置用户信息
             User user = userMap.get(review.getUserId());
-            if (user != null) {
-                response.setUserNickname(user.getNickname());
-                response.setUserAvatar(resolveAvatarUrl(user.getAvatar()));
-                response.setIsVip(user.getIsVip() != null && user.getIsVip());
-                response.setIsAdmin(user.getRoles().stream()
-                        .anyMatch(role -> "ADMIN".equals(role.getRole())));
-            }
+            userConverter.setUserInfo(response, user);
 
             // 设置点赞状态
             response.setIsLiked(likedReviewIds.contains(review.getId()));
@@ -241,13 +223,7 @@ public class ReviewServiceImpl implements ReviewService {
                         .map(r -> {
                             ReviewResponse replyResponse = ReviewResponse.from(r);
                             User replyUser = replyUserMap.get(r.getUserId());
-                            if (replyUser != null) {
-                                replyResponse.setUserNickname(replyUser.getNickname());
-                                replyResponse.setUserAvatar(resolveAvatarUrl(replyUser.getAvatar()));
-                                replyResponse.setIsVip(replyUser.getIsVip() != null && replyUser.getIsVip());
-                                replyResponse.setIsAdmin(replyUser.getRoles().stream()
-                                        .anyMatch(role -> "ADMIN".equals(role.getRole())));
-                            }
+                            userConverter.setUserInfo(replyResponse, replyUser);
                             return replyResponse;
                         })
                         .toList());
@@ -274,13 +250,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .map(reply -> {
                     ReviewResponse response = ReviewResponse.from(reply);
                     User user = userMap.get(reply.getUserId());
-                    if (user != null) {
-                        response.setUserNickname(user.getNickname());
-                        response.setUserAvatar(resolveAvatarUrl(user.getAvatar()));
-                        response.setIsVip(user.getIsVip() != null && user.getIsVip());
-                        response.setIsAdmin(user.getRoles().stream()
-                                .anyMatch(role -> "ADMIN".equals(role.getRole())));
-                    }
+                    userConverter.setUserInfo(response, user);
                     return response;
                 })
                 .toList();
@@ -400,20 +370,5 @@ public class ReviewServiceImpl implements ReviewService {
             log.warn("解析图片URL失败: {}", e.getMessage());
             return List.of();
         }
-    }
-
-    /**
-     * 解析头像URL，如果是相对路径则添加baseUrl
-     */
-    private String resolveAvatarUrl(String avatar) {
-        if (avatar == null || avatar.isEmpty()) {
-            return baseUrl + "/default-avatar.png";
-        }
-        // 如果已经是完整URL，直接返回
-        if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
-            return avatar;
-        }
-        // 相对路径，添加baseUrl
-        return baseUrl + avatar;
     }
 }

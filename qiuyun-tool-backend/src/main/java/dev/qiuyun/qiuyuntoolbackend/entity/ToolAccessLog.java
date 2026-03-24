@@ -13,7 +13,17 @@ import java.time.LocalDateTime;
  * 工具访问日志实体
  */
 @Entity
-@Table(name = "tool_access_logs")
+@Table(name = "tool_access_logs", indexes = {
+        // 复合索引：查询工具的访问统计
+        // 覆盖场景：统计工具访问量 - WHERE tool_id=? AND action_type=? AND created_at>=?
+        @Index(name = "idx_access_log_tool_action_time", columnList = "tool_id, action_type, created_at"),
+        // 复合索引：查询用户的访问历史
+        // 覆盖场景：查询用户最近访问的工具 - WHERE user_id=? ORDER BY created_at DESC
+        @Index(name = "idx_access_log_user_time", columnList = "user_id, created_at"),
+        // 索引：按时间清理旧日志
+        // 覆盖场景：定时清理过期日志 - WHERE created_at<?
+        @Index(name = "idx_access_log_created_at", columnList = "created_at")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

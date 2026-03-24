@@ -1,5 +1,6 @@
  package dev.qiuyun.qiuyuntoolbackend.config;
 
+import dev.qiuyun.qiuyuntoolbackend.constant.RoleConstants;
 import dev.qiuyun.qiuyuntoolbackend.entity.Category;
 import dev.qiuyun.qiuyuntoolbackend.entity.Tag;
 import dev.qiuyun.qiuyuntoolbackend.entity.Tool;
@@ -125,7 +126,7 @@ public class DataInitializer {
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void init() {
-        log.info("开始异步数据初始化/同步...");
+        log.debug("开始异步数据初始化/同步...");
 
         try {
             // 1. 初始化分类（增量更新）
@@ -142,7 +143,7 @@ public class DataInitializer {
                 initUsers();
             }
 
-            log.info("异步数据初始化/同步完成！");
+            log.debug("异步数据初始化/同步完成！");
         } catch (Exception e) {
             log.error("数据初始化失败: {}", e.getMessage(), e);
         }
@@ -152,7 +153,7 @@ public class DataInitializer {
      * 初始化分类数据（支持增量更新，仅在实际数据变化时更新）
      */
     private Map<String, Category> initCategories() {
-        log.info("同步分类数据...");
+        log.debug("同步分类数据...");
 
         // 定义所有分类（使用静态常量避免每次创建）
         final List<CategoryDefinition> CATEGORY_DEFINITIONS = Arrays.asList(
@@ -188,7 +189,7 @@ public class DataInitializer {
                     }
                 }
                 if (!anyChanged) {
-                    log.info("分类数据未变化，跳过同步");
+                    log.debug("分类数据未变化，跳过同步");
                     return existingMap;
                 }
             }
@@ -211,7 +212,7 @@ public class DataInitializer {
                         .sortOrder(def.sortOrder)
                         .isActive(true)
                         .build();
-                log.info("新增分类: {}", def.name);
+                log.debug("新增分类: {}", def.name);
                 newCount++;
                 toSave.add(category);
             } else if (isCategoryChanged(category, def)) {
@@ -220,7 +221,7 @@ public class DataInitializer {
                 category.setIcon(def.icon);
                 category.setDescription(def.description);
                 category.setSortOrder(def.sortOrder);
-                log.info("更新分类: {}", def.name);
+                log.debug("更新分类: {}", def.name);
                 updateCount++;
                 toSave.add(category);
             } else {
@@ -238,7 +239,7 @@ public class DataInitializer {
             saved = existingCategories;
         }
 
-        log.info("分类同步完成: 新增 {} 个, 更新 {} 个, 未变化 {} 个", newCount, updateCount, unchangedCount);
+        log.debug("分类同步完成: 新增 {} 个, 更新 {} 个, 未变化 {} 个", newCount, updateCount, unchangedCount);
         return saved.stream().collect(Collectors.toMap(Category::getCode, c -> c));
     }
 
@@ -257,7 +258,7 @@ public class DataInitializer {
      * 初始化标签数据（支持增量更新，仅在实际数据变化时更新）
      */
     private Map<String, Tag> initTags() {
-        log.info("同步标签数据...");
+        log.debug("同步标签数据...");
 
         // 定义所有标签（使用静态常量避免每次创建）
         final List<TagDefinition> TAG_DEFINITIONS = Arrays.asList(
@@ -304,7 +305,7 @@ public class DataInitializer {
                     }
                 }
                 if (!anyChanged) {
-                    log.info("标签数据未变化，跳过同步");
+                    log.debug("标签数据未变化，跳过同步");
                     return existingMap;
                 }
             }
@@ -323,13 +324,13 @@ public class DataInitializer {
                         .name(def.name)
                         .description(def.description)
                         .build();
-                log.info("新增标签: {}", def.name);
+                log.debug("新增标签: {}", def.name);
                 newCount++;
                 toSave.add(tag);
             } else if (isTagChanged(tag, def)) {
                 // 标签配置发生变化，才进行更新
                 tag.setDescription(def.description);
-                log.info("更新标签: {}", def.name);
+                log.debug("更新标签: {}", def.name);
                 updateCount++;
                 toSave.add(tag);
             } else {
@@ -347,7 +348,7 @@ public class DataInitializer {
             saved = existingTags;
         }
 
-        log.info("标签同步完成: 新增 {} 个, 更新 {} 个, 未变化 {} 个", newCount, updateCount, unchangedCount);
+        log.debug("标签同步完成: 新增 {} 个, 更新 {} 个, 未变化 {} 个", newCount, updateCount, unchangedCount);
         return saved.stream().collect(Collectors.toMap(Tag::getName, t -> t));
     }
 
@@ -363,7 +364,7 @@ public class DataInitializer {
      * 初始化/同步工具数据（支持增量更新，仅在实际数据变化时更新）
      */
     private void initTools(Map<String, Category> categories, Map<String, Tag> tags) {
-        log.info("同步工具数据...");
+        log.debug("同步工具数据...");
 
         // 获取现有工具（只获取必要的字段用于比较）
         List<Tool> existingTools = toolRepository.findAll();
@@ -410,7 +411,7 @@ public class DataInitializer {
                         .instructions(def.instructions)
                         .tags(def.tags)
                         .build();
-                log.info("新增工具: {}", def.name);
+                log.debug("新增工具: {}", def.name);
                 newCount++;
                 toSave.add(tool);
             } else if (isToolChangedFast(tool, def, defTagNamesCache.get(def.code))) {
@@ -425,7 +426,7 @@ public class DataInitializer {
                 tool.setIsActive(def.isActive);
                 tool.setInstructions(def.instructions);
                 tool.setTags(def.tags);
-                log.info("更新工具: {}", def.name);
+                log.debug("更新工具: {}", def.name);
                 updateCount++;
                 toSave.add(tool);
             } else {
@@ -440,7 +441,7 @@ public class DataInitializer {
             toolRepository.saveAll(toSave);
         }
 
-        log.info("工具同步完成: 新增 {} 个, 更新 {} 个, 未变化 {} 个", newCount, updateCount, unchangedCount);
+        log.debug("工具同步完成: 新增 {} 个, 更新 {} 个, 未变化 {} 个", newCount, updateCount, unchangedCount);
     }
 
     /**
@@ -725,7 +726,7 @@ public class DataInitializer {
                 buildInstructions("输入文本", "在文本框中输入或粘贴需要统计的内容",
                         "实时统计", "系统自动显示字数、字符数、行数",
                         "详细数据", "查看中文字数、英文单词数、标点符号等"),
-                new HashSet<>()));
+                new HashSet<>(Arrays.asList(textTag))));
 
         // 汉字转拼音
         defs.add(new ToolDefinition("chinese-to-pinyin", "汉字转拼音", "将汉字转换为拼音，支持声调、首字母提取、多音字检测",
@@ -734,7 +735,7 @@ public class DataInitializer {
                         "选择选项", "设置声调显示、大小写、分隔符等选项",
                         "开始转换", "点击转换按钮获取拼音结果",
                         "高级功能", "可选提取首字母、检测多音字、查看逐字详情"),
-                new HashSet<>()));
+                new HashSet<>(Arrays.asList(textTag, convertTag))));
 
         // 重复行删除
         defs.add(new ToolDefinition("remove-duplicate-lines", "重复行删除", "删除文本中的重复行，支持多种选项",
@@ -743,7 +744,7 @@ public class DataInitializer {
                         "选择选项", "可选择忽略大小写、忽略首尾空白、保留首次出现、结果排序等",
                         "删除重复", "点击删除重复行按钮执行去重操作",
                         "查看统计", "显示原行数、结果行数、删除重复数等统计信息"),
-                new HashSet<>()));
+                new HashSet<>(Arrays.asList(textTag))));
 
         // ========== 数字工具 (琥珀/黄色系) ==========
         // 科学计算器
@@ -938,7 +939,7 @@ public class DataInitializer {
                         "选择端口", "扫描常用端口或自定义端口范围",
                         "选择协议", "选择TCP或UDP扫描模式",
                         "开始扫描", "点击扫描按钮查看开放端口列表"),
-                new HashSet<>(Arrays.asList(tags.get("网络"), tags.get("测试")))));
+                new HashSet<>(Arrays.asList(networkTag, testTag))));
 
         // DNS查询
         defs.add(new ToolDefinition("dns-query", "DNS查询", "查询域名的DNS记录，支持A/AAAA/MX/NS/SOA/TXT等多种记录类型",
@@ -947,7 +948,7 @@ public class DataInitializer {
                         "选择记录类型", "选择A、AAAA、CNAME、MX、NS、SOA、TXT等",
                         "可选DNS服务器", "可指定自定义DNS服务器进行查询",
                         "查看结果", "显示所有DNS记录及其详细信息"),
-                new HashSet<>(Arrays.asList(tags.get("网络"), tags.get("解析")))));
+                new HashSet<>(Arrays.asList(networkTag, parseTag))));
 
         // Whois查询
         defs.add(new ToolDefinition("whois-query", "Whois查询", "查询域名或IP地址的Whois注册信息",
@@ -955,7 +956,7 @@ public class DataInitializer {
                 buildInstructions("输入查询内容", "填写域名或IP地址",
                         "自动选择服务器", "系统根据域名后缀自动选择Whois服务器",
                         "查看信息", "显示注册商、注册日期、过期日期、DNS等详细信息"),
-                new HashSet<>(Arrays.asList(tags.get("网络"), tags.get("解析")))));
+                new HashSet<>(Arrays.asList(networkTag, parseTag))));
 
         // ========== 设计工具 (紫色系) ==========
         defs.add(new ToolDefinition("color-palette", "配色方案生成", "生成和谐的配色方案，支持多种配色模式",
@@ -963,7 +964,7 @@ public class DataInitializer {
                 buildInstructions("选择主色", "选择或输入一个基础颜色",
                         "选择模式", "选择配色模式：类比、互补、三角等",
                         "生成方案", "系统自动生成和谐的配色组合"),
-                new HashSet<>()));
+                new HashSet<>(Arrays.asList(designTag, generateTag))));
 
         return defs;
     }
@@ -986,7 +987,7 @@ public class DataInitializer {
      * 初始化用户数据（仅在首次启动时执行）
      */
     private void initUsers() {
-        log.info("初始化用户数据...");
+        log.debug("初始化用户数据...");
 
         // 创建普通用户
         User normalUser = User.builder()
@@ -1024,14 +1025,14 @@ public class DataInitializer {
                 .status(UserStatus.ENABLED)
                 .build();
         adminUser.addRole("USER");
-        adminUser.addRole("ADMIN");
+        adminUser.addRole(RoleConstants.ROLE_ADMIN);
 
         userRepository.saveAll(Arrays.asList(normalUser, vipUser, adminUser));
 
-        log.info("用户数据初始化完成，共创建 {} 个用户", 3);
-        log.info("普通用户: user/123456");
-        log.info("VIP用户: vip/123456");
-        log.info("管理员: admin/123456");
+        log.debug("用户数据初始化完成，共创建 {} 个用户", 3);
+        log.debug("普通用户: user/123456");
+        log.debug("VIP用户: vip/123456");
+        log.debug("管理员: admin/123456");
     }
 
     // ==================== 定义类 ====================
