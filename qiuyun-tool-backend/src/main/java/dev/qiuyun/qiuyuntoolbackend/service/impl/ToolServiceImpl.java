@@ -1,20 +1,24 @@
 package dev.qiuyun.qiuyuntoolbackend.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.qiuyun.qiuyuntoolbackend.entity.Tag;
+import dev.qiuyun.qiuyuntoolbackend.entity.Tool;
 import dev.qiuyun.qiuyuntoolbackend.entity.ToolFile;
 import dev.qiuyun.qiuyuntoolbackend.entity.ToolTask;
 import dev.qiuyun.qiuyuntoolbackend.enums.TaskStatus;
 import dev.qiuyun.qiuyuntoolbackend.enums.ToolType;
+import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutorRegistry;
-import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
 import dev.qiuyun.qiuyuntoolbackend.payload.request.FileProcessRequest;
 import dev.qiuyun.qiuyuntoolbackend.payload.request.ToolExecuteRequest;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.FileUploadResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolExecuteResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolProgress;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolResponse;
 import dev.qiuyun.qiuyuntoolbackend.repository.ToolFileRepository;
+import dev.qiuyun.qiuyuntoolbackend.repository.ToolRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.ToolTaskRepository;
 import dev.qiuyun.qiuyuntoolbackend.service.FileStorageService;
 import dev.qiuyun.qiuyuntoolbackend.service.ToolService;
@@ -33,6 +37,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,6 +46,7 @@ public class ToolServiceImpl implements ToolService {
 
     private final ToolTaskRepository taskRepository;
     private final ToolFileRepository fileRepository;
+    private final ToolRepository toolRepository;
     private final FileStorageService fileStorageService;
     private final ToolExecutorRegistry executorRegistry;
     private final ObjectMapper objectMapper;
@@ -431,5 +437,42 @@ public class ToolServiceImpl implements ToolService {
                 }
             }
         }
+    }
+
+    @Override
+    public ToolResponse getToolByCode(String code) {
+        Tool tool = toolRepository.findByCode(code)
+                .orElseThrow(() -> new BusinessException("工具不存在: " + code));
+        return convertToToolResponse(tool);
+    }
+
+    /**
+     * 转换 Tool 实体为响应对象
+     */
+    private ToolResponse convertToToolResponse(Tool tool) {
+        return ToolResponse.builder()
+                .id(tool.getId())
+                .code(tool.getCode())
+                .name(tool.getName())
+                .description(tool.getDescription())
+                .category(tool.getCategory() != null ? tool.getCategory().getCode() : null)
+                .icon(tool.getIcon())
+                .iconColor(tool.getIconColor())
+                .iconBgColor(tool.getIconBgColor())
+                .isVip(tool.getIsVip())
+                .isHot(tool.getIsHot())
+                .priceMode(tool.getPriceMode())
+                .visits(tool.getVisitsCount())
+                .viewCount(tool.getViewCount())
+                .usageCount(tool.getUsageCount())
+                .rating(tool.getRating())
+                .reviewCount(tool.getReviewCount())
+                .favoriteCount(tool.getFavoriteCount())
+                .instructions(tool.getInstructions())
+                .tags(tool.getTags().stream()
+                        .map(Tag::getName)
+                        .collect(Collectors.toList()))
+                .createdAt(tool.getCreatedAt())
+                .build();
     }
 }

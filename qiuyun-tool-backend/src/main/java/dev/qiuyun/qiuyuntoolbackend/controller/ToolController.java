@@ -4,6 +4,7 @@ import dev.qiuyun.qiuyuntoolbackend.payload.request.ToolExecuteRequest;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ApiResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.FileUploadResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolExecuteResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolResponse;
 import dev.qiuyun.qiuyuntoolbackend.security.UserDetailsImpl;
 import dev.qiuyun.qiuyuntoolbackend.service.ToolService;
 import jakarta.validation.Valid;
@@ -25,6 +26,15 @@ import java.io.InputStream;
 public class ToolController {
 
     private final ToolService toolService;
+
+    /**
+     * 根据code获取工具详情
+     * @param code 工具代码
+     */
+    @GetMapping("/{code}")
+    public ApiResponse<ToolResponse> getToolByCode(@PathVariable String code) {
+        return ApiResponse.success(toolService.getToolByCode(code));
+    }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<FileUploadResponse> uploadFile(

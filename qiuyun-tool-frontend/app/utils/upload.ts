@@ -27,7 +27,7 @@ export async function uploadFile(file: File): Promise<string> {
     }
   }
 
-  const response = await $api('/upload/image', {
+  const response = await $api('/api/upload/image', {
     method: 'POST',
     body: formData
   }) as UploadResponse

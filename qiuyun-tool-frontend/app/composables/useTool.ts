@@ -20,7 +20,7 @@ export function useTool() {
     formData.append('file', file)
     formData.append('toolCode', toolCode)
 
-    return await $api('/tools/upload', {
+    return await $api('/api/tools/upload', {
       method: 'POST',
       body: formData,
       onUploadProgress: (progressEvent: { loaded: number; total?: number }) => {
@@ -36,7 +36,7 @@ export function useTool() {
   const executeTool = async <T = any, R = any>(
     request: ToolExecuteRequest<T>
   ): Promise<ToolExecuteResponse<R>> => {
-    const response = await $api<ApiResponse<ToolExecuteResponse<R>>>('/tools/execute', {
+    const response = await $api<ApiResponse<ToolExecuteResponse<R>>>('/api/tools/execute', {
       method: 'POST',
       body: request
     })

@@ -233,7 +233,7 @@ const handleFileChange = async (e: Event) => {
       const formData = new FormData()
       formData.append('file', file)
 
-      const response = await $api('/upload/image', {
+      const response = await $api('/api/upload/image', {
         method: 'POST',
         body: formData
       }) as { code: number; data: { url: string }; message: string }

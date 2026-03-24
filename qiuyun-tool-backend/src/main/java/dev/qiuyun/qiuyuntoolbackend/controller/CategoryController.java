@@ -2,6 +2,7 @@ package dev.qiuyun.qiuyuntoolbackend.controller;
 
 import dev.qiuyun.qiuyuntoolbackend.payload.request.CategoryToolsRequest;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ApiResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.CategoryResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.CategoryToolsResponse;
 import dev.qiuyun.qiuyuntoolbackend.service.CategoryService;
 import jakarta.validation.Valid;
@@ -17,6 +18,15 @@ import org.springframework.web.bind.annotation.*;
 public class CategoryController {
 
     private final CategoryService categoryService;
+
+    /**
+     * 根据code获取分类详情
+     * @param code 分类代码
+     */
+    @GetMapping("/{code}")
+    public ApiResponse<CategoryResponse> getCategoryByCode(@PathVariable String code) {
+        return ApiResponse.success(categoryService.getCategoryByCode(code));
+    }
 
     /**
      * 获取分类下的工具列表

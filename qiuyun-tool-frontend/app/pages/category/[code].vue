@@ -2,22 +2,21 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { useToolStore } from '@/stores/toolStore'
-import type { ToolResponse } from '@/types/api'
-import { 
-  Search, 
-  Grid3X3, 
+import type { ToolResponse, CategoryResponse } from '@/types/api'
+import {
+  Search,
+  Grid3X3,
   List,
   Crown,
   TrendingUp,
   Star,
   ChevronRight,
   Filter,
-  Code, 
-  Image, 
-  FileText, 
-  Lock, 
-  Type, 
+  Code,
+  Image,
+  FileText,
+  Lock,
+  Type,
   Calculator,
   Wrench,
   Braces,
@@ -154,20 +153,32 @@ const getToolIconComponent = (iconName: string) => {
 const route = useRoute()
 const router = useRouter()
 
-// 使用 Pinia Store
-const toolStore = useToolStore()
+// SSR：获取工具和分类数据
+const { categories, tools } = await useToolsData()
 
-// SSR：确保 store 已初始化
-await useAsyncData('category-store-init', async () => {
-  if (!toolStore.initialized || toolStore.tools.length === 0) {
-    await toolStore.initialize()
+const categoryCode = computed(() => route.params.code as string || 'all')
+
+// 当前分类（从数据中获取）
+const currentCategory = computed(() => {
+  if (categoryCode.value === 'all') {
+    return { code: 'all', name: '全部工具', description: '浏览所有可用工具' }
   }
-  return true
-}, {
-  server: true
+  const cat = categories.value.find((c: any) => c.code === categoryCode.value)
+  return cat || { code: categoryCode.value, name: '未知分类', description: '' }
 })
 
-const categoryId = computed(() => route.params.id as string || 'all')
+// 动态 SEO 配置
+useSeoMeta({
+  title: computed(() => `${currentCategory.value?.name || '分类'} - 秋云工具`),
+  description: computed(() => currentCategory.value?.description || '浏览秋云工具的各种实用工具分类'),
+  keywords: computed(() => {
+    const baseKeywords = '在线工具,开发工具,程序员工具'
+    if (currentCategory.value?.name && currentCategory.value.name !== '全部工具') {
+      return `${currentCategory.value.name},${baseKeywords}`
+    }
+    return baseKeywords
+  })
+})
 
 // 从 URL 查询参数中读取筛选状态
 const searchQuery = ref((route.query.q as string) || '')
@@ -200,46 +211,30 @@ watch(viewMode, (newMode) => {
   }
 })
 
-// 监听筛选状态变化并同步到 URL（使用防抖避免频繁更新）
-let updateTimeout: NodeJS.Timeout | null = null
-const updateQueryParams = () => {
-  if (updateTimeout) clearTimeout(updateTimeout)
-  updateTimeout = setTimeout(() => {
-    const query: Record<string, string> = {}
+// 使用统一封装的防抖函数
+const updateQueryParams = useDebounceFn(() => {
+  const query: Record<string, string> = {}
 
-    if (searchQuery.value) query.q = searchQuery.value
-    if (!showFree.value) query.free = 'false'
-    if (!showVip.value) query.vip = 'false'
-    if (sortMode.value !== 'name') query.sort = sortMode.value
+  if (searchQuery.value) query.q = searchQuery.value
+  if (!showFree.value) query.free = 'false'
+  if (!showVip.value) query.vip = 'false'
+  if (sortMode.value !== 'name') query.sort = sortMode.value
 
-    router.replace({ query: Object.keys(query).length > 0 ? query : undefined })
-  }, 300)
-}
+  router.replace({ query: Object.keys(query).length > 0 ? query : undefined })
+}, 300)
 
 // 监听筛选状态变化
 watch([searchQuery, showFree, showVip, sortMode], updateQueryParams, { deep: true })
 
-// 从 store 获取分类列表
-const categories = computed(() => toolStore.categories)
-
-// 从 store 获取所有工具
-const allTools = computed(() => toolStore.tools)
-
-// 当前分类
-const currentCategory = computed(() => {
-  if (categoryId.value === 'all') {
-    return { code: 'all', name: '全部工具', description: '浏览所有可用工具' }
-  }
-  const cat = categories.value.find(c => c.code === categoryId.value)
-  return cat || { code: categoryId.value, name: '未知分类', description: '' }
-})
+// 所有工具
+const allTools = tools
 
 // 获取分类下的工具数量
 const getToolCountByCategory = (categoryCode: string): number => {
   if (categoryCode === 'all') {
     return allTools.value.length
   }
-  return allTools.value.filter(t => t.category === categoryCode).length
+  return allTools.value.filter((t: any) => t.category === categoryCode).length
 }
 
 // 获取指定分类的工具列表
@@ -247,12 +242,12 @@ const getToolsByCategory = (categoryCode: string): ToolResponse[] => {
   if (categoryCode === 'all') {
     return allTools.value
   }
-  return allTools.value.filter(t => t.category === categoryCode)
+  return allTools.value.filter((t: any) => t.category === categoryCode)
 }
 
 // 工具列表
 const filteredTools = computed(() => {
-  let result = getToolsByCategory(categoryId.value)
+  let result = getToolsByCategory(categoryCode.value)
 
   // 价格模式筛选（复选框逻辑）
   if (!showFree.value && !showVip.value) {
@@ -340,7 +335,7 @@ const switchCategory = (code: string) => {
             <span class="text-foreground">{{ currentCategory.name }}</span>
           </template>
         </div>
-        
+
         <h1 class="text-3xl font-bold text-foreground mb-2">
           {{ currentCategory?.name || '全部工具' }}
         </h1>
@@ -366,7 +361,7 @@ const switchCategory = (code: string) => {
                 <button
                   @click="switchCategory('all')"
                   class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors"
-                  :class="categoryId === 'all' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-foreground'"
+                  :class="categoryCode === 'all' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-foreground'"
                 >
                   <Grid3X3 class="w-5 h-5" />
                   <span>全部工具</span>
@@ -378,7 +373,7 @@ const switchCategory = (code: string) => {
                   :key="category.code"
                   @click="switchCategory(category.code)"
                   class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors"
-                  :class="categoryId === category.code ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-foreground'"
+                  :class="categoryCode === category.code ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-foreground'"
                 >
                   <component :is="getIconComponent(category.icon)" class="w-5 h-5" />
                   <span>{{ category.name }}</span>
@@ -549,16 +544,16 @@ const switchCategory = (code: string) => {
                   </div>
                 </div>
               </div>
-              
+
               <p class="text-sm text-muted-foreground mb-4 line-clamp-2">{{ tool.description }}</p>
-              
+
               <!-- 标签 -->
               <div v-if="tool.tags && tool.tags.length > 0" class="flex flex-wrap gap-2 mb-4">
                 <Badge v-for="tag in tool.tags.slice(0, 3)" :key="tag" variant="outline" class="text-xs">
                   {{ tag }}
                 </Badge>
               </div>
-              
+
               <!-- 底部按钮 -->
               <div class="flex items-center justify-between pt-4 border-t border-border/40">
                 <Button variant="ghost" size="sm" class="text-sm">
@@ -590,7 +585,7 @@ const switchCategory = (code: string) => {
                   :style="{ color: tool.iconColor || 'hsl(var(--primary))' }"
                 />
               </div>
-              
+
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 mb-1">
                   <h3 class="font-semibold text-foreground">{{ tool.name }}</h3>
@@ -604,7 +599,7 @@ const switchCategory = (code: string) => {
                 </div>
                 <p class="text-sm text-muted-foreground truncate">{{ tool.description }}</p>
               </div>
-              
+
               <div class="hidden sm:flex items-center gap-4 text-sm text-muted-foreground">
                 <div class="flex items-center gap-1">
                   <TrendingUp class="w-4 h-4" />
@@ -615,7 +610,7 @@ const switchCategory = (code: string) => {
                   <span>{{ tool.rating }}</span>
                 </div>
               </div>
-              
+
               <ChevronRight class="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
             </NuxtLink>
           </div>

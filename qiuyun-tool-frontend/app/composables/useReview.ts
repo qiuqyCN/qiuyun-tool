@@ -33,7 +33,7 @@ export function useReview(options: UseReviewOptions) {
 
     loading.value = true
     try {
-      const response = await $api(`/reviews/tool/${toolId}`, {
+      const response = await $api(`/api/reviews/tool/${toolId}`, {
         method: 'GET',
         params: {
           page: page.value,
@@ -63,7 +63,7 @@ export function useReview(options: UseReviewOptions) {
   const fetchStats = async () => {
     if (!toolId) return
     try {
-      const response = await $api(`/reviews/tool/${toolId}/stats`, {
+      const response = await $api(`/api/reviews/tool/${toolId}/stats`, {
         method: 'GET'
       }) as ApiResponse
       if (response.code === 200) {
@@ -77,7 +77,7 @@ export function useReview(options: UseReviewOptions) {
   // 提交评论
   const submitReview = async (data: SubmitReviewRequest) => {
     if (!toolId) throw new Error('工具ID不能为空')
-    const response = await $api('/reviews', {
+    const response = await $api('/api/reviews', {
       method: 'POST',
       body: {
         ...data,
@@ -97,7 +97,7 @@ export function useReview(options: UseReviewOptions) {
   // 编辑评论
   const editReview = async (reviewId: number, data: SubmitReviewRequest) => {
     if (!toolId) throw new Error('工具ID不能为空')
-    const response = await $api(`/reviews/${reviewId}`, {
+    const response = await $api(`/api/reviews/${reviewId}`, {
       method: 'PUT',
       body: {
         ...data,
@@ -135,7 +135,7 @@ export function useReview(options: UseReviewOptions) {
 
   // 点赞/取消点赞
   const toggleLike = async (reviewId: number) => {
-    const response = await $api(`/reviews/${reviewId}/like`, {
+    const response = await $api(`/api/reviews/${reviewId}/like`, {
       method: 'POST'
     }) as ApiResponse
 
@@ -175,7 +175,7 @@ export function useReview(options: UseReviewOptions) {
 
   // 删除评论
   const deleteReview = async (reviewId: number) => {
-    const response = await $api(`/reviews/${reviewId}`, {
+    const response = await $api(`/api/reviews/${reviewId}`, {
       method: 'DELETE'
     }) as ApiResponse
 
@@ -192,7 +192,7 @@ export function useReview(options: UseReviewOptions) {
   const hasReviewed = async () => {
     if (!toolId) return false
     try {
-      const response = await $api(`/reviews/tool/${toolId}/has-reviewed`, {
+      const response = await $api(`/api/reviews/tool/${toolId}/has-reviewed`, {
         method: 'GET'
       }) as ApiResponse
       return response.code === 200 ? response.data : false

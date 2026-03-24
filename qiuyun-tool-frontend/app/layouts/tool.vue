@@ -194,7 +194,6 @@
 <script setup lang="ts">
 import { ref, computed, h, onMounted } from 'vue'
 import { useUserStore } from '~/stores/userStore'
-import { useToolStore } from '~/stores/toolStore'
 import ToolReviews from '~/components/review/ToolReviews.vue'
 import {
   ChevronRight,
@@ -338,44 +337,48 @@ const getToolIcon = (iconName?: string) => {
   return iconMap[kebabName] || Wrench
 }
 
-// Props - 只接收 toolCode，其他信息从 store 获取
+// Props - 只接收 toolCode，其他信息从数据获取
 const props = defineProps<{
   toolCode: string
 }>()
 
 // Store
 const userStore = useUserStore()
-const toolStore = useToolStore()
 
-// SSR：确保 store 已初始化（服务端渲染时获取数据）
-await useAsyncData('tool-layout-init', async () => {
-  if (!toolStore.initialized || toolStore.tools.length === 0) {
-    await toolStore.initialize()
-  }
-  return true
-}, {
-  server: true
+// SSR：获取工具和分类数据
+const { categories, tools } = await useToolsData()
+const { getToolByCode, getRelatedTools } = useToolFilters(tools)
+
+// 从数据中获取工具信息
+const tool = computed(() => getToolByCode(props.toolCode))
+
+// 动态 SEO 配置
+useSeoMeta({
+  title: computed(() => tool.value?.name ? `${tool.value.name} - 秋云工具` : '工具详情 - 秋云工具'),
+  description: computed(() => tool.value?.description || '使用秋云工具的在线工具，提升工作效率'),
+  keywords: computed(() => {
+    const baseKeywords = '在线工具,开发工具,程序员工具'
+    if (tool.value?.name) {
+      return `${tool.value.name},${tool.value.category || ''},${baseKeywords}`
+    }
+    return baseKeywords
+  })
 })
 
-// 从 store 获取工具信息
-const tool = computed(() => toolStore.getToolByCode(props.toolCode))
-
-// 从 store 获取分类信息
+// 从数据中获取分类信息
 const category = computed(() => {
   if (!tool.value) return null
-  return toolStore.categories.find(cat => cat.code === tool.value?.category)
+  return categories.value.find((cat: any) => cat.code === tool.value?.category)
 })
 
 // 工具ID
 const toolId = computed(() => tool.value?.id)
 
 // 相关工具（同分类的其他工具，排除当前工具）
-const relatedTools = computed(() => {
-  if (!tool.value) return []
-  return toolStore.tools
-    .filter(t => t.category === tool.value?.category && t.code !== props.toolCode)
-    .slice(0, 5)
-})
+const relatedTools = computed(() => getRelatedTools(props.toolCode, 5))
+
+// API 封装
+const api = useApi()
 
 // 收藏
 const isFavorite = ref(false)
@@ -386,9 +389,7 @@ const fetchFavoriteStatus = async () => {
   if (!toolId.value) return
 
   try {
-    const { $api } = useNuxtApp()
-    const response = await $api(`/favorites/check/${toolId.value}`) as { code: number; data: { isFavorite: boolean } }
-
+    const response = await api.favorites.check(toolId.value)
     if (response.code === 200) {
       isFavorite.value = response.data.isFavorite
     }
@@ -408,11 +409,7 @@ const toggleFavorite = async () => {
 
   favoriteLoading.value = true
   try {
-    const { $api } = useNuxtApp()
-    const response = await $api(`/favorites/toggle/${toolId.value}`, {
-      method: 'POST'
-    }) as { code: number; data: { isFavorite: boolean; favoriteCount: number } }
-
+    const response = await api.favorites.toggle(toolId.value)
     if (response.code === 200) {
       isFavorite.value = response.data.isFavorite
       // 更新工具的收藏数

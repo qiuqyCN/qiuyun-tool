@@ -2,7 +2,6 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useToolStore } from '@/stores/toolStore'
 import { useUserStore } from '@/stores/userStore'
 import type { ToolResponse } from '@/types/api'
 
@@ -79,9 +78,6 @@ useSeoMeta({
   keywords: '在线工具,开发工具,JSON格式化,代码压缩,正则测试,程序员工具'
 })
 
-// 使用 Pinia Store
-const toolStore = useToolStore()
-
 // 当前选中的 tab
 const activeTab = ref('hot')
 
@@ -89,53 +85,43 @@ const activeTab = ref('hot')
 const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 
-// SSR：在服务端获取数据
-// 注意：useAsyncData 会在服务端和客户端都执行，但会避免重复请求
-const { data: storeData, pending, error } = await useAsyncData('tool-store-init', async () => {
-  // 如果 store 已经有数据，直接返回
-  if (toolStore.initialized && toolStore.tools.length > 0) {
-    return {
-      categories: toolStore.categories,
-      tools: toolStore.tools
-    }
-  }
+// SSR：获取工具和分类数据
+const { categories, tools } = await useToolsData()
 
-  // 否则调用 initialize 获取数据
-  await toolStore.initialize()
-  return {
-    categories: toolStore.categories,
-    tools: toolStore.tools
-  }
-}, {
-  // 服务端渲染时使用
-  server: true,
-  // 客户端不重新获取（由 store 控制）
-  default: () => ({
-    categories: [],
-    tools: []
-  })
-})
+// 使用工具筛选函数
+const {
+  hotTools,
+  newTools,
+  categoryTools: getCategoryTools,
+  totalTools,
+  monthlyNewTools,
+  totalVisits
+} = useToolFilters(tools)
 
-// 计算属性：从 store 获取数据
-const categories = computed(() => toolStore.categories)
-const hotTools = computed(() => toolStore.hotTools)
-const newTools = computed(() => toolStore.newTools)
-const categoryTools = computed(() => toolStore.categoryTools)
-const loading = computed(() => toolStore.loading || pending.value)
-const storeError = computed(() => toolStore.error || error.value)
+// 计算属性：分类工具列表
+const categoryTools = computed(() => getCategoryTools(categories.value))
 
-// 统计数据（从 store 计算）
+// 统计数据
 const stats = computed(() => ({
-  totalTools: toolStore.totalTools,
-  monthlyNewTools: toolStore.monthlyNewTools,
-  totalVisits: toolStore.totalVisits
+  totalTools: totalTools.value,
+  monthlyNewTools: monthlyNewTools.value,
+  totalVisits: totalVisits.value
 }))
+
+// 加载状态
+const loading = ref(false)
+const storeError = ref<Error | null>(null)
+
+// 重新加载数据（刷新页面）
+const reloadData = () => {
+  window.location.reload()
+}
 
 // 获取最近访问的工具（从 localStorage 读取）
 const recentTools = computed(() => {
   if (import.meta.client) {
     const recentIds = JSON.parse(localStorage.getItem('recentTools') || '[]') as string[]
-    return toolStore.tools.filter((t: ToolResponse) => recentIds.includes(t.code))
+    return tools.value.filter((t: ToolResponse) => recentIds.includes(t.code))
       .slice(0, 8)
   }
   return []
@@ -145,16 +131,15 @@ const recentTools = computed(() => {
 const favoriteTools = ref<ToolResponse[]>([])
 const favoriteLoading = ref(false)
 
+// API 封装
+const api = useApi()
+
 const fetchFavoriteTools = async () => {
   if (!isLoggedIn.value) return
 
   favoriteLoading.value = true
   try {
-    const { $api } = useNuxtApp()
-    const response = await $api('/favorites', {
-      params: { page: 0, size: 8 }
-    }) as any
-
+    const response = await api.favorites.getList(0, 8)
     if (response.code === 200) {
       favoriteTools.value = response.data.content || []
     }
@@ -180,7 +165,7 @@ onMounted(() => {
 })
 
 // 所有工具（用于搜索）
-const allTools = computed(() => toolStore.tools)
+const allTools = tools
 
 // 格式化访问数
 const formatVisits = (visits: number) => {
@@ -282,17 +267,12 @@ const handleSearch = (query: string) => {
 
 // 获取分类下的工具数量（从工具列表计算）
 const getToolCountByCategory = (categoryCode: string) => {
-  return toolStore.tools.filter((t: ToolResponse) => t.category === categoryCode).length
+  return tools.value.filter((t: ToolResponse) => t.category === categoryCode).length
 }
 
 // 处理工具选择
 const handleToolSelect = (tool: ToolResponse) => {
   navigateTo(`/${tool.category}/${tool.code}`)
-}
-
-// 重新加载数据
-const reloadData = () => {
-  toolStore.initialize()
 }
 </script>
 
@@ -559,7 +539,7 @@ const reloadData = () => {
             <div>
               <h2 class="text-xl font-bold text-foreground mb-2">{{ categoryTool.categoryName }}</h2>
               <p class="text-sm text-muted-foreground">
-                {{ categories.find((c) => c.code === categoryTool.categoryCode)?.description || '' }}
+                {{ categories.find((c: any) => c.code === categoryTool.categoryCode)?.description || '' }}
               </p>
             </div>
             <NuxtLink 

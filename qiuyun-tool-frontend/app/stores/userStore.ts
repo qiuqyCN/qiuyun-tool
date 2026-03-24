@@ -89,7 +89,7 @@ export const useUserStore = defineStore('user', {
     async login(username: string, password: string, rememberMe: boolean = false) {
       const { $api } = useNuxtApp()
 
-      const response = await $api('/auth/login', {
+      const response = await $api('/api/auth/login', {
         method: 'POST',
         body: { username, password, rememberMe }
       }) as ApiResponse<LoginResponse>
@@ -107,7 +107,7 @@ export const useUserStore = defineStore('user', {
     async register(username: string, email: string, password: string, confirmPassword: string) {
       const { $api } = useNuxtApp()
 
-      const response = await $api('/auth/register', {
+      const response = await $api('/api/auth/register', {
         method: 'POST',
         body: { username, email, password, confirmPassword }
       }) as ApiResponse<MessageResponse>
@@ -124,7 +124,7 @@ export const useUserStore = defineStore('user', {
       const { $api } = useNuxtApp()
 
       try {
-        await $api('/auth/logout', { method: 'POST' })
+        await $api('/api/auth/logout', { method: 'POST' })
       } catch (error) {
         console.error('Logout error:', error)
       } finally {
@@ -137,7 +137,7 @@ export const useUserStore = defineStore('user', {
       const { $api } = useNuxtApp()
 
       try {
-        const response = await $api('/auth/me') as ApiResponse<UserInfo>
+        const response = await $api('/api/auth/me') as ApiResponse<UserInfo>
 
         if (response.code === 200) {
           this.user = response.data
@@ -162,7 +162,7 @@ export const useUserStore = defineStore('user', {
       }
 
       try {
-        const response = await $api('/auth/refresh', {
+        const response = await $api('/api/auth/refresh', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${this.refreshToken}`

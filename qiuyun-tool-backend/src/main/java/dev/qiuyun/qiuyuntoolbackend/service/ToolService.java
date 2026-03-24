@@ -3,6 +3,7 @@ package dev.qiuyun.qiuyuntoolbackend.service;
 import dev.qiuyun.qiuyuntoolbackend.payload.request.ToolExecuteRequest;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.FileUploadResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolExecuteResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolResponse;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -25,4 +26,9 @@ public interface ToolService {
     String getDownloadUrl(String taskId);
 
     void cancelTask(String taskId);
+
+    /**
+     * 根据code获取工具详情
+     */
+    ToolResponse getToolByCode(String code);
 }
