@@ -2,8 +2,6 @@ package dev.qiuyun.qiuyuntoolbackend.service.impl;
 
 import dev.qiuyun.qiuyuntoolbackend.payload.response.TagResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolResponse;
-import dev.qiuyun.qiuyuntoolbackend.entity.Tag;
-import dev.qiuyun.qiuyuntoolbackend.entity.Tool;
 import dev.qiuyun.qiuyuntoolbackend.repository.TagRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.ToolRepository;
 import dev.qiuyun.qiuyuntoolbackend.service.TagService;
@@ -29,29 +27,28 @@ public class TagServiceImpl implements TagService {
     public List<TagResponse> getAllTags() {
         return tagRepository.findAll()
                 .stream()
-                .map(this::convertToResponse)
+                .map(TagResponse::from)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<TagResponse> getHotTags() {
-        return tagRepository.findByIsHotTrue()
-                .stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
+        // 标签不再使用 isHot 字段，热门状态由工具的 isHot 字段控制
+        // 返回空列表或根据工具热度计算热门标签
+        return List.of();
     }
 
     @Override
     public TagResponse getTagByName(String name) {
         return tagRepository.findByName(name)
-                .map(this::convertToResponse)
+                .map(TagResponse::from)
                 .orElse(null);
     }
 
     @Override
     public TagResponse getTagById(Long id) {
         return tagRepository.findById(id)
-                .map(this::convertToResponse)
+                .map(TagResponse::from)
                 .orElse(null);
     }
 
@@ -59,40 +56,7 @@ public class TagServiceImpl implements TagService {
     public List<ToolResponse> getToolsByTagName(String tagName) {
         return toolRepository.findByTagName(tagName)
                 .stream()
-                .map(this::convertToToolResponse)
+                .map(ToolResponse::simpleFrom)
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * 转换Tag实体为响应对象
-     */
-    private TagResponse convertToResponse(Tag tag) {
-        return TagResponse.builder()
-                .id(tag.getId())
-                .name(tag.getName())
-                .description(tag.getDescription())
-                .isHot(tag.getIsHot())
-                .build();
-    }
-
-    /**
-     * 转换Tool实体为响应对象
-     */
-    private ToolResponse convertToToolResponse(Tool tool) {
-        return ToolResponse.builder()
-                .id(tool.getId())
-                .code(tool.getCode())
-                .name(tool.getName())
-                .description(tool.getDescription())
-                .category(tool.getCategory() != null ? tool.getCategory().getCode() : null)
-                .icon(tool.getIcon())
-                .isVip(tool.getIsVip())
-                .visits(tool.getVisitsCount())
-                .rating(tool.getRating())
-                .reviewCount(tool.getReviewCount())
-                .tags(tool.getTags().stream()
-                        .map(Tag::getName)
-                        .collect(Collectors.toList()))
-                .build();
     }
 }

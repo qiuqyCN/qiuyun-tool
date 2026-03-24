@@ -76,7 +76,7 @@ public class ReviewServiceImpl implements ReviewService {
         // 标记图片为已关联
         tempImageService.markImagesAsLinked(request.getImageUrls());
 
-        ReviewResponse response = convertToResponse(review, userId);
+        ReviewResponse response = ReviewResponse.from(review);
 
         // 查询并设置用户信息
         User user = userRepository.findById(userId).orElse(null);
@@ -131,7 +131,7 @@ public class ReviewServiceImpl implements ReviewService {
             }
         }
 
-        ReviewResponse response = convertToResponse(review, userId);
+        ReviewResponse response = ReviewResponse.from(review);
 
         // 查询并设置用户信息
         User user = userRepository.findById(userId).orElse(null);
@@ -170,7 +170,7 @@ public class ReviewServiceImpl implements ReviewService {
         parentReview.incrementReplyCount();
         reviewRepository.save(parentReview);
 
-        ReviewResponse response = convertToResponse(reply, userId);
+        ReviewResponse response = ReviewResponse.from(reply);
 
         // 查询并设置用户信息
         User user = userRepository.findById(userId).orElse(null);
@@ -209,7 +209,7 @@ public class ReviewServiceImpl implements ReviewService {
                 Set.of();
 
         return reviews.map(review -> {
-            ReviewResponse response = convertToResponse(review, currentUserId);
+            ReviewResponse response = ReviewResponse.from(review);
 
             // 设置用户信息
             User user = userMap.get(review.getUserId());
@@ -239,7 +239,7 @@ public class ReviewServiceImpl implements ReviewService {
 
                 response.setReplies(replies.stream()
                         .map(r -> {
-                            ReviewResponse replyResponse = convertToResponse(r, currentUserId);
+                            ReviewResponse replyResponse = ReviewResponse.from(r);
                             User replyUser = replyUserMap.get(r.getUserId());
                             if (replyUser != null) {
                                 replyResponse.setUserNickname(replyUser.getNickname());
@@ -272,7 +272,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         return replies.stream()
                 .map(reply -> {
-                    ReviewResponse response = convertToResponse(reply, currentUserId);
+                    ReviewResponse response = ReviewResponse.from(reply);
                     User user = userMap.get(reply.getUserId());
                     if (user != null) {
                         response.setUserNickname(user.getNickname());
@@ -369,43 +369,6 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public boolean hasReviewed(Long toolId, Long userId) {
         return reviewRepository.existsByToolIdAndUserIdAndReviewType(toolId, userId, ReviewType.REVIEW);
-    }
-
-    /**
-     * 转换为响应对象
-     */
-    private ReviewResponse convertToResponse(ToolReview review, Long currentUserId) {
-        ReviewResponse response = new ReviewResponse();
-        response.setId(review.getId());
-        response.setToolId(review.getToolId());
-        response.setUserId(review.getUserId());
-        response.setRating(review.getRating());
-        response.setContent(review.getContent());
-        response.setLikeCount(review.getLikeCount());
-        response.setReplyCount(review.getReplyCount());
-        response.setReviewType(review.getReviewType());
-        response.setCreatedAt(review.getCreatedAt());
-
-        // 解析图片URL
-        if (review.getImageUrls() != null) {
-            try {
-                response.setImageUrls(objectMapper.readValue(review.getImageUrls(),
-                        objectMapper.getTypeFactory().constructCollectionType(List.class, String.class)));
-            } catch (JsonProcessingException e) {
-                log.warn("解析图片URL失败: {}", e.getMessage());
-            }
-        }
-
-        // 检查当前用户是否点赞
-        if (currentUserId != null) {
-            response.setIsLiked(likeRepository.existsByReviewIdAndUserId(review.getId(), currentUserId));
-            response.setIsOwner(Objects.equals(review.getUserId(), currentUserId));
-        } else {
-            response.setIsLiked(false);
-            response.setIsOwner(false);
-        }
-
-        return response;
     }
 
     /**

@@ -110,6 +110,21 @@
             <div class="prose prose-sm max-w-none text-muted-foreground" v-html="tool.instructions"></div>
           </div>
 
+          <!-- Tags -->
+          <div v-if="tool?.tags && tool.tags.length > 0" class="border border-border/40 rounded-xl p-6">
+            <h3 class="font-semibold mb-4">标签</h3>
+            <div class="flex flex-wrap gap-2">
+              <Badge
+                v-for="tag in tool.tags"
+                :key="tag"
+                variant="outline"
+                class="text-xs"
+              >
+                {{ tag }}
+              </Badge>
+            </div>
+          </div>
+
           <!-- Related Tools -->
           <div v-if="relatedTools.length > 0" class="border border-border/40 rounded-xl p-6">
             <h3 class="font-semibold mb-4">相关工具</h3>
@@ -194,6 +209,7 @@
 <script setup lang="ts">
 import { ref, computed, h, onMounted } from 'vue'
 import { useUserStore } from '~/stores/userStore'
+import { formatNumber } from '~/utils/format'
 import ToolReviews from '~/components/review/ToolReviews.vue'
 import {
   ChevronRight,
@@ -458,16 +474,7 @@ const shareTool = async () => {
   }
 }
 
-// 格式化数字
-const formatNumber = (num: number): string => {
-  if (num >= 10000) {
-    return (num / 10000).toFixed(1) + 'w'
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'k'
-  }
-  return num.toString()
-}
+
 
 // 反馈
 const showFeedback = ref(false)

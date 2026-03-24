@@ -1,7 +1,6 @@
 package dev.qiuyun.qiuyuntoolbackend.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.qiuyun.qiuyuntoolbackend.entity.Tag;
 import dev.qiuyun.qiuyuntoolbackend.entity.Tool;
 import dev.qiuyun.qiuyuntoolbackend.entity.ToolFile;
 import dev.qiuyun.qiuyuntoolbackend.entity.ToolTask;
@@ -443,36 +442,6 @@ public class ToolServiceImpl implements ToolService {
     public ToolResponse getToolByCode(String code) {
         Tool tool = toolRepository.findByCode(code)
                 .orElseThrow(() -> new BusinessException("工具不存在: " + code));
-        return convertToToolResponse(tool);
-    }
-
-    /**
-     * 转换 Tool 实体为响应对象
-     */
-    private ToolResponse convertToToolResponse(Tool tool) {
-        return ToolResponse.builder()
-                .id(tool.getId())
-                .code(tool.getCode())
-                .name(tool.getName())
-                .description(tool.getDescription())
-                .category(tool.getCategory() != null ? tool.getCategory().getCode() : null)
-                .icon(tool.getIcon())
-                .iconColor(tool.getIconColor())
-                .iconBgColor(tool.getIconBgColor())
-                .isVip(tool.getIsVip())
-                .isHot(tool.getIsHot())
-                .priceMode(tool.getPriceMode())
-                .visits(tool.getVisitsCount())
-                .viewCount(tool.getViewCount())
-                .usageCount(tool.getUsageCount())
-                .rating(tool.getRating())
-                .reviewCount(tool.getReviewCount())
-                .favoriteCount(tool.getFavoriteCount())
-                .instructions(tool.getInstructions())
-                .tags(tool.getTags().stream()
-                        .map(Tag::getName)
-                        .collect(Collectors.toList()))
-                .createdAt(tool.getCreatedAt())
-                .build();
+        return ToolResponse.from(tool);
     }
 }

@@ -92,7 +92,7 @@ const { categories, tools } = await useToolsData()
 const {
   hotTools,
   newTools,
-  categoryTools: getCategoryTools,
+  getCategoryTools,
   totalTools,
   monthlyNewTools,
   totalVisits
@@ -166,17 +166,6 @@ onMounted(() => {
 
 // 所有工具（用于搜索）
 const allTools = tools
-
-// 格式化访问数
-const formatVisits = (visits: number) => {
-  if (visits >= 10000) {
-    return (visits / 10000).toFixed(1) + 'w'
-  }
-  if (visits >= 1000) {
-    return (visits / 1000).toFixed(1) + 'k'
-  }
-  return visits.toString()
-}
 
 // 分类图标映射表
 const categoryIconMap: Record<string, any> = {
@@ -256,13 +245,6 @@ const getIconComponent = (iconName: string) => {
 // 获取工具图标组件
 const getToolIconComponent = (iconName: string) => {
   return toolIconMap[iconName] || Wrench
-}
-
-// 处理搜索
-const handleSearch = (query: string) => {
-  if (query.trim()) {
-    navigateTo(`/category?search=${encodeURIComponent(query.trim())}`)
-  }
 }
 
 // 获取分类下的工具数量（从工具列表计算）

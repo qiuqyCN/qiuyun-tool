@@ -1,5 +1,9 @@
 package dev.qiuyun.qiuyuntoolbackend.payload.response.review;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.qiuyun.qiuyuntoolbackend.entity.ToolReview;
 import dev.qiuyun.qiuyuntoolbackend.enums.ReviewType;
 import lombok.Data;
 
@@ -11,6 +15,8 @@ import java.util.List;
  */
 @Data
 public class ReviewResponse {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private Long id;
     private Long toolId;
@@ -45,5 +51,36 @@ public class ReviewResponse {
             return "/default-avatar.png";
         }
         return userAvatar;
+    }
+
+    /**
+     * 从 ToolReview 实体创建响应对象
+     * 注意：用户信息、点赞状态等需要额外设置
+     */
+    public static ReviewResponse from(ToolReview review) {
+        if (review == null) {
+            return null;
+        }
+        ReviewResponse response = new ReviewResponse();
+        response.setId(review.getId());
+        response.setToolId(review.getToolId());
+        response.setUserId(review.getUserId());
+        response.setRating(review.getRating());
+        response.setContent(review.getContent());
+        response.setLikeCount(review.getLikeCount());
+        response.setReplyCount(review.getReplyCount());
+        response.setReviewType(review.getReviewType());
+        response.setCreatedAt(review.getCreatedAt());
+
+        // 解析图片URL
+        if (review.getImageUrls() != null) {
+            try {
+                response.setImageUrls(objectMapper.readValue(review.getImageUrls(), new TypeReference<List<String>>() {}));
+            } catch (JsonProcessingException e) {
+                // 解析失败时忽略
+            }
+        }
+
+        return response;
     }
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { formatNumber } from "@/utils/format";
 import {
   Search,
   Sparkles,
@@ -102,7 +102,6 @@ const isSearching = ref(false);
 const searchResults = ref<SearchResult[]>([]);
 const selectedIndex = ref(-1);
 const showResults = ref(false);
-const searchInputRef = ref<HTMLInputElement | null>(null);
 const resultsContainerRef = ref<HTMLDivElement | null>(null);
 
 // 计算搜索相关性
@@ -279,17 +278,6 @@ const escapeRegExp = (string: string): string => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 };
 
-// 格式化数字（转换为 w/k 格式）
-const formatNumber = (num: number): string => {
-  if (num >= 10000) {
-    return (num / 10000).toFixed(0) + 'w+';
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(0) + 'k+';
-  }
-  return num + '+';
-};
-
 // 点击外部关闭结果
 const handleClickOutside = (e: MouseEvent) => {
   const target = e.target as HTMLElement;
@@ -404,7 +392,7 @@ onUnmounted(() => {
                   </div>
 
                   <!-- Tags -->
-                  <div class="flex gap-1 shrink-0">
+                  <div v-if="result.tool.tags && result.tool.tags.length > 0" class="flex gap-1 shrink-0">
                     <Badge
                       v-for="tag in result.tool.tags.slice(0, 2)"
                       :key="tag"
@@ -480,15 +468,15 @@ onUnmounted(() => {
           class="flex items-center justify-center gap-8 mt-8 text-sm text-muted-foreground"
         >
           <div class="flex items-center gap-2">
-            <span class="font-semibold text-foreground">{{ formatNumber(props.stats?.totalTools || 0) }}</span>
+            <span class="font-semibold text-foreground">{{ formatNumber(props.stats?.totalTools || 0, { decimals: 0, suffix: '+' }) }}</span>
             <span>实用工具</span>
           </div>
            <div class="flex items-center gap-2">
-            <span class="font-semibold text-foreground">{{ formatNumber(props.stats?.monthlyNewTools || 0) }}</span>
+            <span class="font-semibold text-foreground">{{ formatNumber(props.stats?.monthlyNewTools || 0, { decimals: 0, suffix: '+' }) }}</span>
             <span>本月新增</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="font-semibold text-foreground">{{ formatNumber(props.stats?.totalVisits || 0) }}</span>
+            <span class="font-semibold text-foreground">{{ formatNumber(props.stats?.totalVisits || 0, { decimals: 0, suffix: '+' }) }}</span>
             <span>总使用量</span>
           </div>
         </div>

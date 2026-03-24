@@ -42,9 +42,6 @@ public class Tag {
     @Column(length = 200)
     private String description;
 
-    @Column(name = "is_hot")
-    private Boolean isHot;
-
     @ManyToMany(mappedBy = "tags")
     @Builder.Default
     @EqualsAndHashCode.Exclude

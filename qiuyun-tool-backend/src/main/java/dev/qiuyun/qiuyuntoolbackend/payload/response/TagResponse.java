@@ -1,5 +1,6 @@
 package dev.qiuyun.qiuyuntoolbackend.payload.response;
 
+import dev.qiuyun.qiuyuntoolbackend.entity.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,5 +18,18 @@ public class TagResponse {
     private Long id;
     private String name;
     private String description;
-    private Boolean isHot;
+
+    /**
+     * 从 Tag 实体创建响应对象
+     */
+    public static TagResponse from(Tag tag) {
+        if (tag == null) {
+            return null;
+        }
+        return TagResponse.builder()
+                .id(tag.getId())
+                .name(tag.getName())
+                .description(tag.getDescription())
+                .build();
+    }
 }

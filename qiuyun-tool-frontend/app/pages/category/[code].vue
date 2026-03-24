@@ -2,7 +2,8 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import type { ToolResponse, CategoryResponse } from '@/types/api'
+import { formatVisits } from '@/utils/format'
+import type { ToolResponse } from '@/types/api'
 import {
   Search,
   Grid3X3,
@@ -292,16 +293,7 @@ const filteredTools = computed(() => {
   return result
 })
 
-// 格式化访问数
-const formatVisits = (visits: number) => {
-  if (visits >= 10000) {
-    return (visits / 10000).toFixed(1) + 'w'
-  }
-  if (visits >= 1000) {
-    return (visits / 1000).toFixed(1) + 'k'
-  }
-  return visits.toString()
-}
+
 
 // 切换分类 - 保留当前筛选状态到 URL
 const switchCategory = (code: string) => {
@@ -589,7 +581,7 @@ const switchCategory = (code: string) => {
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 mb-1">
                   <h3 class="font-semibold text-foreground">{{ tool.name }}</h3>
-                  <Badge v-if="tool.tags.includes('热门')" variant="destructive" class="text-xs">
+                  <Badge v-if="tool.isHot" variant="destructive" class="text-xs">
                     HOT
                   </Badge>
                   <Badge v-if="tool.isVip" variant="secondary" class="text-xs">

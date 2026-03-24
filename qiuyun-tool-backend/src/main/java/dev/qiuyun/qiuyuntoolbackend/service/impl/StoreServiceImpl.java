@@ -1,8 +1,5 @@
 package dev.qiuyun.qiuyuntoolbackend.service.impl;
 
-import dev.qiuyun.qiuyuntoolbackend.entity.Category;
-import dev.qiuyun.qiuyuntoolbackend.entity.Tag;
-import dev.qiuyun.qiuyuntoolbackend.entity.Tool;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.CategoryResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolResponse;
 import dev.qiuyun.qiuyuntoolbackend.repository.CategoryRepository;
@@ -31,58 +28,16 @@ public class StoreServiceImpl implements StoreService {
         // 获取所有启用的分类，toolCount 由前端自行计算
         return categoryRepository.findByIsActiveTrueOrderBySortOrderAsc()
                 .stream()
-                .map(this::convertToCategoryResponse)
+                .map(CategoryResponse::from)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<ToolResponse> getAllTools() {
-        return toolRepository.findByIsActiveTrue()
+        // 使用 JOIN FETCH 一次性加载标签和分类，避免 N+1 查询问题
+        return toolRepository.findByIsActiveTrueWithTags()
                 .stream()
-                .map(this::convertToToolResponse)
+                .map(ToolResponse::from)
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * 转换 Category 实体为响应对象
-     */
-    private CategoryResponse convertToCategoryResponse(Category category) {
-        return CategoryResponse.builder()
-                .id(category.getId())
-                .code(category.getCode())
-                .name(category.getName())
-                .icon(category.getIcon())
-                .description(category.getDescription())
-                .build();
-    }
-
-    /**
-     * 转换 Tool 实体为响应对象
-     */
-    private ToolResponse convertToToolResponse(Tool tool) {
-        return ToolResponse.builder()
-                .id(tool.getId())
-                .code(tool.getCode())
-                .name(tool.getName())
-                .description(tool.getDescription())
-                .category(tool.getCategory() != null ? tool.getCategory().getCode() : null)
-                .icon(tool.getIcon())
-                .iconColor(tool.getIconColor())
-                .iconBgColor(tool.getIconBgColor())
-                .isVip(tool.getIsVip())
-                .isHot(tool.getIsHot())
-                .priceMode(tool.getPriceMode())
-                .visits(tool.getVisitsCount())
-                .viewCount(tool.getViewCount())
-                .usageCount(tool.getUsageCount())
-                .rating(tool.getRating())
-                .reviewCount(tool.getReviewCount())
-                .favoriteCount(tool.getFavoriteCount())
-                .instructions(tool.getInstructions())
-                .tags(tool.getTags().stream()
-                        .map(Tag::getName)
-                        .collect(Collectors.toList()))
-                .createdAt(tool.getCreatedAt())
-                .build();
     }
 }

@@ -35,20 +35,6 @@ export async function useToolsData() {
  * 工具筛选计算函数
  */
 export function useToolFilters(tools: Ref<ToolResponse[]>) {
-  // 热门工具（按访问量排序，前8个）
-  const hotTools = computed(() =>
-    [...tools.value]
-      .sort((a, b) => (b.visits || 0) - (a.visits || 0))
-      .slice(0, 8)
-  )
-
-  // 最新工具（按ID倒序，前8个）
-  const newTools = computed(() =>
-    [...tools.value]
-      .sort((a, b) => b.id - a.id)
-      .slice(0, 8)
-  )
-
   // 按分类分组的工具
   const toolsByCategory = computed(() => {
     const grouped: Record<string, ToolResponse[]> = {}
@@ -63,7 +49,7 @@ export function useToolFilters(tools: Ref<ToolResponse[]>) {
   })
 
   // 获取分类工具列表
-  const categoryTools = (categories: CategoryResponse[]) => {
+  const getCategoryTools = (categories: CategoryResponse[]) => {
     return categories.map((cat: CategoryResponse) => ({
       categoryCode: cat.code,
       categoryName: cat.name,
@@ -90,6 +76,20 @@ export function useToolFilters(tools: Ref<ToolResponse[]>) {
       .slice(0, limit)
   }
 
+  // 热门工具（按访问量排序，前8个）
+  const hotTools = computed(() =>
+    [...tools.value]
+      .sort((a, b) => (b.visits || 0) - (a.visits || 0))
+      .slice(0, 8)
+  )
+
+  // 最新工具（按ID倒序，前8个）
+  const newTools = computed(() =>
+    [...tools.value]
+      .sort((a, b) => b.id - a.id)
+      .slice(0, 8)
+  )
+  
   // 获取工具总数
   const totalTools = computed(() => tools.value.length)
 
@@ -110,15 +110,17 @@ export function useToolFilters(tools: Ref<ToolResponse[]>) {
   })
 
   return {
+    // 计算属性
     hotTools,
     newTools,
     toolsByCategory,
-    categoryTools,
-    getToolByCode,
-    getToolsByCategoryCode,
-    getRelatedTools,
     totalTools,
     totalVisits,
-    monthlyNewTools
+    monthlyNewTools,
+    // 函数
+    getToolByCode,
+    getToolsByCategoryCode,
+    getCategoryTools,
+    getRelatedTools
   }
 }

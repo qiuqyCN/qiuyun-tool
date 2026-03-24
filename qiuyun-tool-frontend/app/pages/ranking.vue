@@ -2,6 +2,7 @@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { formatVisits } from '@/utils/format'
 import {
   Trophy,
   Flame,
@@ -150,16 +151,7 @@ const getRankBgClass = (rank: number) => {
   return 'bg-muted/30 border-border/40'
 }
 
-// 格式化数字
-const formatNumber = (num: number) => {
-  if (num >= 10000) {
-    return (num / 10000).toFixed(1) + 'w'
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'k'
-  }
-  return num.toString()
-}
+
 
 // 获取榜单标题
 const getRankingTitle = (type: string) => {
@@ -309,15 +301,15 @@ const getRankingDesc = (type: string) => {
               <div class="flex items-center gap-3 text-xs text-muted-foreground">
                 <span class="flex items-center gap-1" title="使用次数">
                   <Users class="w-3 h-3" />
-                  {{ formatNumber(item.usageCount) }}
+                  {{ formatVisits(item.usageCount) }}
                 </span>
                 <span class="flex items-center gap-1" title="浏览次数">
                   <Eye class="w-3 h-3" />
-                  {{ formatNumber(item.visitCount) }}
+                  {{ formatVisits(item.visitCount) }}
                 </span>
                 <span class="flex items-center gap-1" title="收藏数">
                   <Heart class="w-3 h-3" />
-                  {{ formatNumber(item.favoriteCount) }}
+                  {{ formatVisits(item.favoriteCount) }}
                 </span>
               </div>
               <div class="flex items-center gap-1 text-sm font-medium text-foreground">

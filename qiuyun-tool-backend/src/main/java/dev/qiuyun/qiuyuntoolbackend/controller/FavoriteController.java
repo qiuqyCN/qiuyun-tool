@@ -174,7 +174,7 @@ public class FavoriteController {
         Pageable pageable = PageRequest.of(page, size);
         Page<Tool> toolPage = favoriteService.getUserFavorites(user.getId(), pageable);
 
-        Page<ToolResponse> responsePage = toolPage.map(this::convertToToolResponse);
+        Page<ToolResponse> responsePage = toolPage.map(ToolResponse::simpleFrom);
 
         return ApiResponse.success(responsePage);
     }
@@ -215,27 +215,5 @@ public class FavoriteController {
         result.put("count", count);
 
         return ApiResponse.success(result);
-    }
-
-    /**
-     * 转换Tool为ToolResponse
-     */
-    private ToolResponse convertToToolResponse(Tool tool) {
-        return ToolResponse.builder()
-                .id(tool.getId())
-                .code(tool.getCode())
-                .name(tool.getName())
-                .description(tool.getDescription())
-                .category(tool.getCategory() != null ? tool.getCategory().getCode() : null)
-                .icon(tool.getIcon())
-                .iconColor(tool.getIconColor())
-                .iconBgColor(tool.getIconBgColor())
-                .isVip(tool.getIsVip())
-                .isHot(tool.getIsHot())
-                .rating(tool.getRating())
-                .viewCount(tool.getViewCount())
-                .usageCount(tool.getUsageCount())
-                .favoriteCount(tool.getFavoriteCount())
-                .build();
     }
 }

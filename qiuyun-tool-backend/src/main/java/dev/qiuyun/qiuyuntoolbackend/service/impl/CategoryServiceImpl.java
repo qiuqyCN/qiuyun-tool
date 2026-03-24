@@ -35,21 +35,21 @@ public class CategoryServiceImpl implements CategoryService {
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findByIsActiveTrueOrderBySortOrderAsc()
                 .stream()
-                .map(this::convertToResponse)
+                .map(CategoryResponse::from)
                 .collect(Collectors.toList());
     }
 
     @Override
     public CategoryResponse getCategoryByCode(String code) {
         return categoryRepository.findByCode(code)
-                .map(this::convertToResponse)
+                .map(CategoryResponse::from)
                 .orElse(null);
     }
 
     @Override
     public CategoryResponse getCategoryById(Long id) {
         return categoryRepository.findById(id)
-                .map(this::convertToResponse)
+                .map(CategoryResponse::from)
                 .orElse(null);
     }
 
@@ -82,7 +82,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .categoryName(category != null ? category.getName() : "全部工具")
                 .categoryDescription(category != null ? category.getDescription() : "浏览所有可用工具")
                 .tools(tools.stream()
-                        .map(this::convertToToolResponse)
+                        .map(ToolResponse::simpleFrom)
                         .collect(Collectors.toList()))
                 .build();
     }
@@ -136,39 +136,5 @@ public class CategoryServiceImpl implements CategoryService {
         return tools.stream()
                 .sorted(comparator)
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * 转换实体为响应对象
-     */
-    private CategoryResponse convertToResponse(Category category) {
-        return CategoryResponse.builder()
-                .id(category.getId())
-                .code(category.getCode())
-                .name(category.getName())
-                .icon(category.getIcon())
-                .description(category.getDescription())
-                .build();
-    }
-
-    /**
-     * 转换工具实体为响应对象
-     */
-    private ToolResponse convertToToolResponse(Tool tool) {
-        return ToolResponse.builder()
-                .id(tool.getId())
-                .code(tool.getCode())
-                .name(tool.getName())
-                .description(tool.getDescription())
-                .category(tool.getCategory() != null ? tool.getCategory().getCode() : null)
-                .icon(tool.getIcon())
-                .isVip(tool.getIsVip())
-                .visits(tool.getVisitsCount())
-                .rating(tool.getRating())
-                .reviewCount(tool.getReviewCount())
-                .tags(tool.getTags().stream()
-                        .map(tag -> tag.getName())
-                        .collect(Collectors.toList()))
-                .build();
     }
 }

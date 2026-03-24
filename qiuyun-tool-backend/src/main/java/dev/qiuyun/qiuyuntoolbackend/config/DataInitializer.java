@@ -261,30 +261,27 @@ public class DataInitializer {
 
         // 定义所有标签（使用静态常量避免每次创建）
         final List<TagDefinition> TAG_DEFINITIONS = Arrays.asList(
-                new TagDefinition("热门", "热门工具", true),
-                new TagDefinition("常用", "常用工具", true),
-                new TagDefinition("VIP", "VIP专属工具", false),
-                new TagDefinition("开发", "开发相关", false),
-                new TagDefinition("文档", "文档处理", false),
-                new TagDefinition("图片", "图片处理", false),
-                new TagDefinition("媒体", "音视频处理", false),
-                new TagDefinition("生活", "生活实用", false),
-                new TagDefinition("加密", "加密解密", false),
-                new TagDefinition("文本", "文本处理", false),
-                new TagDefinition("转换", "格式转换", false),
-                new TagDefinition("生成", "内容生成", false),
-                new TagDefinition("解析", "内容解析", false),
-                new TagDefinition("计算", "数学计算", false),
-                new TagDefinition("测试", "测试调试", false),
-                new TagDefinition("网络", "网络相关", false),
-                new TagDefinition("前端", "前端开发", false),
-                new TagDefinition("后端", "后端开发", false),
-                new TagDefinition("安全", "安全相关", false),
-                new TagDefinition("效率", "效率工具", false),
-                new TagDefinition("设计", "设计相关", false),
-                new TagDefinition("财务", "财务计算", false),
-                new TagDefinition("健康", "健康相关", false),
-                new TagDefinition("时间", "日期时间", false)
+                new TagDefinition("开发", "开发相关"),
+                new TagDefinition("文档", "文档处理"),
+                new TagDefinition("图片", "图片处理"),
+                new TagDefinition("媒体", "音视频处理"),
+                new TagDefinition("生活", "生活实用"),
+                new TagDefinition("加密", "加密解密"),
+                new TagDefinition("文本", "文本处理"),
+                new TagDefinition("转换", "格式转换"),
+                new TagDefinition("生成", "内容生成"),
+                new TagDefinition("解析", "内容解析"),
+                new TagDefinition("计算", "数学计算"),
+                new TagDefinition("测试", "测试调试"),
+                new TagDefinition("网络", "网络相关"),
+                new TagDefinition("前端", "前端开发"),
+                new TagDefinition("后端", "后端开发"),
+                new TagDefinition("安全", "安全相关"),
+                new TagDefinition("效率", "效率工具"),
+                new TagDefinition("设计", "设计相关"),
+                new TagDefinition("财务", "财务计算"),
+                new TagDefinition("健康", "健康相关"),
+                new TagDefinition("时间", "日期时间")
         );
 
         // 获取现有标签
@@ -301,8 +298,7 @@ public class DataInitializer {
                 boolean anyChanged = false;
                 for (TagDefinition def : TAG_DEFINITIONS) {
                     Tag existing = existingMap.get(def.name);
-                    if (!Objects.equals(existing.getDescription(), def.description) 
-                            || existing.getIsHot() != def.isHot) {
+                    if (!Objects.equals(existing.getDescription(), def.description)) {
                         anyChanged = true;
                         break;
                     }
@@ -326,7 +322,6 @@ public class DataInitializer {
                 tag = Tag.builder()
                         .name(def.name)
                         .description(def.description)
-                        .isHot(def.isHot)
                         .build();
                 log.info("新增标签: {}", def.name);
                 newCount++;
@@ -334,7 +329,6 @@ public class DataInitializer {
             } else if (isTagChanged(tag, def)) {
                 // 标签配置发生变化，才进行更新
                 tag.setDescription(def.description);
-                tag.setIsHot(def.isHot);
                 log.info("更新标签: {}", def.name);
                 updateCount++;
                 toSave.add(tag);
@@ -362,7 +356,6 @@ public class DataInitializer {
      */
     private boolean isTagChanged(Tag existingTag, TagDefinition def) {
         if (!Objects.equals(existingTag.getDescription(), def.description)) return true;
-        if (existingTag.getIsHot() != def.isHot) return true;
         return false;
     }
 
@@ -506,14 +499,24 @@ public class DataInitializer {
         Category designCategory = categories.get("design");
         Category lifeCategory = categories.get("life");
 
-        Tag hotTag = tags.get("热门");
-        Tag commonTag = tags.get("常用");
-        Tag vipTag = tags.get("VIP");
         Tag devTag = tags.get("开发");
         Tag imageTag = tags.get("图片");
         Tag docTag = tags.get("文档");
         Tag mediaTag = tags.get("媒体");
         Tag lifeTag = tags.get("生活");
+        Tag cryptoTag = tags.get("加密");
+        Tag textTag = tags.get("文本");
+        Tag networkTag = tags.get("网络");
+        Tag frontendTag = tags.get("前端");
+        Tag numberTag = tags.get("计算");
+        Tag convertTag = tags.get("转换");
+        Tag generateTag = tags.get("生成");
+        Tag parseTag = tags.get("解析");
+        Tag testTag = tags.get("测试");
+        Tag securityTag = tags.get("安全");
+        Tag designTag = tags.get("设计");
+        Tag financeTag = tags.get("财务");
+        Tag timeTag = tags.get("时间");
 
         // ========== 开发工具 (蓝色系) ==========
         defs.add(new ToolDefinition("json-formatter", "JSON格式化", "JSON数据的格式化、压缩、转义等操作",
@@ -522,7 +525,7 @@ public class DataInitializer {
                         "压缩", "去除 JSON 中的空白字符，减小数据体积",
                         "转义", "将 JSON 字符串转义，适用于在代码中使用",
                         "去转义", "将转义后的 JSON 字符串还原为正常格式"),
-                new HashSet<>(Arrays.asList(hotTag, commonTag))));
+                new HashSet<>(Arrays.asList(devTag, convertTag))));
 
         defs.add(new ToolDefinition("yaml-json-converter", "YAML/JSON互转", "YAML与JSON格式互相转换",
                 devCategory, "ArrowRightLeft", "#3B82F6", "#EFF6FF", false, true,
@@ -538,21 +541,21 @@ public class DataInitializer {
                         "CSS格式化", "美化CSS样式代码，规范属性格式",
                         "JavaScript格式化", "格式化JS代码，提高可读性",
                         "代码压缩", "支持代码压缩功能，减小文件体积"),
-                new HashSet<>(Arrays.asList(vipTag))));
+                new HashSet<>(Arrays.asList(devTag, frontendTag))));
 
         defs.add(new ToolDefinition("regex-tester", "正则测试", "在线正则表达式测试工具",
                 devCategory, "Search", "#2563EB", "#DBEAFE", false, true,
                 buildInstructions("输入正则表达式", "在正则输入框中填写要测试的正则表达式",
                         "输入测试文本", "在文本框中输入需要匹配的测试内容",
                         "实时匹配", "系统会实时显示匹配结果和高亮匹配内容"),
-                new HashSet<>()));
+                new HashSet<>(Arrays.asList(devTag, testTag))));
 
         defs.add(new ToolDefinition("timestamp-converter", "时间戳转换", "Unix时间戳与日期时间互转",
                 devCategory, "Clock", "#3B82F6", "#EFF6FF", false, true,
                 buildInstructions("时间戳转日期", "输入Unix时间戳（秒或毫秒），转换为可读的日期时间",
                         "日期转时间戳", "选择或输入日期时间，转换为Unix时间戳",
                         "多种格式", "支持多种日期格式输出"),
-                new HashSet<>(Arrays.asList(hotTag))));
+                new HashSet<>(Arrays.asList(devTag, timeTag, convertTag))));
 
         // WebSocket 测试
         defs.add(new ToolDefinition("websocket-tester", "WebSocket测试", "WebSocket连接测试工具，支持实时消息收发和心跳保活",
@@ -586,7 +589,7 @@ public class DataInitializer {
                         "输入 URL", "填写请求的完整地址",
                         "配置参数", "添加查询参数、请求头、请求体",
                         "发送请求", "点击发送按钮查看响应结果"),
-                new HashSet<>(Arrays.asList(hotTag, commonTag, devTag))));
+                new HashSet<>(Arrays.asList(devTag))));
 
         // User-Agent 解析
         defs.add(new ToolDefinition("user-agent-parser", "User-Agent 解析", "解析 User-Agent 字符串，获取浏览器、操作系统、设备等信息",
@@ -602,14 +605,14 @@ public class DataInitializer {
                 buildInstructions("上传图片", "点击上传或拖拽图片文件到指定区域",
                         "选择压缩质量", "调整压缩比例，平衡画质和文件大小",
                         "预览对比", "查看压缩前后的画质对比"),
-                new HashSet<>(Arrays.asList(hotTag, commonTag))));
+                new HashSet<>(Arrays.asList(imageTag))));
 
         defs.add(new ToolDefinition("image-convert", "图片格式转换", "图片格式互相转换",
                 imageCategory, "ImagePlus", "#22C55E", "#F0FDF4", true, true,
                 buildInstructions("上传图片", "选择需要转换格式的图片文件",
                         "选择目标格式", "选择要转换成的图片格式",
                         "开始转换", "点击转换按钮，等待处理完成"),
-                new HashSet<>(Arrays.asList(vipTag, imageTag))));
+                new HashSet<>(Arrays.asList(imageTag))));
 
         defs.add(new ToolDefinition("image-to-base64", "图片转Base64", "图片转换为Base64编码",
                 imageCategory, "FileImage", "#15803D", "#BBF7D0", false, true,
@@ -623,7 +626,7 @@ public class DataInitializer {
                 buildInstructions("选择内容类型", "支持文本、URL、WiFi、邮箱、电话、短信",
                         "输入内容", "根据类型填写相应信息",
                         "自定义样式", "调整尺寸、纠错级别，可添加Logo"),
-                new HashSet<>(Arrays.asList(hotTag, imageTag))));
+                new HashSet<>(Arrays.asList(imageTag))));
 
         defs.add(new ToolDefinition("qr-code-parser", "二维码解析", "上传二维码图片，识别其中的内容信息",
                 imageCategory, "ScanLine", "#22C55E", "#F0FDF4", false, true,
@@ -649,7 +652,7 @@ public class DataInitializer {
                         "选择操作", "格式化、优化、压缩、转PNG、验证",
                         "转PNG设置", "转换为PNG时可设置输出尺寸",
                         "下载结果", "下载处理后的SVG或PNG文件"),
-                new HashSet<>(Arrays.asList(hotTag, imageTag))));
+                new HashSet<>(Arrays.asList(imageTag))));
 
         // ========== 文档工具 (橙色系) ==========
         defs.add(new ToolDefinition("markdown-editor", "Markdown编辑器", "在线Markdown编辑和预览",
@@ -672,21 +675,21 @@ public class DataInitializer {
                 buildInstructions("输入文本", "在输入框中填写需要加密的文本",
                         "选择位数", "选择32位或16位MD5加密",
                         "获取结果", "系统自动生成MD5加密字符串"),
-                new HashSet<>(Arrays.asList(hotTag, commonTag))));
+                new HashSet<>(Arrays.asList(cryptoTag, securityTag))));
 
         defs.add(new ToolDefinition("url-encode", "URL编解码", "URL编码和解码工具",
                 cryptoCategory, "Link", "#EF4444", "#FEF2F2", false, true,
                 buildInstructions("URL编码", "将特殊字符转换为URL安全格式",
                         "URL解码", "将编码后的URL还原为原始字符串",
                         "自动识别", "自动识别编码/解码操作"),
-                new HashSet<>()));
+                new HashSet<>(Arrays.asList(cryptoTag, convertTag))));
 
         defs.add(new ToolDefinition("base64-codec", "Base64编解码", "Base64编码和解码工具",
                 cryptoCategory, "Binary", "#DC2626", "#FEE2E2", false, true,
                 buildInstructions("Base64编码", "将普通文本转换为Base64编码格式",
                         "Base64解码", "将Base64编码还原为原始文本",
                         "URL安全", "支持URL安全的Base64编码"),
-                new HashSet<>(Arrays.asList(commonTag))));
+                new HashSet<>(Arrays.asList(cryptoTag, convertTag))));
 
         defs.add(new ToolDefinition("jwt-parser", "JWT解析器", "解析 JWT Token，查看 Header、Payload、过期时间等信息",
                 cryptoCategory, "Key", "#B91C1C", "#FECACA", false, true,
@@ -715,14 +718,14 @@ public class DataInitializer {
                 buildInstructions("输入原文本", "在左侧输入框中填写原始文本",
                         "输入对比文本", "在右侧输入框中填写对比文本",
                         "查看差异", "系统自动高亮显示差异部分"),
-                new HashSet<>()));
+                new HashSet<>(Arrays.asList(textTag))));
 
         defs.add(new ToolDefinition("word-count", "字数统计", "统计文本字数、字符数、行数",
                 textCategory, "Text", "#A855F7", "#FAF5FF", false, true,
                 buildInstructions("输入文本", "在文本框中输入或粘贴需要统计的内容",
                         "实时统计", "系统自动显示字数、字符数、行数",
                         "详细数据", "查看中文字数、英文单词数、标点符号等"),
-                new HashSet<>(Arrays.asList(commonTag))));
+                new HashSet<>()));
 
         // 汉字转拼音
         defs.add(new ToolDefinition("chinese-to-pinyin", "汉字转拼音", "将汉字转换为拼音，支持声调、首字母提取、多音字检测",
@@ -731,7 +734,7 @@ public class DataInitializer {
                         "选择选项", "设置声调显示、大小写、分隔符等选项",
                         "开始转换", "点击转换按钮获取拼音结果",
                         "高级功能", "可选提取首字母、检测多音字、查看逐字详情"),
-                new HashSet<>(Arrays.asList(hotTag, commonTag))));
+                new HashSet<>()));
 
         // 重复行删除
         defs.add(new ToolDefinition("remove-duplicate-lines", "重复行删除", "删除文本中的重复行，支持多种选项",
@@ -740,7 +743,7 @@ public class DataInitializer {
                         "选择选项", "可选择忽略大小写、忽略首尾空白、保留首次出现、结果排序等",
                         "删除重复", "点击删除重复行按钮执行去重操作",
                         "查看统计", "显示原行数、结果行数、删除重复数等统计信息"),
-                new HashSet<>(Arrays.asList(commonTag))));
+                new HashSet<>()));
 
         // ========== 数字工具 (琥珀/黄色系) ==========
         // 科学计算器
@@ -750,21 +753,21 @@ public class DataInitializer {
                         "科学运算", "支持三角函数、对数、指数、幂运算、阶乘等",
                         "角度切换", "可切换弧度(RAD)和角度(DEG)模式",
                         "内存操作", "使用M+/M-/MR/MC进行内存存储"),
-                new HashSet<>(Arrays.asList(hotTag))));
+                new HashSet<>(Arrays.asList(numberTag))));
 
         defs.add(new ToolDefinition("radix-converter", "进制转换", "二进制、八进制、十进制、十六进制互转",
                 numberCategory, "Binary", "#D97706", "#FEF3C7", false, true,
                 buildInstructions("输入数值", "在输入框中填写要转换的数字",
                         "选择进制", "选择输入数字的当前进制",
                         "查看结果", "自动显示其他进制的转换结果"),
-                new HashSet<>()));
+                new HashSet<>(Arrays.asList(numberTag, convertTag))));
 
         defs.add(new ToolDefinition("random-number", "随机数生成", "生成随机数、随机密码",
                 numberCategory, "Dices", "#F59E0B", "#FFFBEB", false, true,
                 buildInstructions("设置范围", "输入最小值和最大值",
                         "生成数量", "选择要生成的随机数个数",
                         "点击生成", "获取随机数结果"),
-                new HashSet<>(Arrays.asList(hotTag))));
+                new HashSet<>(Arrays.asList(numberTag, generateTag))));
 
         // ========== 数字转中文大写 (数字工具) ==========
         defs.add(new ToolDefinition("number-to-chinese", "数字转中文大写", "将阿拉伯数字转换为中文大写金额，支持财务票据、合同等场景",
@@ -773,7 +776,7 @@ public class DataInitializer {
                         "输入数字", "填写需要转换的阿拉伯数字",
                         "查看结果", "自动转换为中文大写",
                         "一键复制", "点击复制按钮复制转换结果"),
-                new HashSet<>(Arrays.asList(hotTag, commonTag))));
+                new HashSet<>(Arrays.asList(numberTag, convertTag, financeTag))));
 
         // ========== 媒体工具 (青色系) ==========
         defs.add(new ToolDefinition("video-convert", "视频格式转换", "视频格式互相转换，支持MP4/AVI/MOV等",
@@ -797,7 +800,7 @@ public class DataInitializer {
                         "输入贷款信息", "填写贷款金额、年限、利率",
                         "设置提前还款", "可选，输入提前还款金额和方式",
                         "查看结果", "获取月供、总利息、还款计划表、节省利息"),
-                new HashSet<>(Arrays.asList(hotTag, lifeTag))));
+                new HashSet<>(Arrays.asList(lifeTag))));
 
         defs.add(new ToolDefinition("salary-calculator", "薪资计算器", "计算税后工资、个人所得税、年终奖个税",
                 lifeCategory, "Receipt", "#BE123C", "#FECDD3", false, true,
@@ -805,7 +808,7 @@ public class DataInitializer {
                         "输入收入信息", "填写税前工资、城市、五险一金",
                         "填写扣除项", "专项附加扣除、其他扣除",
                         "查看明细", "获取个税、实发工资、税率等详细信息"),
-                new HashSet<>(Arrays.asList(hotTag, lifeTag))));
+                new HashSet<>(Arrays.asList(lifeTag))));
 
         defs.add(new ToolDefinition("unit-converter", "综合单位换算", "一站式长度、重量、面积、体积、温度等单位换算",
                 lifeCategory, "ArrowRightLeft", "#F43F5E", "#FFF1F2", false, true,
@@ -813,7 +816,7 @@ public class DataInitializer {
                         "输入数值", "填写要换算的数值",
                         "选择单位", "选择原始单位和目标单位",
                         "查看结果", "自动显示换算结果"),
-                new HashSet<>(Arrays.asList(commonTag, lifeTag))));
+                new HashSet<>(Arrays.asList(lifeTag))));
 
         defs.add(new ToolDefinition("date-calculator", "日期计算器", "计算日期间隔、日期加减、工作日计算",
                 lifeCategory, "CalendarDays", "#BE123C", "#FECDD3", false, true,
@@ -853,7 +856,7 @@ public class DataInitializer {
                         "生成表达式", "使用生成器可视化配置时间规则",
                         "解析表达式", "输入 Cron 表达式查看人类可读描述",
                         "执行预览", "查看未来执行时间列表"),
-                new HashSet<>(Arrays.asList(devTag, commonTag))));
+                new HashSet<>(Arrays.asList(devTag))));
 
         // ========== 设备信息工具 (开发工具) ==========
         defs.add(new ToolDefinition("device-info", "设备信息检测", "获取浏览器、操作系统、屏幕、硬件、网络等详细的设备信息",
@@ -870,7 +873,7 @@ public class DataInitializer {
                 buildInstructions("输入CSS", "在输入框中粘贴需要格式化的CSS代码",
                         "选择操作", "选择格式化（美化）或压缩（去除空白）",
                         "查看结果", "系统自动处理并显示结果"),
-                new HashSet<>()));
+                new HashSet<>(Arrays.asList(frontendTag))));
 
         defs.add(new ToolDefinition("layout-generator", "Flex/Grid布局生成器", "可视化生成CSS Flexbox和Grid布局",
                 frontendCategory, "Layout", "#818CF8", "#C7D2FE", false, true,
@@ -878,7 +881,7 @@ public class DataInitializer {
                         "调整参数", "实时调整布局参数",
                         "预览效果", "即时查看布局效果",
                         "复制代码", "一键复制生成的CSS代码"),
-                new HashSet<>(Arrays.asList(commonTag))));
+                new HashSet<>(Arrays.asList(frontendTag, generateTag))));
 
         defs.add(new ToolDefinition("color-picker", "颜色选择器", "多功能颜色选择器，支持HEX/RGB/HSL互转",
                 frontendCategory, "Palette", "#6366F1", "#E0E7FF", false, true,
@@ -886,7 +889,7 @@ public class DataInitializer {
                         "格式转换", "支持HEX、RGB、RGBA、HSL、HSLA格式",
                         "精确调整", "通过滑块精确调整RGB和HSL参数",
                         "历史记录", "自动保存历史颜色，快速选择"),
-                new HashSet<>(Arrays.asList(commonTag))));
+                new HashSet<>(Arrays.asList(frontendTag, designTag, convertTag))));
 
         defs.add(new ToolDefinition("box-shadow-generator", "CSS阴影生成器", "可视化生成CSS box-shadow效果",
                 frontendCategory, "Layers", "#4F46E5", "#C7D2FE", false, true,
@@ -894,7 +897,7 @@ public class DataInitializer {
                         "调整参数", "设置水平/垂直偏移、模糊、扩散、颜色",
                         "内阴影", "支持内阴影(inset)效果",
                         "一键复制", "实时预览并复制CSS代码"),
-                new HashSet<>(Arrays.asList(commonTag))));
+                new HashSet<>(Arrays.asList(frontendTag, designTag, generateTag))));
 
         defs.add(new ToolDefinition("gradient-generator", "渐变生成器", "生成线性渐变和径向渐变背景",
                 frontendCategory, "Palette", "#818CF8", "#EEF2FF", false, true,
@@ -902,7 +905,7 @@ public class DataInitializer {
                         "线性角度", "线性渐变支持0-360度角度调整",
                         "添加色标", "支持多个颜色停止点，可调整位置",
                         "实时预览", "即时查看渐变效果，一键复制代码"),
-                new HashSet<>(Arrays.asList(commonTag))));
+                new HashSet<>(Arrays.asList(frontendTag, designTag, generateTag))));
 
         defs.add(new ToolDefinition("favicon-generator", "Favicon生成器", "快速生成网站图标，支持多种尺寸",
                 frontendCategory, "Image", "#6366F1", "#E0E7FF", false, true,
@@ -910,7 +913,7 @@ public class DataInitializer {
                         "文字模式", "自定义文字内容、颜色、背景、圆角",
                         "图片模式", "上传图片直接转换为Favicon",
                         "多尺寸下载", "支持16x16到512x512多种尺寸PNG格式"),
-                new HashSet<>(Arrays.asList(commonTag))));
+                new HashSet<>(Arrays.asList(frontendTag, generateTag, imageTag))));
 
         defs.add(new ToolDefinition("animation-generator", "CSS动画生成器", "可视化生成CSS动画效果，支持多种预设和参数调整",
                 frontendCategory, "Play", "#4F46E5", "#C7D2FE", false, true,
@@ -918,7 +921,7 @@ public class DataInitializer {
                         "调整参数", "设置持续时间、延迟、迭代次数等",
                         "实时预览", "即时查看动画效果，支持暂停/播放",
                         "一键复制", "复制完整的CSS代码和keyframes"),
-                new HashSet<>(Arrays.asList(commonTag))));
+                new HashSet<>(Arrays.asList(frontendTag, generateTag))));
 
         // ========== 网络工具 (青色系) ==========
         defs.add(new ToolDefinition("ip-query", "IP地址查询", "查询IP地址的地理位置、运营商等信息",
@@ -926,7 +929,7 @@ public class DataInitializer {
                 buildInstructions("输入IP", "填写要查询的IP地址（留空查询本机IP）",
                         "点击查询", "系统自动获取IP的地理位置信息",
                         "查看结果", "显示国家、地区、运营商等详细信息"),
-                new HashSet<>()));
+                new HashSet<>(Arrays.asList(networkTag, parseTag))));
 
         // 端口扫描器
         defs.add(new ToolDefinition("port-scan", "端口扫描器", "扫描目标主机的开放端口，支持TCP和UDP协议",
@@ -1035,7 +1038,7 @@ public class DataInitializer {
 
     private record CategoryDefinition(String code, String name, String icon, String description, int sortOrder) {}
 
-    private record TagDefinition(String name, String description, boolean isHot) {}
+    private record TagDefinition(String name, String description) {}
 
     private record ToolDefinition(
             String code,

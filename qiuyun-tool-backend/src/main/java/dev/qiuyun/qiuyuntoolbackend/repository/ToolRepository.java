@@ -38,6 +38,12 @@ public interface ToolRepository extends JpaRepository<Tool, Long> {
     List<Tool> findByIsActiveTrue();
 
     /**
+     * 查询所有启用的工具，并一次性获取标签（解决N+1问题）
+     */
+    @Query("SELECT DISTINCT t FROM Tool t LEFT JOIN FETCH t.tags LEFT JOIN FETCH t.category WHERE t.isActive = true")
+    List<Tool> findByIsActiveTrueWithTags();
+
+    /**
      * 查询所有启用的工具（分页）
      */
     Page<Tool> findByIsActiveTrue(Pageable pageable);
