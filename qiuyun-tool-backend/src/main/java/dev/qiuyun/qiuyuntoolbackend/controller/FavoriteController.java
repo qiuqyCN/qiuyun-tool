@@ -2,6 +2,7 @@ package dev.qiuyun.qiuyuntoolbackend.controller;
 
 import dev.qiuyun.qiuyuntoolbackend.entity.Tool;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ApiResponse;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.PageResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolResponse;
 import dev.qiuyun.qiuyuntoolbackend.security.CurrentUser;
 import dev.qiuyun.qiuyuntoolbackend.security.UserDetailsImpl;
@@ -155,7 +156,7 @@ public class FavoriteController {
      */
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<Page<ToolResponse>> getUserFavorites(
+    public ApiResponse<PageResponse<ToolResponse>> getUserFavorites(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @CurrentUser UserDetailsImpl user) {
@@ -163,9 +164,7 @@ public class FavoriteController {
         Pageable pageable = PageRequest.of(page, size);
         Page<Tool> toolPage = favoriteService.getUserFavorites(user.getId(), pageable);
 
-        Page<ToolResponse> responsePage = toolPage.map(ToolResponse::simpleFrom);
-
-        return ApiResponse.success(responsePage);
+        return ApiResponse.success(PageResponse.from(toolPage, ToolResponse::simpleFrom));
     }
 
     /**

@@ -1,5 +1,6 @@
 package dev.qiuyun.qiuyuntoolbackend.controller;
 
+import dev.qiuyun.qiuyuntoolbackend.payload.response.PageResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.review.ReviewResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.review.ReviewStatsResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.request.review.SubmitReviewRequest;
@@ -51,7 +52,7 @@ public class ReviewController {
      * 获取工具评论列表
      */
     @GetMapping("/tool/{toolId}")
-    public ApiResponse<Page<ReviewResponse>> getToolReviews(
+    public ApiResponse<PageResponse<ReviewResponse>> getToolReviews(
             @PathVariable Long toolId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -59,7 +60,9 @@ public class ReviewController {
             @CurrentUser(required = false) UserDetailsImpl user) {
         Pageable pageable = PageRequest.of(page - 1, size);
         Long userId = user != null ? user.getId() : null;
-        return ApiResponse.success(reviewService.getToolReviews(toolId, sort, pageable, userId));
+        Page<ReviewResponse> reviewPage = reviewService.getToolReviews(toolId, sort, pageable, userId);
+
+        return ApiResponse.success(PageResponse.from(reviewPage));
     }
 
     /**
