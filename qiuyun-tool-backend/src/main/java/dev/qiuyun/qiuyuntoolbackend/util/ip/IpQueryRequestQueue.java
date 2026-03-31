@@ -1,6 +1,7 @@
 package dev.qiuyun.qiuyuntoolbackend.util.ip;
 
 import com.google.common.util.concurrent.RateLimiter;
+import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.AllArgsConstructor;
@@ -9,7 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
 import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * IP查询请求队列组件
@@ -37,6 +40,7 @@ public class IpQueryRequestQueue {
 
     private final BlockingQueue<IpQueryTask> requestQueue = new LinkedBlockingQueue<>(QUEUE_CAPACITY);
     private final RateLimiter rateLimiter = RateLimiter.create(PERMITS_PER_SECOND);
+    private final Map<String, CompletableFuture<TaobaoIpApiClient.CachedIpResponse>> pendingFutures = new ConcurrentHashMap<>();
     private ExecutorService consumerExecutor;
     private volatile boolean running = true;
 
@@ -58,7 +62,6 @@ public class IpQueryRequestQueue {
     public void init() {
         consumerExecutor = Executors.newSingleThreadExecutor(r -> {
             Thread t = new Thread(r, "ip-query-consumer");
-            t.setDaemon(true);
             return t;
         });
         consumerExecutor.submit(this::processQueue);
@@ -99,25 +102,36 @@ public class IpQueryRequestQueue {
      */
     public CompletableFuture<TaobaoIpApiClient.CachedIpResponse> submit(String ip) {
         CompletableFuture<TaobaoIpApiClient.CachedIpResponse> future = new CompletableFuture<>();
-        
+
         TaobaoIpApiClient.CachedIpResponse cachedResult = taobaoIpApiClient.queryFromLocalCache(ip);
         if (cachedResult != null) {
             future.complete(cachedResult);
             return future;
         }
 
+        CompletableFuture<TaobaoIpApiClient.CachedIpResponse> existingFuture = pendingFutures.get(ip);
+        if (existingFuture != null) {
+            log.debug("IP查询请求已存在，复用现有请求: ip={}", ip);
+            return existingFuture;
+        }
+
+        pendingFutures.put(ip, future);
+
         try {
             IpQueryTask task = new IpQueryTask(ip, future);
             boolean offered = requestQueue.offer(task, 1, TimeUnit.SECONDS);
             if (!offered) {
-                future.completeExceptionally(new RuntimeException("队列已满，请稍后重试"));
+                pendingFutures.remove(ip);
+                future.completeExceptionally(new BusinessException("队列已满，请稍后重试"));
             }
         } catch (InterruptedException e) {
-            future.completeExceptionally(new RuntimeException("请求被中断"));
+            pendingFutures.remove(ip);
+            future.completeExceptionally(new BusinessException("请求被中断"));
             Thread.currentThread().interrupt();
         }
 
-        return future.orTimeout(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        return future.orTimeout(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .whenComplete((result, ex) -> pendingFutures.remove(ip));
     }
 
     /**

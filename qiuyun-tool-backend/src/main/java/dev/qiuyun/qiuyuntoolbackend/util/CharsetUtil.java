@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
  * 提供字符串与字节数组的相互转换，支持多种字符集
  */
 @Component
-public class CharsetUtils {
+public class CharsetUtil {
 
     /**
      * 将字符串按指定字符集编码为字节数组

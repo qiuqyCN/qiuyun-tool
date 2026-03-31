@@ -6,18 +6,17 @@ import dev.qiuyun.qiuyuntoolbackend.executor.AbstractToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
 import dev.qiuyun.qiuyuntoolbackend.executor.common.BaseToolResponse;
 import dev.qiuyun.qiuyuntoolbackend.util.ip.IpQueryRequestQueue;
+import dev.qiuyun.qiuyuntoolbackend.util.ip.IpUtil;
 import dev.qiuyun.qiuyuntoolbackend.util.ip.TaobaoIpApiClient;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 
 /**
  * 淘宝IP查询执行器
@@ -38,6 +37,25 @@ public class TaobaoIpQueryExecutor extends AbstractToolExecutor<TaobaoIpQueryExe
     @Autowired
     private IpQueryRequestQueue ipQueryRequestQueue;
 
+    private static final Pattern IPV4_PATTERN = Pattern.compile(
+            "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+    );
+
+    private static final Pattern IPV6_PATTERN = Pattern.compile(
+            "^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|" +
+            "^([0-9a-fA-F]{1,4}:){1,7}:$|" +
+            "^([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}$|" +
+            "^([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}$|" +
+            "^([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}$|" +
+            "^([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}$|" +
+            "^([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}$|" +
+            "^[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})$|" +
+            "^:((:[0-9a-fA-F]{1,4}){1,7}|:)$|" +
+            "^fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}$|" +
+            "^::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])$|" +
+            "^([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])$"
+    );
+
     @Override
     public String getToolCode() {
         return "ip-query";
@@ -51,6 +69,45 @@ public class TaobaoIpQueryExecutor extends AbstractToolExecutor<TaobaoIpQueryExe
     @Override
     public void validate(IpQueryRequest request) throws BusinessException {
         validateNotNull(request, "请求");
+        if (request.getIp() != null && !request.getIp().trim().isEmpty()) {
+            validateIpFormat(request.getIp());
+        }
+    }
+
+    /**
+     * 验证IP地址格式
+     *
+     * @param ip IP地址
+     * @throws BusinessException 如果IP格式无效
+     */
+    private void validateIpFormat(String ip) throws BusinessException {
+        if (ip == null || ip.trim().isEmpty()) {
+            return;
+        }
+        String trimmedIp = ip.trim();
+        if (!isValidIpv4(trimmedIp) && !isValidIpv6(trimmedIp)) {
+            throw new BusinessException("IP地址格式无效: " + ip);
+        }
+    }
+
+    /**
+     * 验证是否是有效的IPv4地址
+     *
+     * @param ip IP地址
+     * @return true表示有效，false表示无效
+     */
+    private boolean isValidIpv4(String ip) {
+        return IPV4_PATTERN.matcher(ip).matches();
+    }
+
+    /**
+     * 验证是否是有效的IPv6地址
+     *
+     * @param ip IP地址
+     * @return true表示有效，false表示无效
+     */
+    private boolean isValidIpv6(String ip) {
+        return IPV6_PATTERN.matcher(ip).matches();
     }
 
     /**
@@ -71,76 +128,38 @@ public class TaobaoIpQueryExecutor extends AbstractToolExecutor<TaobaoIpQueryExe
         String ip = request.getIp();
 
         if (ip == null || ip.trim().isEmpty()) {
-            ip = getClientIp();
+            ip = IpUtil.getClientIp();
         }
 
+        if (ip == null || ip.trim().isEmpty()) {
+            throw new BusinessException("无法获取客户端IP地址，请手动输入IP地址进行查询");
+        }
+
+        ip = ip.trim();
+        
+        if (IpUtil.isInternalOrLocalIp(ip)) {
+            throw new BusinessException("当前为内网/本地IP地址（" + ip + "），请输入具体的公网IP地址进行查询");
+        }
+        
         log.info("IP查询请求: ip={}", ip);
 
-        try {
-            CompletableFuture<TaobaoIpApiClient.CachedIpResponse> future = ipQueryRequestQueue.submit(ip);
-            TaobaoIpApiClient.CachedIpResponse apiResponse = future.get();
-            
-            IpQueryResult result = new IpQueryResult();
-            result.setSuccess(true);
-            result.setIp(apiResponse.getIp());
-            result.setCountry(apiResponse.getCountry());
-            result.setRegion(apiResponse.getRegion());
-            result.setCity(apiResponse.getCity());
-            result.setIsp(apiResponse.getIsp());
-            result.setRegionId(apiResponse.getRegionId());
-            result.setCityId(apiResponse.getCityId());
-            result.setCountryId(apiResponse.getCountryId());
-            result.setSource(apiResponse.getSource());
-            result.setQueryTime(apiResponse.getQueryTime());
-            
-            return result;
-        } catch (Exception e) {
-            log.error("IP查询执行失败", e);
-            IpQueryResult errorResult = new IpQueryResult();
-            errorResult.setSuccess(false);
-            errorResult.setErrorMessage(e.getMessage() != null ? e.getMessage() : "查询失败");
-            return errorResult;
-        }
-    }
+        CompletableFuture<TaobaoIpApiClient.CachedIpResponse> future = ipQueryRequestQueue.submit(ip);
+        TaobaoIpApiClient.CachedIpResponse apiResponse = future.get();
 
-    /**
-     * 获取当前访问者的真实IP地址
-     * 
-     * 支持多种代理服务器的IP获取方式：
-     * - X-Forwarded-For
-     * - Proxy-Client-IP
-     * - WL-Proxy-Client-IP
-     * - X-Real-IP
-     * 
-     * @return 客户端IP地址，获取失败返回空字符串
-     */
-    private String getClientIp() {
-        try {
-            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-            if (attributes != null) {
-                HttpServletRequest request = attributes.getRequest();
-                String ip = request.getHeader("X-Forwarded-For");
-                if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-                    ip = request.getHeader("Proxy-Client-IP");
-                }
-                if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-                    ip = request.getHeader("WL-Proxy-Client-IP");
-                }
-                if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-                    ip = request.getHeader("X-Real-IP");
-                }
-                if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-                    ip = request.getRemoteAddr();
-                }
-                if (ip != null && ip.contains(",")) {
-                    ip = ip.split(",")[0].trim();
-                }
-                return ip;
-            }
-        } catch (Exception e) {
-            log.warn("获取客户端IP失败", e);
-        }
-        return "";
+        IpQueryResult result = new IpQueryResult();
+        result.setSuccess(true);
+        result.setIp(apiResponse.getIp());
+        result.setCountry(apiResponse.getCountry());
+        result.setRegion(apiResponse.getRegion());
+        result.setCity(apiResponse.getCity());
+        result.setIsp(apiResponse.getIsp());
+        result.setRegionId(apiResponse.getRegionId());
+        result.setCityId(apiResponse.getCityId());
+        result.setCountryId(apiResponse.getCountryId());
+        result.setSource(apiResponse.getSource());
+        result.setQueryTime(apiResponse.getQueryTime());
+
+        return result;
     }
 
     @Override

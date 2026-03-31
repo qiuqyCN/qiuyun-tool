@@ -18,6 +18,7 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.concurrent.TimeUnit;
 
@@ -45,7 +46,9 @@ public class TaobaoIpApiClient {
     private static final String API_URL = "https://ip.taobao.com/outGetIpInfo";
     private static final String ACCESS_KEY = "alibaba-inc";
     private static final String CACHE_PREFIX = "ip:query:";
+    private static final String NULL_CACHE_MARKER = "NULL_CACHE_MARKER";
     private static final long LOCAL_CACHE_TTL_HOURS = 24;
+    private static final long NULL_CACHE_TTL_MINUTES = 5;
     private static final long REDIS_CACHE_TTL_DAYS = 7;
     private static final int TIMEOUT = 30000;
 
@@ -92,6 +95,10 @@ public class TaobaoIpApiClient {
     public CachedIpResponse queryIp(String ip) {
         CachedIpResponse localResult = localCache.getIfPresent(ip);
         if (localResult != null) {
+            if (NULL_CACHE_MARKER.equals(localResult.getSource())) {
+                log.debug("本地缓存命中(空结果保护): {}", ip);
+                throw new BusinessException("IP查询失败：无效的IP地址");
+            }
             localResult.setSource("local");
             log.debug("本地缓存命中: {}", ip);
             return localResult;
@@ -100,6 +107,11 @@ public class TaobaoIpApiClient {
         String redisKey = CACHE_PREFIX + ip;
         CachedIpResponse redisResult = getFromRedis(redisKey);
         if (redisResult != null) {
+            if (NULL_CACHE_MARKER.equals(redisResult.getSource())) {
+                log.debug("Redis缓存命中(空结果保护): {}", ip);
+                localCache.put(ip, redisResult);
+                throw new BusinessException("IP查询失败：无效的IP地址");
+            }
             redisResult.setSource("redis");
             log.debug("Redis缓存命中: {}", ip);
             localCache.put(ip, redisResult);
@@ -120,7 +132,12 @@ public class TaobaoIpApiClient {
             log.info("API查询成功: {}", ip);
             return apiResult;
         } catch (Exception e) {
-            log.error("IP查询失败: {}", ip, e);
+            log.warn("IP查询失败，缓存空结果: ip={}, error={}", ip, e.getMessage());
+            CachedIpResponse nullResult = CachedIpResponse.builder()
+                    .source(NULL_CACHE_MARKER)
+                    .build();
+            localCache.put(ip, nullResult);
+            setNullToRedis(redisKey);
             throw new BusinessException("IP查询失败，请稍后重试");
         }
     }
@@ -180,7 +197,14 @@ public class TaobaoIpApiClient {
      * @throws Exception 调用失败时抛出
      */
     private CachedIpResponse queryFromApi(String ip) {
-        String url = API_URL + "?ip=" + ip + "&accessKey=" + ACCESS_KEY;
+        String url = UriComponentsBuilder.newInstance()
+                .scheme("https")
+                .host("ip.taobao.com")
+                .path("/outGetIpInfo")
+                .queryParam("ip", ip)
+                .queryParam("accessKey", ACCESS_KEY)
+                .build()
+                .toUriString();
         log.debug("调用淘宝API: {}", url);
 
         ResponseEntity<TaobaoIpResponse> response = restTemplate.getForEntity(url, TaobaoIpResponse.class);
@@ -200,6 +224,9 @@ public class TaobaoIpApiClient {
      * @return 转换后的响应对象
      */
     private CachedIpResponse convertToResponse(TaobaoIpData data) {
+        if (data == null) {
+            throw new BusinessException("API返回数据为空");
+        }
         return CachedIpResponse.builder()
                 .ip(data.getIp())
                 .country(data.getCountry())
@@ -210,6 +237,23 @@ public class TaobaoIpApiClient {
                 .cityId(data.getCity_id())
                 .countryId(data.getCountry_id())
                 .build();
+    }
+
+    /**
+     * 写入空结果到Redis缓存（用于缓存穿透保护）
+     *
+     * @param key Redis键
+     */
+    private void setNullToRedis(String key) {
+        try {
+            CachedIpResponse nullResult = CachedIpResponse.builder()
+                    .source(NULL_CACHE_MARKER)
+                    .build();
+            String json = objectMapper.writeValueAsString(nullResult);
+            redisTemplate.opsForValue().set(key, json, NULL_CACHE_TTL_MINUTES, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            log.warn("写入Redis空结果失败: {}", key, e);
+        }
     }
 
     /**

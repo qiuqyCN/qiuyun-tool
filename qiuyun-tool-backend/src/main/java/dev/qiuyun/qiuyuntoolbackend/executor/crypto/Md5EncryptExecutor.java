@@ -7,7 +7,7 @@ import dev.qiuyun.qiuyuntoolbackend.executor.AbstractToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
 import dev.qiuyun.qiuyuntoolbackend.executor.common.BaseToolResponse;
 import dev.qiuyun.qiuyuntoolbackend.executor.common.InputOutputResult;
-import dev.qiuyun.qiuyuntoolbackend.util.CharsetUtils;
+import dev.qiuyun.qiuyuntoolbackend.util.CharsetUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ import java.util.Map;
 public class Md5EncryptExecutor extends AbstractToolExecutor<Md5EncryptExecutor.Md5Request, Md5EncryptExecutor.Md5Response> {
 
     @Autowired
-    private CharsetUtils charsetUtils;
+    private CharsetUtil charsetUtil;
 
     @Override
     public String getToolCode() {
@@ -101,7 +101,7 @@ public class Md5EncryptExecutor extends AbstractToolExecutor<Md5EncryptExecutor.
             throws NoSuchAlgorithmException {
 
         // 使用 CharsetUtils 获取字节数组
-        byte[] inputBytes = charsetUtils.getBytes(input, charset);
+        byte[] inputBytes = charsetUtil.getBytes(input, charset);
 
         // MD5加密
         MessageDigest md = MessageDigest.getInstance("MD5");

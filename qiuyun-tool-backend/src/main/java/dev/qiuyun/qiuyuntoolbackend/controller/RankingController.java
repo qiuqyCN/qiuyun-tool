@@ -8,6 +8,7 @@ import dev.qiuyun.qiuyuntoolbackend.repository.ToolRepository;
 import dev.qiuyun.qiuyuntoolbackend.security.CurrentUser;
 import dev.qiuyun.qiuyuntoolbackend.security.UserDetailsImpl;
 import dev.qiuyun.qiuyuntoolbackend.service.RankingService;
+import dev.qiuyun.qiuyuntoolbackend.util.ip.IpUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -124,7 +125,7 @@ public class RankingController {
         Long userId = user != null ? user.getId() : null;
 
         // 获取IP地址
-        String ipAddress = getClientIpAddress(request);
+        String ipAddress = IpUtil.getClientIp(request);
 
         // 转换action类型
         dev.qiuyun.qiuyuntoolbackend.entity.ToolAccessLog.ActionType actionType;
@@ -172,16 +173,5 @@ public class RankingController {
             default:
                 return ApiResponse.error(400, "不支持的排行榜类型: " + type);
         }
-    }
-
-    /**
-     * 获取客户端IP地址
-     */
-    private String getClientIpAddress(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
     }
 }

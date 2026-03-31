@@ -7,7 +7,7 @@ import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
 import dev.qiuyun.qiuyuntoolbackend.executor.AbstractToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
 import dev.qiuyun.qiuyuntoolbackend.executor.common.BaseToolResponse;
-import dev.qiuyun.qiuyuntoolbackend.util.CharsetUtils;
+import dev.qiuyun.qiuyuntoolbackend.util.CharsetUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class Base64CodecExecutor extends AbstractToolExecutor<Base64CodecExecutor.Base64Request, Base64CodecExecutor.Base64Response> {
 
-    private final CharsetUtils charsetUtils;
+    private final CharsetUtil charsetUtil;
 
     private static final Set<String> VALID_OPERATIONS = Set.of(OperationType.ENCODE.getCode(), OperationType.DECODE.getCode());
 
@@ -103,7 +103,7 @@ public class Base64CodecExecutor extends AbstractToolExecutor<Base64CodecExecuto
      * Base64编码
      */
     private String encodeBase64(String input, String charset, boolean urlSafe) {
-        byte[] inputBytes = charsetUtils.getBytes(input, charset);
+        byte[] inputBytes = charsetUtil.getBytes(input, charset);
 
         Base64.Encoder encoder = urlSafe
                 ? Base64.getUrlEncoder()
@@ -124,7 +124,7 @@ public class Base64CodecExecutor extends AbstractToolExecutor<Base64CodecExecuto
 
         byte[] decodedBytes = decoder.decode(cleanInput);
 
-        return charsetUtils.newString(decodedBytes, charset);
+        return charsetUtil.newString(decodedBytes, charset);
     }
 
     /**
