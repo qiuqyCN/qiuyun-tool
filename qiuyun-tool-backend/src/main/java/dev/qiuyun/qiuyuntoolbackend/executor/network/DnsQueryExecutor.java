@@ -92,9 +92,16 @@ public class DnsQueryExecutor extends AbstractToolExecutor<DnsQueryExecutor.DnsQ
         return records;
     }
 
+    private String trimTrailingDot(String s) {
+        if (s != null && s.endsWith(".")) {
+            return s.substring(0, s.length() - 1);
+        }
+        return s;
+    }
+
     private DnsRecord parseRecord(Record record) {
         DnsRecord.DnsRecordBuilder builder = DnsRecord.builder()
-                .name(record.getName().toString())
+                .name(trimTrailingDot(record.getName().toString()))
                 .type(Type.string(record.getType()))
                 .ttl(record.getTTL());
 
@@ -106,20 +113,20 @@ public class DnsQueryExecutor extends AbstractToolExecutor<DnsQueryExecutor.DnsQ
             builder.value(aaaaRecord.getAddress().getHostAddress());
         } else if (record instanceof CNAMERecord) {
             CNAMERecord cnameRecord = (CNAMERecord) record;
-            builder.value(cnameRecord.getTarget().toString());
+            builder.value(trimTrailingDot(cnameRecord.getTarget().toString()));
         } else if (record instanceof MXRecord) {
             MXRecord mxRecord = (MXRecord) record;
-            builder.value(mxRecord.getTarget().toString());
+            builder.value(trimTrailingDot(mxRecord.getTarget().toString()));
             builder.priority(mxRecord.getPriority());
         } else if (record instanceof NSRecord) {
             NSRecord nsRecord = (NSRecord) record;
-            builder.value(nsRecord.getTarget().toString());
+            builder.value(trimTrailingDot(nsRecord.getTarget().toString()));
         } else if (record instanceof SOARecord) {
             SOARecord soaRecord = (SOARecord) record;
-            builder.value(soaRecord.getHost() + " " + soaRecord.getAdmin());
+            builder.value(trimTrailingDot(soaRecord.getHost().toString()) + " " + trimTrailingDot(soaRecord.getAdmin().toString()));
             Map<String, Object> soaDetails = new HashMap<>();
-            soaDetails.put("host", soaRecord.getHost().toString());
-            soaDetails.put("admin", soaRecord.getAdmin().toString());
+            soaDetails.put("host", trimTrailingDot(soaRecord.getHost().toString()));
+            soaDetails.put("admin", trimTrailingDot(soaRecord.getAdmin().toString()));
             soaDetails.put("serial", soaRecord.getSerial());
             soaDetails.put("refresh", soaRecord.getRefresh());
             soaDetails.put("retry", soaRecord.getRetry());
@@ -132,10 +139,10 @@ public class DnsQueryExecutor extends AbstractToolExecutor<DnsQueryExecutor.DnsQ
             builder.value(String.join(" ", strings));
         } else if (record instanceof PTRRecord) {
             PTRRecord ptrRecord = (PTRRecord) record;
-            builder.value(ptrRecord.getTarget().toString());
+            builder.value(trimTrailingDot(ptrRecord.getTarget().toString()));
         } else if (record instanceof SRVRecord) {
             SRVRecord srvRecord = (SRVRecord) record;
-            builder.value(srvRecord.getTarget().toString() + ":" + srvRecord.getPort());
+            builder.value(trimTrailingDot(srvRecord.getTarget().toString()) + ":" + srvRecord.getPort());
             builder.priority(srvRecord.getPriority());
             builder.weight(srvRecord.getWeight());
             builder.port(srvRecord.getPort());

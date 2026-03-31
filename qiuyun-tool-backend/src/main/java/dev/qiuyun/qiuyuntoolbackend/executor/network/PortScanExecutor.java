@@ -14,9 +14,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.DatagramChannel;
-import java.nio.channels.SocketChannel;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,8 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class PortScanExecutor extends AbstractToolExecutor<PortScanExecutor.PortScanRequest, PortScanExecutor.PortScanResult> {
 
-    private static final int DEFAULT_TIMEOUT = 200;
-    private static final int DEFAULT_CONCURRENCY = 50;
+    private static final int DEFAULT_TIMEOUT = 500;
+    private static final int DEFAULT_CONCURRENCY = 20;
     private static final int MAX_PORT = 65535;
 
     private static final Map<Integer, String> COMMON_PORTS = Map.ofEntries(
@@ -84,10 +81,10 @@ public class PortScanExecutor extends AbstractToolExecutor<PortScanExecutor.Port
             }
         }
         if (request.getConcurrency() != null) {
-            validateRange(request.getConcurrency(), "并发数", 1, 200);
+            validateRange(request.getConcurrency(), "并发数", 1, 100);
         }
         if (request.getTimeout() != null) {
-            validateRange(request.getTimeout(), "超时时间", 10, 10000);
+            validateRange(request.getTimeout(), "超时时间", 100, 10000);
         }
     }
 
@@ -172,52 +169,45 @@ public class PortScanExecutor extends AbstractToolExecutor<PortScanExecutor.Port
     }
 
     private boolean scanTcpPort(String host, int port, int timeout) {
-        try (SocketChannel channel = SocketChannel.open()) {
-            channel.configureBlocking(false);
-            channel.connect(new InetSocketAddress(host, port));
-            
-            if (channel.finishConnect()) {
-                return true;
-            }
-            
-            long endTime = System.currentTimeMillis() + timeout;
-            while (System.currentTimeMillis() < endTime) {
-                if (channel.finishConnect()) {
-                    return true;
-                }
-                Thread.sleep(10);
-            }
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(host, port), timeout);
+            return true;
+        } catch (SocketTimeoutException e) {
+            return false;
+        } catch (IOException e) {
             return false;
         } catch (Exception e) {
+            log.debug("TCP端口扫描异常: {}:{} - {}", host, port, e.getMessage());
             return false;
         }
     }
 
     private boolean scanUdpPort(String host, int port, int timeout) {
-        try (DatagramChannel channel = DatagramChannel.open()) {
-            channel.configureBlocking(false);
-            InetSocketAddress address = new InetSocketAddress(host, port);
+        try (DatagramSocket socket = new DatagramSocket()) {
+            socket.setSoTimeout(timeout);
             
-            byte[] data = new byte[]{0x00, 0x00};
-            ByteBuffer buffer = ByteBuffer.wrap(data);
-            channel.send(buffer, address);
+            InetAddress address = InetAddress.getByName(host);
+            byte[] sendData = new byte[]{0x00, 0x00};
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
+            socket.send(sendPacket);
             
-            ByteBuffer receiveBuffer = ByteBuffer.allocate(1024);
-            long endTime = System.currentTimeMillis() + timeout;
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             
-            while (System.currentTimeMillis() < endTime) {
-                try {
-                    SocketAddress sender = channel.receive(receiveBuffer);
-                    if (sender != null) {
-                        return true;
-                    }
-                } catch (IOException e) {
-                }
-                Thread.sleep(10);
+            try {
+                socket.receive(receivePacket);
+                return true;
+            } catch (SocketTimeoutException e) {
+                return false;
             }
-            
+        } catch (UnknownHostException e) {
+            log.debug("UDP端口扫描-未知主机: {} - {}", host, e.getMessage());
+            return false;
+        } catch (IOException e) {
+            log.debug("UDP端口扫描IO异常: {}:{} - {}", host, port, e.getMessage());
             return false;
         } catch (Exception e) {
+            log.debug("UDP端口扫描异常: {}:{} - {}", host, port, e.getMessage());
             return false;
         }
     }

@@ -56,8 +56,8 @@ const singlePort = ref<number | undefined>(undefined)
 const startPort = ref<number | undefined>(1)
 const endPort = ref<number | undefined>(1000)
 const protocol = ref('TCP')
-const timeout = ref(200)
-const concurrency = ref(50)
+const timeout = ref(500)
+const concurrency = ref(20)
 
 const commonPorts = [
   { port: 21, service: 'FTP' },
@@ -227,7 +227,7 @@ const getServiceIcon = (service: string) => {
               <Input
                 v-model.number="timeout"
                 type="number"
-                min="10"
+                min="100"
                 max="10000"
                 class="text-sm"
               />
@@ -240,7 +240,7 @@ const getServiceIcon = (service: string) => {
                 v-model.number="concurrency"
                 type="number"
                 min="1"
-                max="200"
+                max="100"
                 class="text-sm"
               />
             </div>
