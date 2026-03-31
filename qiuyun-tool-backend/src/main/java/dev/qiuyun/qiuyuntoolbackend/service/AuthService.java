@@ -29,7 +29,7 @@ public interface AuthService {
     /**
      * 退出登录
      */
-    MessageResponse logout(Long userId);
+    MessageResponse logout(Long userId, String token);
 
     /**
      * 获取当前用户信息

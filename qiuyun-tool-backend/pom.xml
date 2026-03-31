@@ -141,6 +141,11 @@
             <artifactId>spring-boot-starter-websocket-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.8.44</version>
+        </dependency>
         <!-- YAML Support -->
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -239,7 +244,7 @@
             <artifactId>batik-all</artifactId>
             <version>1.17</version>
         </dependency>
-        
+
         <!-- Caffeine for local cache -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>

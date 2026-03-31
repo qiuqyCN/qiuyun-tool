@@ -21,13 +21,6 @@ export interface ApiResponse<T = any> {
   timestamp: number
 }
 
-// 工具执行请求
-export interface ToolExecuteRequest<T = any> {
-  toolCode: string
-  fileId?: string
-  params: T
-}
-
 // 工具执行响应
 export interface ToolExecuteResponse<T = any> {
   taskId: string
@@ -44,14 +37,6 @@ export interface ToolProgress {
   message: string
   data?: any
   completed?: boolean
-}
-
-// 文件上传响应
-export interface FileUploadResponse {
-  fileId: string
-  fileName: string
-  fileSize: number
-  contentType: string
 }
 
 // 任务信息

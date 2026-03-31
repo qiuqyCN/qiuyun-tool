@@ -56,8 +56,13 @@ public class AuthController {
      */
     @PostMapping("/logout")
     public ApiResponse<MessageResponse> logout(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        MessageResponse response = authService.logout(userDetails.getId());
+        String token = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+        MessageResponse response = authService.logout(userDetails.getId(), token);
         return ApiResponse.success(response);
     }
 

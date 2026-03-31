@@ -1,5 +1,4 @@
 import {
-  type ToolExecuteRequest,
   type ToolExecuteResponse,
   type ToolProgress,
   TaskStatus,
@@ -27,8 +26,7 @@ export function useToolExecutor<T = any, R = any>(options: UseToolExecutorOption
 
   let eventSource: EventSource | null = null
 
-  // 执行工具
-  const execute = async (params: T, fileId?: string) => {
+  const execute = async (params?: T, files?: File[], onUploadProgress?: (percent: number) => void) => {
     isLoading.value = true
     isComplete.value = false
     error.value = ''
@@ -36,25 +34,17 @@ export function useToolExecutor<T = any, R = any>(options: UseToolExecutorOption
     progress.value = null
 
     try {
-      const request: ToolExecuteRequest<T> = {
-        toolCode: options.toolCode,
-        fileId,
-        params
-      }
-
-      const response = await executeTool<T, R>(request)
+      const response = await executeTool<R>(options.toolCode, params, files, onUploadProgress)
       taskId.value = response.taskId
       status.value = response.status
 
       if (options.toolType === 'instant') {
-        // 即时处理类型，直接返回结果
         isComplete.value = true
         isLoading.value = false
         result.value = response.result
         options.onSuccess?.(response.result)
         return response
       } else {
-        // 文件处理或异步类型，需要监听进度
         startProgressStream(response.taskId)
         return response
       }
@@ -66,7 +56,6 @@ export function useToolExecutor<T = any, R = any>(options: UseToolExecutorOption
     }
   }
 
-  // 开始监听进度
   const startProgressStream = (tid: string) => {
     eventSource = createProgressStream(tid, {
       onProgress: (p) => {
@@ -91,7 +80,6 @@ export function useToolExecutor<T = any, R = any>(options: UseToolExecutorOption
     })
   }
 
-  // 取消任务
   const cancel = async () => {
     if (taskId.value && status.value === TaskStatus.PROCESSING) {
       try {
@@ -106,13 +94,11 @@ export function useToolExecutor<T = any, R = any>(options: UseToolExecutorOption
     }
   }
 
-  // 清理资源
   const cleanup = () => {
     eventSource?.close()
     eventSource = null
   }
 
-  // 组件卸载时清理
   onUnmounted(() => {
     cleanup()
   })

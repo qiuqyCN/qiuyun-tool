@@ -3,12 +3,15 @@ package dev.qiuyun.qiuyuntoolbackend.service.impl;
 import dev.qiuyun.qiuyuntoolbackend.entity.User;
 import dev.qiuyun.qiuyuntoolbackend.entity.UserRole;
 import dev.qiuyun.qiuyuntoolbackend.enums.UserStatus;
+import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
+import dev.qiuyun.qiuyuntoolbackend.exception.ErrorCode;
 import dev.qiuyun.qiuyuntoolbackend.payload.request.LoginRequest;
 import dev.qiuyun.qiuyuntoolbackend.payload.request.RegisterRequest;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.LoginResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.MessageResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.UserResponse;
 import dev.qiuyun.qiuyuntoolbackend.repository.UserRepository;
+import dev.qiuyun.qiuyuntoolbackend.security.JwtAuthenticationFilter;
 import dev.qiuyun.qiuyuntoolbackend.security.JwtUtil;
 import dev.qiuyun.qiuyuntoolbackend.security.UserDetailsImpl;
 import dev.qiuyun.qiuyuntoolbackend.service.AuthService;
@@ -42,6 +45,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final StringRedisTemplate redisTemplate;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
     // private static final String BLACKLIST_PREFIX = "token:blacklist:";
@@ -104,17 +108,17 @@ public class AuthServiceImpl implements AuthService {
     public MessageResponse register(RegisterRequest request) {
         // 检查用户名
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("用户名已被使用");
+            throw new BusinessException("用户名已被使用");
         }
 
         // 检查邮箱
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("邮箱已被注册");
+            throw new BusinessException("邮箱已被注册");
         }
 
         // 检查密码
         if (!request.getPassword().equals(request.getConfirmPassword())) {
-            throw new RuntimeException("两次输入的密码不一致");
+            throw new BusinessException("两次输入的密码不一致");
         }
 
         // 创建用户
@@ -188,12 +192,18 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public MessageResponse logout(Long userId) {
+    public MessageResponse logout(Long userId, String token) {
         // 删除刷新令牌
         redisTemplate.delete(REFRESH_TOKEN_PREFIX + userId);
 
-        // 将当前访问令牌加入黑名单（可选，如果需要立即失效）
-        // 这里可以获取当前请求的令牌并加入黑名单
+        // 将当前访问令牌加入黑名单
+        if (token != null && !token.isEmpty()) {
+            try {
+                jwtAuthenticationFilter.addToBlacklist(token);
+            } catch (Exception e) {
+                log.warn("Failed to add token to blacklist: {}", e.getMessage());
+            }
+        }
 
         SecurityContextHolder.clearContext();
 
@@ -203,7 +213,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserResponse getCurrentUser(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+                .orElseThrow(() -> new BusinessException("用户不存在"));
 
         List<String> roles = user.getRoles().stream()
                 .map(UserRole::getRole)

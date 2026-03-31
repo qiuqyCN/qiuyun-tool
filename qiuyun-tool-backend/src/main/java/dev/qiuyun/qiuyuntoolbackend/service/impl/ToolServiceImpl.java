@@ -2,7 +2,6 @@ package dev.qiuyun.qiuyuntoolbackend.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.qiuyun.qiuyuntoolbackend.entity.Tool;
-import dev.qiuyun.qiuyuntoolbackend.entity.ToolFile;
 import dev.qiuyun.qiuyuntoolbackend.entity.ToolTask;
 import dev.qiuyun.qiuyuntoolbackend.enums.TaskStatus;
 import dev.qiuyun.qiuyuntoolbackend.enums.ToolType;
@@ -10,13 +9,9 @@ import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutorRegistry;
-import dev.qiuyun.qiuyuntoolbackend.payload.request.FileProcessRequest;
-import dev.qiuyun.qiuyuntoolbackend.payload.request.ToolExecuteRequest;
-import dev.qiuyun.qiuyuntoolbackend.payload.response.FileUploadResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolExecuteResponse;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolProgress;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolResponse;
-import dev.qiuyun.qiuyuntoolbackend.repository.ToolFileRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.ToolRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.ToolTaskRepository;
 import dev.qiuyun.qiuyuntoolbackend.service.FileStorageService;
@@ -33,62 +28,55 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
+/**
+ * 工具服务实现类
+ * 负责工具执行、任务管理、进度跟踪等核心业务逻辑
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ToolServiceImpl implements ToolService {
 
     private final ToolTaskRepository taskRepository;
-    private final ToolFileRepository fileRepository;
     private final ToolRepository toolRepository;
     private final FileStorageService fileStorageService;
     private final ToolExecutorRegistry executorRegistry;
     private final ObjectMapper objectMapper;
 
+    /**
+     * 进度发射器映射表，用于管理SSE连接
+     * key: taskId, value: SseEmitter
+     */
     private final Map<String, SseEmitter> progressEmitters = new ConcurrentHashMap<>();
 
-    @Override
-    public FileUploadResponse uploadFile(MultipartFile file, String toolCode) {
-        if (file.isEmpty()) {
-            throw new BusinessException("上传文件不能为空");
-        }
-
-        try {
-            Path filePath = fileStorageService.saveTempFile(
-                    file.getInputStream(),
-                    file.getOriginalFilename(),
-                    file.getContentType(),
-                    toolCode
-            );
-
-            ToolFile toolFile = fileRepository.findByStoragePath(filePath.toString())
-                    .orElseThrow(() -> new BusinessException("文件保存失败"));
-
-            return fileStorageService.createFileResponse(toolFile);
-        } catch (IOException e) {
-            throw new BusinessException("文件上传失败: " + e.getMessage());
-        }
-    }
-
+    /**
+     * 获取文件输入流
+     * @param fileId 文件ID
+     * @return 文件输入流
+     */
     @Override
     public InputStream getFileStream(String fileId) {
         return fileStorageService.getFileStream(fileId);
     }
 
+    /**
+     * 执行工具
+     * @param toolCode 工具代码
+     * @param paramsJson JSON格式的工具参数
+     * @param files 上传的文件列表
+     * @param userId 用户ID
+     * @param <T> 请求参数类型
+     * @param <R> 响应结果类型
+     * @return 工具执行响应
+     */
     @Override
-    public void deleteFile(String fileId) {
-        fileStorageService.deleteFile(fileId);
-    }
-
-    @Override
-    public <T, R> ToolExecuteResponse<R> execute(ToolExecuteRequest<T> request, Long userId) {
-        String toolCode = request.getToolCode();
-
+    public <T, R> ToolExecuteResponse<R> execute(String toolCode, String paramsJson, List<MultipartFile> files, Long userId) {
         ToolExecutor<T, R> executor = executorRegistry.getExecutor(toolCode);
         if (executor == null) {
             throw new BusinessException("工具不存在: " + toolCode);
@@ -96,8 +84,29 @@ public class ToolServiceImpl implements ToolService {
 
         String taskId = UUID.randomUUID().toString();
 
-        // 转换参数为执行器需要的具体类型
-        T convertedParams = convertParams(request.getParams(), executor);
+        List<Path> inputFiles = new ArrayList<>();
+        if (files != null && !files.isEmpty()) {
+            try {
+                for (MultipartFile file : files) {
+                    if (!file.isEmpty()) {
+                        Path filePath = fileStorageService.saveTempFile(
+                                file.getInputStream(),
+                                file.getOriginalFilename(),
+                                file.getContentType(),
+                                toolCode
+                        );
+                        inputFiles.add(filePath);
+                    }
+                }
+            } catch (IOException e) {
+                throw new BusinessException("文件保存失败: " + e.getMessage());
+            }
+        }
+
+        T convertedParams = null;
+        if (paramsJson != null && !paramsJson.trim().isEmpty()) {
+            convertedParams = convertParams(paramsJson, executor);
+        }
 
         ToolTask task = ToolTask.builder()
                 .taskId(taskId)
@@ -109,66 +118,68 @@ public class ToolServiceImpl implements ToolService {
                 .build();
         taskRepository.save(task);
 
-        // 创建新的请求对象，使用转换后的参数
-        ToolExecuteRequest<T> convertedRequest = new ToolExecuteRequest<>();
-        convertedRequest.setToolCode(request.getToolCode());
-        convertedRequest.setParams(convertedParams);
-
         ToolType toolType = executor.getToolType();
 
         if (toolType == ToolType.INSTANT) {
-            return executeInstant(task, executor, convertedRequest);
+            return executeInstant(task, executor, convertedParams, inputFiles);
         } else if (toolType == ToolType.FILE_PROCESS) {
-            return executeFileProcess(task, executor, convertedRequest);
+            return executeFileProcess(task, executor, convertedParams, inputFiles);
         } else {
-            return executeAsync(task, executor, convertedRequest);
+            return executeAsync(task, executor, convertedParams, inputFiles);
         }
     }
 
     /**
-     * 将参数转换为执行器泛型需要的具体类型
+     * 将JSON参数转换为工具执行器所需的参数类型
+     * @param paramsJson JSON格式的参数
+     * @param executor 工具执行器
+     * @param <T> 参数类型
+     * @param <R> 结果类型
+     * @return 转换后的参数对象
      */
     @SuppressWarnings("unchecked")
-    private <T, R> T convertParams(Object params, ToolExecutor<T, R> executor) {
-        if (params == null) {
+    private <T, R> T convertParams(String paramsJson, ToolExecutor<T, R> executor) {
+        if (paramsJson == null || paramsJson.trim().isEmpty()) {
             return null;
         }
 
-        // 获取执行器的泛型参数类型
         ResolvableType resolvableType = ResolvableType.forClass(executor.getClass()).as(ToolExecutor.class);
         Class<?> requestType = resolvableType.getGeneric(0).resolve();
 
-        // 如果参数已经是目标类型，直接返回
-        if (requestType != null && requestType.isInstance(params)) {
-            return (T) params;
+        if (requestType == null) {
+            return (T) paramsJson;
         }
 
-        // 如果参数是 Map 类型，使用 ObjectMapper 转换
-        if (params instanceof java.util.Map && requestType != null) {
-            try {
-                return (T) objectMapper.convertValue(params, requestType);
-            } catch (Exception e) {
-                log.error("参数转换失败: {}", e.getMessage());
-                throw new BusinessException("参数格式错误: " + e.getMessage());
-            }
+        try {
+            return objectMapper.readValue(paramsJson, (Class<T>) requestType);
+        } catch (Exception e) {
+            log.error("参数转换失败: {}", e.getMessage());
+            throw new BusinessException("参数格式错误: " + e.getMessage());
         }
-
-        // 其他情况直接返回原参数
-        return (T) params;
     }
 
-    private <T, R> ToolExecuteResponse<R> executeInstant(ToolTask task, ToolExecutor<T, R> executor, ToolExecuteRequest<T> request) {
+    /**
+     * 执行即时类型工具（同步执行，立即返回结果）
+     * @param task 任务实体
+     * @param executor 工具执行器
+     * @param params 工具参数
+     * @param inputFiles 输入文件列表
+     * @param <T> 参数类型
+     * @param <R> 结果类型
+     * @return 工具执行响应
+     */
+    private <T, R> ToolExecuteResponse<R> executeInstant(ToolTask task, ToolExecutor<T, R> executor, T params, List<Path> inputFiles) {
         try {
             task.setStatus(TaskStatus.PROCESSING);
             taskRepository.save(task);
 
-            T params = request.getParams();
             executor.validate(params);
 
             ToolContext context = ToolContext.builder()
                     .taskId(task.getTaskId())
                     .userId(task.getUserId())
                     .tempDir(fileStorageService.getToolDir(task.getToolCode()))
+                    .inputFiles(inputFiles)
                     .build();
 
             R result = executor.execute(params, context);
@@ -202,19 +213,20 @@ public class ToolServiceImpl implements ToolService {
         }
     }
 
-    private <T, R> ToolExecuteResponse<R> executeFileProcess(ToolTask task, ToolExecutor<T, R> executor, ToolExecuteRequest<T> request) {
+    /**
+     * 执行文件处理类型工具（同步执行，支持进度反馈）
+     * @param task 任务实体
+     * @param executor 工具执行器
+     * @param params 工具参数
+     * @param inputFiles 输入文件列表
+     * @param <T> 参数类型
+     * @param <R> 结果类型
+     * @return 工具执行响应
+     */
+    private <T, R> ToolExecuteResponse<R> executeFileProcess(ToolTask task, ToolExecutor<T, R> executor, T params, List<Path> inputFiles) {
         try {
             task.setStatus(TaskStatus.PROCESSING);
             taskRepository.save(task);
-
-            T params = request.getParams();
-
-            // 检查文件处理请求是否包含 fileId
-            if (params instanceof FileProcessRequest fileRequest) {
-                if (fileRequest.getFileId() == null || fileRequest.getFileId().trim().isEmpty()) {
-                    throw new BusinessException("文件ID不能为空");
-                }
-            }
 
             executor.validate(params);
 
@@ -225,6 +237,7 @@ public class ToolServiceImpl implements ToolService {
                     .taskId(task.getTaskId())
                     .userId(task.getUserId())
                     .tempDir(fileStorageService.getToolDir(task.getToolCode()))
+                    .inputFiles(inputFiles)
                     .progressCallback(progress -> {
                         try {
                             emitter.send(SseEmitter.event()
@@ -268,17 +281,26 @@ public class ToolServiceImpl implements ToolService {
         }
     }
 
+    /**
+     * 异步执行工具（后台线程执行）
+     * @param task 任务实体
+     * @param executor 工具执行器
+     * @param params 工具参数
+     * @param inputFiles 输入文件列表
+     * @param <T> 参数类型
+     * @param <R> 结果类型
+     */
     @Async
-    protected <T, R> void executeAsyncInternal(ToolTask task, ToolExecutor<T, R> executor, ToolExecuteRequest<T> request) {
+    protected <T, R> void executeAsyncInternal(ToolTask task, ToolExecutor<T, R> executor, T params, List<Path> inputFiles) {
         SseEmitter emitter = progressEmitters.get(task.getTaskId());
         try {
-            T params = request.getParams();
             executor.validate(params);
 
             ToolContext context = ToolContext.builder()
                     .taskId(task.getTaskId())
                     .userId(task.getUserId())
                     .tempDir(fileStorageService.getToolDir(task.getToolCode()))
+                    .inputFiles(inputFiles)
                     .progressCallback(progress -> {
                         try {
                             if (emitter != null) {
@@ -314,14 +336,24 @@ public class ToolServiceImpl implements ToolService {
         }
     }
 
-    private <T, R> ToolExecuteResponse<R> executeAsync(ToolTask task, ToolExecutor<T, R> executor, ToolExecuteRequest<T> request) {
+    /**
+     * 执行异步类型工具（立即返回，后台处理）
+     * @param task 任务实体
+     * @param executor 工具执行器
+     * @param params 工具参数
+     * @param inputFiles 输入文件列表
+     * @param <T> 参数类型
+     * @param <R> 结果类型
+     * @return 工具执行响应（任务已提交）
+     */
+    private <T, R> ToolExecuteResponse<R> executeAsync(ToolTask task, ToolExecutor<T, R> executor, T params, List<Path> inputFiles) {
         task.setStatus(TaskStatus.PROCESSING);
         taskRepository.save(task);
 
         SseEmitter emitter = new SseEmitter(30 * 60 * 1000L);
         progressEmitters.put(task.getTaskId(), emitter);
 
-        executeAsyncInternal(task, executor, request);
+        executeAsyncInternal(task, executor, params, inputFiles);
 
         return ToolExecuteResponse.<R>builder()
                 .taskId(task.getTaskId())
@@ -331,6 +363,11 @@ public class ToolServiceImpl implements ToolService {
                 .build();
     }
 
+    /**
+     * 处理任务失败
+     * @param task 任务实体
+     * @param errorMessage 错误信息
+     */
     private void handleTaskFailure(ToolTask task, String errorMessage) {
         task.setStatus(TaskStatus.FAILED);
         task.setErrorMessage(errorMessage);
@@ -349,6 +386,11 @@ public class ToolServiceImpl implements ToolService {
         }
     }
 
+    /**
+     * 获取任务状态
+     * @param taskId 任务ID
+     * @return 任务状态响应
+     */
     @Override
     public ToolExecuteResponse<Object> getTaskStatus(String taskId) {
         ToolTask task = taskRepository.findByTaskId(taskId)
@@ -363,6 +405,11 @@ public class ToolServiceImpl implements ToolService {
                 .build();
     }
 
+    /**
+     * 获取进度SSE发射器
+     * @param taskId 任务ID
+     * @return SSE发射器
+     */
     @Override
     public SseEmitter getProgressEmitter(String taskId) {
         ToolTask task = taskRepository.findByTaskId(taskId)
@@ -402,6 +449,11 @@ public class ToolServiceImpl implements ToolService {
         return emitter;
     }
 
+    /**
+     * 获取任务结果下载URL
+     * @param taskId 任务ID
+     * @return 下载URL
+     */
     @Override
     public String getDownloadUrl(String taskId) {
         ToolTask task = taskRepository.findByTaskId(taskId)
@@ -414,6 +466,10 @@ public class ToolServiceImpl implements ToolService {
         return "/api/tools/tasks/" + taskId + "/download";
     }
 
+    /**
+     * 取消任务
+     * @param taskId 任务ID
+     */
     @Override
     public void cancelTask(String taskId) {
         ToolTask task = taskRepository.findByTaskId(taskId)
@@ -438,6 +494,11 @@ public class ToolServiceImpl implements ToolService {
         }
     }
 
+    /**
+     * 根据代码获取工具详情
+     * @param code 工具代码
+     * @return 工具详情
+     */
     @Override
     public ToolResponse getToolByCode(String code) {
         Tool tool = toolRepository.findByCode(code)
