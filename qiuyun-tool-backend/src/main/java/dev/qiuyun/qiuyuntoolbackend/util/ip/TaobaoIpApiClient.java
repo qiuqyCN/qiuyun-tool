@@ -1,35 +1,27 @@
 package dev.qiuyun.qiuyuntoolbackend.util.ip;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
 import dev.qiuyun.qiuyuntoolbackend.model.dto.TaobaoIpData;
 import dev.qiuyun.qiuyuntoolbackend.model.dto.TaobaoIpResponse;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.retry.support.RetryTemplate;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import java.util.concurrent.TimeUnit;
+import org.springframework.web.client.RestClient;
 
 /**
  * 淘宝IP API客户端
+ *
+ * 接口地址：https://ip.taobao.com/outGetIpInfo?ip=218.201.25.123&amp;accessKey=alibaba-inc
+ * 成功响应示例：
+ * {"data":{"area":"","country":"中国","isp_id":"100025","queryIp":"218.201.25.123","city":"重庆","ip":"218.201.25.123","isp":"移动","county":"","region_id":"500000","area_id":"","county_id":null,"region":"重庆","country_id":"CN","city_id":"500100"},"msg":"query success","code":0}
+ * 失败响应示例：
+ * {"msg":"the request over max qps for user ,the accessKey=alibaba-inc","code":4}
  *
  * 功能特性：
  * - 多级缓存策略：Caffeine本地缓存(24小时) → Redis缓存(7天) → API调用
  * - 使用Spring Retry实现自动重试，最多重试3次，指数退避策略
  * - 使用ObjectMapper进行JSON序列化/反序列化
- * - 支持超时配置，默认30秒
+ * - 使用RestClient进行HTTP请求
  *
  * 缓存策略：
  * 1. 优先查询本地缓存（Caffeine），命中立即返回
@@ -41,174 +33,38 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Component
-public class TaobaoIpApiClient {
+public class TaobaoIpApiClient extends AbstractIpApiClient {
 
-    private static final String API_URL = "https://ip.taobao.com/outGetIpInfo";
     private static final String ACCESS_KEY = "alibaba-inc";
     private static final String CACHE_PREFIX = "ip:query:";
-    private static final String NULL_CACHE_MARKER = "NULL_CACHE_MARKER";
-    private static final long LOCAL_CACHE_TTL_HOURS = 24;
-    private static final long NULL_CACHE_TTL_MINUTES = 5;
-    private static final long REDIS_CACHE_TTL_DAYS = 7;
-    private static final int TIMEOUT = 30000;
 
-    @Autowired
-    private StringRedisTemplate redisTemplate;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private RetryTemplate retryTemplate;
-
-    private final RestTemplate restTemplate;
-
-    private final Cache<String, CachedIpResponse> localCache = Caffeine.newBuilder()
-            .maximumSize(1000)
-            .expireAfterWrite(LOCAL_CACHE_TTL_HOURS, TimeUnit.HOURS)
-            .build();
-
-    /**
-     * 构造函数
-     * 初始化RestTemplate，设置连接和读取超时
-     */
     public TaobaoIpApiClient() {
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(TIMEOUT);
-        factory.setReadTimeout(TIMEOUT);
-        this.restTemplate = new RestTemplate(factory);
+        this.restClient = RestClient.builder()
+                .baseUrl("https://ip.taobao.com")
+                .build();
+        initCache();
     }
 
-    /**
-     * 查询IP地址信息
-     *
-     * 流程：
-     * 1. 先查本地缓存（Caffeine），命中则直接返回
-     * 2. 本地缓存未命中则查Redis缓存
-     * 3. Redis缓存未命中则调用淘宝IP API
-     * 4. API返回结果写入两级缓存
-     *
-     * @param ip 要查询的IP地址
-     * @return IP查询结果
-     * @throws BusinessException 查询失败时抛出
-     */
-    public CachedIpResponse queryIp(String ip) {
-        CachedIpResponse localResult = localCache.getIfPresent(ip);
-        if (localResult != null) {
-            if (NULL_CACHE_MARKER.equals(localResult.getSource())) {
-                log.debug("本地缓存命中(空结果保护): {}", ip);
-                throw new BusinessException("IP查询失败：无效的IP地址");
-            }
-            localResult.setSource("local");
-            log.debug("本地缓存命中: {}", ip);
-            return localResult;
-        }
-
-        String redisKey = CACHE_PREFIX + ip;
-        CachedIpResponse redisResult = getFromRedis(redisKey);
-        if (redisResult != null) {
-            if (NULL_CACHE_MARKER.equals(redisResult.getSource())) {
-                log.debug("Redis缓存命中(空结果保护): {}", ip);
-                localCache.put(ip, redisResult);
-                throw new BusinessException("IP查询失败：无效的IP地址");
-            }
-            redisResult.setSource("redis");
-            log.debug("Redis缓存命中: {}", ip);
-            localCache.put(ip, redisResult);
-            return redisResult;
-        }
-
-        try {
-            CachedIpResponse apiResult = retryTemplate.execute(context -> {
-                log.info("API查询尝试: ip={}, attempt={}", ip, context.getRetryCount() + 1);
-                return queryFromApi(ip);
-            });
-            apiResult.setSource("api");
-            apiResult.setQueryTime(System.currentTimeMillis());
-
-            localCache.put(ip, apiResult);
-            setToRedis(redisKey, apiResult);
-
-            log.info("API查询成功: {}", ip);
-            return apiResult;
-        } catch (Exception e) {
-            log.warn("IP查询失败，缓存空结果: ip={}, error={}", ip, e.getMessage());
-            CachedIpResponse nullResult = CachedIpResponse.builder()
-                    .source(NULL_CACHE_MARKER)
-                    .build();
-            localCache.put(ip, nullResult);
-            setNullToRedis(redisKey);
-            throw new BusinessException("IP查询失败，请稍后重试");
-        }
+    @Override
+    protected String getCachePrefix() {
+        return CACHE_PREFIX;
     }
 
-    /**
-     * 仅从本地缓存查询
-     *
-     * @param ip 要查询的IP地址
-     * @return 本地缓存结果，未命中返回null
-     */
-    public CachedIpResponse queryFromLocalCache(String ip) {
-        CachedIpResponse result = localCache.getIfPresent(ip);
-        if (result != null) {
-            result.setSource("local");
-        }
-        return result;
-    }
+    @Override
+    protected CachedIpResponse doQueryFromApi(String ip) {
+        log.debug("调用淘宝API: ip={}", ip);
 
-    /**
-     * 从Redis读取缓存
-     *
-     * @param key Redis键
-     * @return 反序列化后的缓存对象，读取失败返回null
-     */
-    private CachedIpResponse getFromRedis(String key) {
-        try {
-            String json = redisTemplate.opsForValue().get(key);
-            if (json != null) {
-                return objectMapper.readValue(json, CachedIpResponse.class);
-            }
-        } catch (Exception e) {
-            log.warn("从Redis读取失败: {}", key, e);
-        }
-        return null;
-    }
-
-    /**
-     * 写入Redis缓存
-     *
-     * @param key Redis键
-     * @param response 要缓存的响应对象
-     */
-    private void setToRedis(String key, CachedIpResponse response) {
-        try {
-            String json = objectMapper.writeValueAsString(response);
-            redisTemplate.opsForValue().set(key, json, REDIS_CACHE_TTL_DAYS, TimeUnit.DAYS);
-        } catch (Exception e) {
-            log.warn("写入Redis失败: {}", key, e);
-        }
-    }
-
-    /**
-     * 调用淘宝API查询IP
-     *
-     * @param ip 要查询的IP地址
-     * @return API返回的IP信息
-     * @throws Exception 调用失败时抛出
-     */
-    private CachedIpResponse queryFromApi(String ip) {
-        String url = UriComponentsBuilder.newInstance()
-                .scheme("https")
-                .host("ip.taobao.com")
-                .path("/outGetIpInfo")
-                .queryParam("ip", ip)
-                .queryParam("accessKey", ACCESS_KEY)
-                .build()
-                .toUriString();
-        log.debug("调用淘宝API: {}", url);
-
-        ResponseEntity<TaobaoIpResponse> response = restTemplate.getForEntity(url, TaobaoIpResponse.class);
-        TaobaoIpResponse apiResponse = response.getBody();
+        TaobaoIpResponse apiResponse = restClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/outGetIpInfo")
+                        .queryParam("ip", ip)
+                        .queryParam("accessKey", ACCESS_KEY)
+                        .build())
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (request, response) -> {
+                    throw new BusinessException("API调用失败，状态码: " + response.getStatusCode());
+                })
+                .body(TaobaoIpResponse.class);
 
         if (apiResponse == null || apiResponse.getCode() != 0) {
             throw new BusinessException("API调用失败: " + (apiResponse != null ? apiResponse.getMsg() : "未知错误"));
@@ -217,12 +73,6 @@ public class TaobaoIpApiClient {
         return convertToResponse(apiResponse.getData());
     }
 
-    /**
-     * 将淘宝API响应转换为内部响应格式
-     *
-     * @param data 淘宝API返回的原始数据
-     * @return 转换后的响应对象
-     */
     private CachedIpResponse convertToResponse(TaobaoIpData data) {
         if (data == null) {
             throw new BusinessException("API返回数据为空");
@@ -237,42 +87,5 @@ public class TaobaoIpApiClient {
                 .cityId(data.getCity_id())
                 .countryId(data.getCountry_id())
                 .build();
-    }
-
-    /**
-     * 写入空结果到Redis缓存（用于缓存穿透保护）
-     *
-     * @param key Redis键
-     */
-    private void setNullToRedis(String key) {
-        try {
-            CachedIpResponse nullResult = CachedIpResponse.builder()
-                    .source(NULL_CACHE_MARKER)
-                    .build();
-            String json = objectMapper.writeValueAsString(nullResult);
-            redisTemplate.opsForValue().set(key, json, NULL_CACHE_TTL_MINUTES, TimeUnit.MINUTES);
-        } catch (Exception e) {
-            log.warn("写入Redis空结果失败: {}", key, e);
-        }
-    }
-
-    /**
-     * 缓存的IP查询响应
-     */
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class CachedIpResponse {
-        private String ip;
-        private String country;
-        private String region;
-        private String city;
-        private String isp;
-        private String regionId;
-        private String cityId;
-        private String countryId;
-        private String source;
-        private Long queryTime;
     }
 }

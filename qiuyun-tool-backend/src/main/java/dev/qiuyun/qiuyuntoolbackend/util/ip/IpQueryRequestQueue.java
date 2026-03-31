@@ -40,7 +40,7 @@ public class IpQueryRequestQueue {
 
     private final BlockingQueue<IpQueryTask> requestQueue = new LinkedBlockingQueue<>(QUEUE_CAPACITY);
     private final RateLimiter rateLimiter = RateLimiter.create(PERMITS_PER_SECOND);
-    private final Map<String, CompletableFuture<TaobaoIpApiClient.CachedIpResponse>> pendingFutures = new ConcurrentHashMap<>();
+    private final Map<String, CompletableFuture<CachedIpResponse>> pendingFutures = new ConcurrentHashMap<>();
     private ExecutorService consumerExecutor;
     private volatile boolean running = true;
 
@@ -51,7 +51,7 @@ public class IpQueryRequestQueue {
     @AllArgsConstructor
     public static class IpQueryTask {
         private String ip;
-        private CompletableFuture<TaobaoIpApiClient.CachedIpResponse> future;
+        private CompletableFuture<CachedIpResponse> future;
     }
 
     /**
@@ -100,16 +100,16 @@ public class IpQueryRequestQueue {
      * @param ip 要查询的IP地址
      * @return 查询结果的CompletableFuture
      */
-    public CompletableFuture<TaobaoIpApiClient.CachedIpResponse> submit(String ip) {
-        CompletableFuture<TaobaoIpApiClient.CachedIpResponse> future = new CompletableFuture<>();
+    public CompletableFuture<CachedIpResponse> submit(String ip) {
+        CompletableFuture<CachedIpResponse> future = new CompletableFuture<>();
 
-        TaobaoIpApiClient.CachedIpResponse cachedResult = taobaoIpApiClient.queryFromLocalCache(ip);
+        CachedIpResponse cachedResult = taobaoIpApiClient.queryFromLocalCache(ip);
         if (cachedResult != null) {
             future.complete(cachedResult);
             return future;
         }
 
-        CompletableFuture<TaobaoIpApiClient.CachedIpResponse> existingFuture = pendingFutures.get(ip);
+        CompletableFuture<CachedIpResponse> existingFuture = pendingFutures.get(ip);
         if (existingFuture != null) {
             log.debug("IP查询请求已存在，复用现有请求: ip={}", ip);
             return existingFuture;
@@ -168,7 +168,7 @@ public class IpQueryRequestQueue {
     private void processTask(IpQueryTask task) {
         try {
             rateLimiter.acquire();
-            TaobaoIpApiClient.CachedIpResponse response = taobaoIpApiClient.queryIp(task.getIp());
+            CachedIpResponse response = taobaoIpApiClient.queryIp(task.getIp());
             task.getFuture().complete(response);
         } catch (Exception e) {
             log.error("处理IP查询失败: {}", task.getIp(), e);
