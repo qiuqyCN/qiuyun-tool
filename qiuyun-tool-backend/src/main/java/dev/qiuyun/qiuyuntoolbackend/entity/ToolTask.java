@@ -59,6 +59,18 @@ public class ToolTask {
     @Column(name = "error_message", columnDefinition = "text")
     private String errorMessage;
 
+    /**
+     * 输出文件名
+     */
+    @Column(name = "output_file_name", length = 255)
+    private String outputFileName;
+
+    /**
+     * 输出文件相对路径（相对于任务目录）
+     */
+    @Column(name = "output_file_path", length = 512)
+    private String outputFilePath;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -15,11 +16,11 @@ import java.util.List;
 public interface ToolService {
 
     /**
-     * 获取文件输入流
-     * @param fileId 文件ID
+     * 获取文件输入流（从文件路径）
+     * @param filePath 文件路径
      * @return 文件输入流
      */
-    InputStream getFileStream(String fileId);
+    InputStream getFileStream(Path filePath);
 
     /**
      * 执行工具
@@ -53,6 +54,13 @@ public interface ToolService {
      * @return 下载URL
      */
     String getDownloadUrl(String taskId);
+
+    /**
+     * 获取任务输出文件路径
+     * @param taskId 任务ID
+     * @return 输出文件路径
+     */
+    Path getTaskOutputFilePath(String taskId);
 
     /**
      * 取消任务

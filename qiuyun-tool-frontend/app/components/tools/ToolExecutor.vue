@@ -147,6 +147,21 @@
           </div>
         </div>
       </div>
+
+      <!-- 文件保留提醒（仅文件处理类型显示） -->
+      <div v-if="result && isFileProcessType" class="px-6 pb-6">
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div class="flex items-start gap-3">
+            <Icon name="lucide:alert-triangle" class="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p class="text-sm font-medium text-yellow-800">文件保留提醒</p>
+              <p class="text-sm text-yellow-700 mt-1">
+                处理结果文件将在 <strong>1小时</strong> 后自动删除，请及时下载保存。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -191,6 +206,11 @@ const canExecute = computed(() => {
 
 const showProgress = computed(() => {
   return props.toolType !== 'instant' && status.value === 'processing'
+})
+
+// 是否为文件处理类型
+const isFileProcessType = computed(() => {
+  return props.tool?.type === 'file_process'
 })
 
 // 方法

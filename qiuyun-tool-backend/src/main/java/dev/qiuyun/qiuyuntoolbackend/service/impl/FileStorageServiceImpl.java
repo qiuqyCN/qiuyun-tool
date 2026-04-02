@@ -1,8 +1,6 @@
 package dev.qiuyun.qiuyuntoolbackend.service.impl;
 
-import dev.qiuyun.qiuyuntoolbackend.entity.ToolFile;
 import dev.qiuyun.qiuyuntoolbackend.exception.BusinessException;
-import dev.qiuyun.qiuyuntoolbackend.repository.ToolFileRepository;
 import dev.qiuyun.qiuyuntoolbackend.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,12 +10,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,10 +31,10 @@ import java.util.UUID;
 public class FileStorageServiceImpl implements FileStorageService {
 
     /**
-     * 临时目录路径，默认使用系统临时目录下的 qiuyun-tools 目录
+     * 文件存储根目录，默认使用用户主目录下的 qiuyun-tool/files
      */
-    @Value("${tool.temp.dir:${java.io.tmpdir}/qiuyun-tools}")
-    private String tempDirPath;
+    @Value("${tool.file.storage-dir:${user.home}/qiuyun-tool/files}")
+    private String storageDirPath;
 
     /**
      * 文件最大大小限制，默认200MB
@@ -43,148 +43,274 @@ public class FileStorageServiceImpl implements FileStorageService {
     private long maxFileSize;
 
     /**
-     * 工具文件仓库，用于存储文件元数据
+     * 日期格式器（yyyyMMdd）
      */
-    private final ToolFileRepository toolFileRepository;
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     /**
-     * 获取临时目录
-     * @return 临时目录路径
+     * 获取文件存储根目录
+     * @return 根目录路径
      */
     @Override
-    public Path getTempDir() {
-        Path path = Paths.get(tempDirPath);
+    public Path getStorageDir() {
+        Path path = Paths.get(storageDirPath);
         try {
             if (!Files.exists(path)) {
                 Files.createDirectories(path);
+                log.info("创建文件存储根目录: {}", path.toAbsolutePath());
             }
         } catch (IOException e) {
-            throw new BusinessException("创建临时目录失败: " + e.getMessage());
+            log.error("创建文件存储根目录失败: {}", path.toAbsolutePath(), e);
+            throw new BusinessException("创建文件存储目录失败: " + e.getMessage());
         }
         return path;
     }
 
     /**
-     * 获取工具专用目录
+     * 获取任务目录
+     * 格式：{baseDir}/{yyyyMMdd}/{toolCode}_{taskId}/
      * @param toolCode 工具代码
-     * @return 工具目录路径
+     * @param taskId 任务ID
+     * @return 任务目录路径
      */
     @Override
-    public Path getToolDir(String toolCode) {
-        Path path = getTempDir().resolve(toolCode);
+    public Path getTaskDir(String toolCode, String taskId) {
+        String dateDir = LocalDateTime.now().format(DATE_FORMATTER);
+        Path taskDir = getStorageDir().resolve(dateDir).resolve(toolCode + "_" + taskId);
         try {
-            if (!Files.exists(path)) {
-                Files.createDirectories(path);
+            if (!Files.exists(taskDir)) {
+                Files.createDirectories(taskDir);
+                log.info("创建任务目录: {}", taskDir.toAbsolutePath());
             }
         } catch (IOException e) {
-            throw new BusinessException("创建工具目录失败: " + e.getMessage());
+            log.error("创建任务目录失败: {}, toolCode: {}, taskId: {}", taskDir.toAbsolutePath(), toolCode, taskId, e);
+            throw new BusinessException("创建任务目录失败: " + e.getMessage());
         }
-        return path;
+        return taskDir;
     }
 
     /**
-     * 保存临时文件（从输入流）
+     * 获取任务输入目录
+     * @param toolCode 工具代码
+     * @param taskId 任务ID
+     * @return 输入目录路径
+     */
+    @Override
+    public Path getTaskInputDir(String toolCode, String taskId) {
+        Path inputDir = getTaskDir(toolCode, taskId).resolve("input");
+        try {
+            if (!Files.exists(inputDir)) {
+                Files.createDirectories(inputDir);
+                log.debug("创建任务输入目录: {}", inputDir.toAbsolutePath());
+            }
+        } catch (IOException e) {
+            log.error("创建任务输入目录失败: {}, toolCode: {}, taskId: {}", inputDir.toAbsolutePath(), toolCode, taskId, e);
+            throw new BusinessException("创建任务输入目录失败: " + e.getMessage());
+        }
+        return inputDir;
+    }
+
+    /**
+     * 获取任务输出目录
+     * @param toolCode 工具代码
+     * @param taskId 任务ID
+     * @return 输出目录路径
+     */
+    @Override
+    public Path getTaskOutputDir(String toolCode, String taskId) {
+        Path outputDir = getTaskDir(toolCode, taskId).resolve("output");
+        try {
+            if (!Files.exists(outputDir)) {
+                Files.createDirectories(outputDir);
+                log.debug("创建任务输出目录: {}", outputDir.toAbsolutePath());
+            }
+        } catch (IOException e) {
+            log.error("创建任务输出目录失败: {}, toolCode: {}, taskId: {}", outputDir.toAbsolutePath(), toolCode, taskId, e);
+            throw new BusinessException("创建任务输出目录失败: " + e.getMessage());
+        }
+        return outputDir;
+    }
+
+    /**
+     * 保存任务输入文件
      * @param inputStream 文件输入流
      * @param originalName 原始文件名
-     * @param contentType 文件内容类型
      * @param toolCode 工具代码
+     * @param taskId 任务ID
      * @return 保存后的文件路径
      */
     @Override
-    public Path saveTempFile(InputStream inputStream, String originalName, String contentType, String toolCode) {
-        // 生成唯一文件ID
-        String fileId = UUID.randomUUID().toString();
-        // 获取文件扩展名
+    public Path saveTaskInputFile(InputStream inputStream, String originalName, String toolCode, String taskId) {
+        Path inputDir = getTaskInputDir(toolCode, taskId);
         String extension = getExtension(originalName);
-        // 获取工具目录
-        Path toolDir = getToolDir(toolCode);
-        // 构建目标文件路径
-        Path targetPath = toolDir.resolve(fileId + extension);
+        String fileName = UUID.randomUUID().toString() + extension;
+        Path targetPath = inputDir.resolve(fileName);
 
         try {
-            // 保存文件
             Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-            // 保存文件元数据
-            ToolFile toolFile = ToolFile.builder()
-                    .fileId(fileId)
-                    .originalName(originalName)
-                    .storagePath(targetPath.toString())
-                    .fileSize(Files.size(targetPath))
-                    .contentType(contentType)
-                    .expireAt(LocalDateTime.now().plusDays(1)) // 1天过期
-                    .build();
-            toolFileRepository.save(toolFile);
-
+            log.info("保存任务输入文件成功: {}, 原始文件名: {}, toolCode: {}, taskId: {}",
+                    targetPath.toAbsolutePath(), originalName, toolCode, taskId);
             return targetPath;
         } catch (IOException e) {
-            throw new BusinessException("保存文件失败: " + e.getMessage());
+            log.error("保存任务输入文件失败: {}, 原始文件名: {}, toolCode: {}, taskId: {}",
+                    targetPath.toAbsolutePath(), originalName, toolCode, taskId, e);
+            throw new BusinessException("保存任务输入文件失败: " + e.getMessage());
         }
     }
 
     /**
-     * 保存临时文件（从字节数组）
+     * 保存任务输入文件（从字节数组）
      * @param content 文件内容
      * @param originalName 原始文件名
-     * @param contentType 文件内容类型
      * @param toolCode 工具代码
+     * @param taskId 任务ID
      * @return 保存后的文件路径
      */
     @Override
-    public Path saveTempFile(byte[] content, String originalName, String contentType, String toolCode) {
-        // 生成唯一文件ID
-        String fileId = UUID.randomUUID().toString();
-        // 获取文件扩展名
+    public Path saveTaskInputFile(byte[] content, String originalName, String toolCode, String taskId) {
+        Path inputDir = getTaskInputDir(toolCode, taskId);
         String extension = getExtension(originalName);
-        // 获取工具目录
-        Path toolDir = getToolDir(toolCode);
-        // 构建目标文件路径
-        Path targetPath = toolDir.resolve(fileId + extension);
+        String fileName = UUID.randomUUID().toString() + extension;
+        Path targetPath = inputDir.resolve(fileName);
 
         try {
-            // 保存文件
             Files.write(targetPath, content);
-
-            // 保存文件元数据
-            ToolFile toolFile = ToolFile.builder()
-                    .fileId(fileId)
-                    .originalName(originalName)
-                    .storagePath(targetPath.toString())
-                    .fileSize((long) content.length)
-                    .contentType(contentType)
-                    .expireAt(LocalDateTime.now().plusDays(1)) // 1天过期
-                    .build();
-            toolFileRepository.save(toolFile);
-
+            log.info("保存任务输入文件成功: {}, 原始文件名: {}, toolCode: {}, taskId: {}",
+                    targetPath.toAbsolutePath(), originalName, toolCode, taskId);
             return targetPath;
         } catch (IOException e) {
-            throw new BusinessException("保存文件失败: " + e.getMessage());
+            log.error("保存任务输入文件失败: {}, 原始文件名: {}, toolCode: {}, taskId: {}",
+                    targetPath.toAbsolutePath(), originalName, toolCode, taskId, e);
+            throw new BusinessException("保存任务输入文件失败: " + e.getMessage());
         }
     }
 
     /**
-     * 获取文件输入流（从文件路径）
+     * 保存任务输出文件
+     * @param content 文件内容
+     * @param fileName 文件名
+     * @param toolCode 工具代码
+     * @param taskId 任务ID
+     * @return 保存后的文件路径
+     */
+    @Override
+    public Path saveTaskOutputFile(byte[] content, String fileName, String toolCode, String taskId) {
+        Path outputDir = getTaskOutputDir(toolCode, taskId);
+        Path targetPath = outputDir.resolve(fileName);
+
+        try {
+            Files.write(targetPath, content);
+            log.info("保存任务输出文件成功: {}, toolCode: {}, taskId: {}",
+                    targetPath.toAbsolutePath(), toolCode, taskId);
+            return targetPath;
+        } catch (IOException e) {
+            log.error("保存任务输出文件失败: {}, toolCode: {}, taskId: {}",
+                    targetPath.toAbsolutePath(), toolCode, taskId, e);
+            throw new BusinessException("保存任务输出文件失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 保存任务输出文件（从输入流）
+     * @param inputStream 文件输入流
+     * @param fileName 文件名
+     * @param toolCode 工具代码
+     * @param taskId 任务ID
+     * @return 保存后的文件路径
+     */
+    @Override
+    public Path saveTaskOutputFile(InputStream inputStream, String fileName, String toolCode, String taskId) {
+        Path outputDir = getTaskOutputDir(toolCode, taskId);
+        Path targetPath = outputDir.resolve(fileName);
+
+        try {
+            Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
+            log.info("保存任务输出文件成功: {}, toolCode: {}, taskId: {}",
+                    targetPath.toAbsolutePath(), toolCode, taskId);
+            return targetPath;
+        } catch (IOException e) {
+            log.error("保存任务输出文件失败: {}, toolCode: {}, taskId: {}",
+                    targetPath.toAbsolutePath(), toolCode, taskId, e);
+            throw new BusinessException("保存任务输出文件失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取任务输出文件路径
+     * @param toolCode 工具代码
+     * @param taskId 任务ID
+     * @param fileName 文件名
+     * @return 文件路径
+     */
+    @Override
+    public Path getTaskOutputFilePath(String toolCode, String taskId, String fileName) {
+        Path outputDir = getTaskOutputDir(toolCode, taskId);
+        return outputDir.resolve(fileName);
+    }
+
+    /**
+     * 获取任务输入文件列表
+     * @param toolCode 工具代码
+     * @param taskId 任务ID
+     * @return 输入文件路径列表
+     */
+    @Override
+    public List<Path> getTaskInputFiles(String toolCode, String taskId) {
+        Path inputDir = getTaskInputDir(toolCode, taskId);
+        List<Path> files = new ArrayList<>();
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(inputDir)) {
+            for (Path path : stream) {
+                if (Files.isRegularFile(path)) {
+                    files.add(path);
+                }
+            }
+        } catch (IOException e) {
+            log.error("获取任务输入文件列表失败: {}, toolCode: {}, taskId: {}",
+                    inputDir.toAbsolutePath(), toolCode, taskId, e);
+        }
+        return files;
+    }
+
+    /**
+     * 删除任务目录
+     * @param toolCode 工具代码
+     * @param taskId 任务ID
+     */
+    @Override
+    public void deleteTaskDir(String toolCode, String taskId) {
+        String dateDir = LocalDateTime.now().format(DATE_FORMATTER);
+        Path taskDir = getStorageDir().resolve(dateDir).resolve(toolCode + "_" + taskId);
+        deleteDirectory(taskDir);
+    }
+
+    /**
+     * 获取任务目录的绝对路径（用于日志）
+     * @param toolCode 工具代码
+     * @param taskId 任务ID
+     * @return 绝对路径字符串
+     */
+    @Override
+    public String getTaskDirAbsolutePath(String toolCode, String taskId) {
+        return getTaskDir(toolCode, taskId).toAbsolutePath().toString();
+    }
+
+    /**
+     * 获取文件输入流
      * @param filePath 文件路径
      * @return 文件输入流
      */
     @Override
     public InputStream getFileStream(Path filePath) {
         try {
+            if (!Files.exists(filePath)) {
+                log.error("文件不存在: {}", filePath.toAbsolutePath());
+                throw new BusinessException("文件不存在: " + filePath.getFileName());
+            }
             return Files.newInputStream(filePath);
         } catch (IOException e) {
+            log.error("读取文件失败: {}", filePath.toAbsolutePath(), e);
             throw new BusinessException("读取文件失败: " + e.getMessage());
         }
-    }
-
-    /**
-     * 获取文件输入流（从文件ID）
-     * @param fileId 文件ID
-     * @return 文件输入流
-     */
-    @Override
-    public InputStream getFileStream(String fileId) {
-        Path filePath = getFilePath(fileId);
-        return getFileStream(filePath);
     }
 
     /**
@@ -194,39 +320,38 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Override
     public void deleteFile(Path filePath) {
         try {
-            Files.deleteIfExists(filePath);
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+                log.debug("删除文件成功: {}", filePath.toAbsolutePath());
+            }
         } catch (IOException e) {
-            log.warn("删除文件失败: {}", filePath, e);
+            log.warn("删除文件失败: {}", filePath.toAbsolutePath(), e);
         }
     }
 
     /**
-     * 删除任务相关文件
-     * @param taskId 任务ID
+     * 递归删除目录
+     * @param dir 目录路径
      */
-    @Override
-    public void deleteTaskFiles(String taskId) {
-        // 查询任务相关的文件
-        List<ToolFile> files = toolFileRepository.findByTaskId(taskId);
-        // 删除文件
-        for (ToolFile file : files) {
-            deleteFile(Paths.get(file.getStoragePath()));
+    private void deleteDirectory(Path dir) {
+        if (!Files.exists(dir)) {
+            return;
         }
-        // 删除文件元数据
-        toolFileRepository.deleteByTaskId(taskId);
-    }
-
-    /**
-     * 根据文件ID获取文件路径
-     * @param fileId 文件ID
-     * @return 文件路径
-     */
-    @Override
-    public Path getFilePath(String fileId) {
-        // 查询文件元数据
-        ToolFile toolFile = toolFileRepository.findByFileId(fileId)
-                .orElseThrow(() -> new BusinessException("文件不存在"));
-        return Paths.get(toolFile.getStoragePath());
+        try {
+            Files.walk(dir)
+                    .sorted(java.util.Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                            log.debug("删除: {}", path.toAbsolutePath());
+                        } catch (IOException e) {
+                            log.warn("删除失败: {}", path.toAbsolutePath(), e);
+                        }
+                    });
+            log.info("删除任务目录成功: {}", dir.toAbsolutePath());
+        } catch (IOException e) {
+            log.error("删除任务目录失败: {}", dir.toAbsolutePath(), e);
+        }
     }
 
     /**
@@ -240,6 +365,8 @@ public class FileStorageServiceImpl implements FileStorageService {
         }
         return fileName.substring(fileName.lastIndexOf("."));
     }
+
+    // ==================== 图片相关方法（保持不变）====================
 
     /**
      * 图片存储目录路径，默认使用系统临时目录下的 qiuyun-images 目录
@@ -268,13 +395,11 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Override
     public String storeImage(MultipartFile file, Long userId) {
         try {
-            // 创建图片存储目录
             Path imageDir = Paths.get(imageDirPath);
             if (!Files.exists(imageDir)) {
                 Files.createDirectories(imageDir);
             }
 
-            // 生成文件名: 日期/用户ID_随机UUID.扩展名
             String dateDir = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
             Path datePath = imageDir.resolve(dateDir);
             if (!Files.exists(datePath)) {
@@ -285,12 +410,11 @@ public class FileStorageServiceImpl implements FileStorageService {
             String fileName = String.format("%s_%s%s", userId, UUID.randomUUID().toString().substring(0, 8), extension);
             Path targetPath = datePath.resolve(fileName);
 
-            // 保存文件
             Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-            // 返回相对路径
             return dateDir + "/" + fileName;
         } catch (IOException e) {
+            log.error("保存图片失败", e);
             throw new BusinessException("保存图片失败: " + e.getMessage());
         }
     }
@@ -305,7 +429,6 @@ public class FileStorageServiceImpl implements FileStorageService {
         if (fileName == null || fileName.isEmpty()) {
             return "";
         }
-        // 返回完整URL，包含baseUrl
         return baseUrl + imageUrlPrefix + "/" + fileName;
     }
 
@@ -320,6 +443,7 @@ public class FileStorageServiceImpl implements FileStorageService {
             Path imagePath = Paths.get(imageDirPath).resolve(fileName);
             return Files.newInputStream(imagePath);
         } catch (IOException e) {
+            log.error("读取图片失败: {}", fileName, e);
             throw new BusinessException("读取图片失败: " + e.getMessage());
         }
     }
@@ -334,12 +458,11 @@ public class FileStorageServiceImpl implements FileStorageService {
             return;
         }
         try {
-            // 从URL中提取文件名
             String fileName = imageUrl;
             if (imageUrl.contains(imageUrlPrefix)) {
                 fileName = imageUrl.substring(imageUrl.indexOf(imageUrlPrefix) + imageUrlPrefix.length() + 1);
             }
-            
+
             Path imagePath = Paths.get(imageDirPath).resolve(fileName);
             if (Files.exists(imagePath)) {
                 Files.delete(imagePath);

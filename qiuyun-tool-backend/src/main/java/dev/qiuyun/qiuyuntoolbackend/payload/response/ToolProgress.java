@@ -52,6 +52,15 @@ public class ToolProgress {
                 .build();
     }
 
+    public static ToolProgress complete(String message, Object data) {
+        return ToolProgress.builder()
+                .percent(100)
+                .message(message)
+                .data(data)
+                .completed(true)
+                .build();
+    }
+
     public static ToolProgress error(String message) {
         return ToolProgress.builder()
                 .percent(0)

@@ -7,6 +7,8 @@ import dev.qiuyun.qiuyuntoolbackend.security.UserDetailsImpl;
 import dev.qiuyun.qiuyuntoolbackend.service.ToolService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,12 +18,14 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
  * 工具相关接口控制器
  * 提供工具执行、文件下载、任务管理等功能
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/tools")
 @RequiredArgsConstructor
@@ -40,30 +44,6 @@ public class ToolController {
     }
 
     /**
-     * 下载文件
-     * @param fileId 文件ID
-     * @return 文件流
-     */
-    @GetMapping("/files/{fileId}")
-    public ResponseEntity<StreamingResponseBody> downloadFile(@PathVariable String fileId) {
-        InputStream inputStream = toolService.getFileStream(fileId);
-
-        StreamingResponseBody responseBody = outputStream -> {
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-            inputStream.close();
-        };
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header("Content-Disposition", "attachment; filename=\"" + fileId + "\"")
-                .body(responseBody);
-    }
-
-    /**
      * 执行工具
      * @param toolCode 工具代码（必填）
      * @param params JSON格式的工具参数（可选）
@@ -78,6 +58,7 @@ public class ToolController {
             @RequestPart(value = "files", required = false) List<MultipartFile> files,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Long userId = userDetails != null ? userDetails.getId() : null;
+        log.info("执行工具请求, toolCode: {}, userId: {}", toolCode, userId);
         ToolExecuteResponse<Object> response = toolService.execute(toolCode, params, files, userId);
         return ApiResponse.success(response);
     }
@@ -100,6 +81,7 @@ public class ToolController {
      */
     @GetMapping(value = "/tasks/{taskId}/progress", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamProgress(@PathVariable String taskId) {
+        log.debug("获取任务进度SSE, taskId: {}", taskId);
         return toolService.getProgressEmitter(taskId);
     }
 
@@ -110,22 +92,28 @@ public class ToolController {
      */
     @GetMapping("/tasks/{taskId}/download")
     public ResponseEntity<StreamingResponseBody> downloadResult(@PathVariable String taskId) {
-        toolService.getDownloadUrl(taskId);
+        log.info("下载任务结果文件, taskId: {}", taskId);
 
-        InputStream inputStream = toolService.getFileStream(taskId);
+        Path filePath = toolService.getTaskOutputFilePath(taskId);
+        InputStream inputStream = toolService.getFileStream(filePath);
+
+        String fileName = filePath.getFileName().toString();
 
         StreamingResponseBody responseBody = outputStream -> {
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
+            try (InputStream is = inputStream) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = is.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
             }
-            inputStream.close();
         };
+
+        log.info("开始下载文件, taskId: {}, 文件: {}", taskId, filePath.toAbsolutePath());
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header("Content-Disposition", "attachment; filename=\"result_" + taskId + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
                 .body(responseBody);
     }
 
@@ -136,6 +124,7 @@ public class ToolController {
      */
     @PostMapping("/tasks/{taskId}/cancel")
     public ApiResponse<Void> cancelTask(@PathVariable String taskId) {
+        log.info("取消任务, taskId: {}", taskId);
         toolService.cancelTask(taskId);
         return ApiResponse.success();
     }

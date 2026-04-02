@@ -14,12 +14,12 @@ import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolProgress;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolResponse;
 import dev.qiuyun.qiuyuntoolbackend.repository.ToolRepository;
 import dev.qiuyun.qiuyuntoolbackend.repository.ToolTaskRepository;
+import dev.qiuyun.qiuyuntoolbackend.service.AsyncTaskService;
 import dev.qiuyun.qiuyuntoolbackend.service.FileStorageService;
 import dev.qiuyun.qiuyuntoolbackend.service.ToolService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ResolvableType;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -30,9 +30,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 工具服务实现类
@@ -47,22 +45,17 @@ public class ToolServiceImpl implements ToolService {
     private final ToolRepository toolRepository;
     private final FileStorageService fileStorageService;
     private final ToolExecutorRegistry executorRegistry;
+    private final AsyncTaskService asyncTaskService;
     private final ObjectMapper objectMapper;
 
     /**
-     * 进度发射器映射表，用于管理SSE连接
-     * key: taskId, value: SseEmitter
-     */
-    private final Map<String, SseEmitter> progressEmitters = new ConcurrentHashMap<>();
-
-    /**
      * 获取文件输入流
-     * @param fileId 文件ID
+     * @param filePath 文件路径
      * @return 文件输入流
      */
     @Override
-    public InputStream getFileStream(String fileId) {
-        return fileStorageService.getFileStream(fileId);
+    public InputStream getFileStream(Path filePath) {
+        return fileStorageService.getFileStream(filePath);
     }
 
     /**
@@ -83,22 +76,26 @@ public class ToolServiceImpl implements ToolService {
         }
 
         String taskId = UUID.randomUUID().toString();
+        log.info("开始执行任务, toolCode: {}, taskId: {}, userId: {}", toolCode, taskId, userId);
 
+        // 保存输入文件到任务目录
         List<Path> inputFiles = new ArrayList<>();
         if (files != null && !files.isEmpty()) {
             try {
                 for (MultipartFile file : files) {
                     if (!file.isEmpty()) {
-                        Path filePath = fileStorageService.saveTempFile(
+                        Path filePath = fileStorageService.saveTaskInputFile(
                                 file.getInputStream(),
                                 file.getOriginalFilename(),
-                                file.getContentType(),
-                                toolCode
+                                toolCode,
+                                taskId
                         );
                         inputFiles.add(filePath);
+                        log.info("任务输入文件保存成功, taskId: {}, 文件: {}", taskId, filePath.toAbsolutePath());
                     }
                 }
             } catch (IOException e) {
+                log.error("保存任务输入文件失败, taskId: {}, toolCode: {}", taskId, toolCode, e);
                 throw new BusinessException("文件保存失败: " + e.getMessage());
             }
         }
@@ -117,13 +114,15 @@ public class ToolServiceImpl implements ToolService {
                 .inputParams(convertedParams)
                 .build();
         taskRepository.save(task);
+        log.info("任务已创建, taskId: {}, toolCode: {}", taskId, toolCode);
 
         ToolType toolType = executor.getToolType();
 
         if (toolType == ToolType.INSTANT) {
             return executeInstant(task, executor, convertedParams, inputFiles);
         } else if (toolType == ToolType.FILE_PROCESS) {
-            return executeFileProcess(task, executor, convertedParams, inputFiles);
+            // FILE_PROCESS 类型改为异步执行
+            return executeFileProcessAsync(task, executor, convertedParams, inputFiles);
         } else {
             return executeAsync(task, executor, convertedParams, inputFiles);
         }
@@ -169,6 +168,10 @@ public class ToolServiceImpl implements ToolService {
      * @return 工具执行响应
      */
     private <T, R> ToolExecuteResponse<R> executeInstant(ToolTask task, ToolExecutor<T, R> executor, T params, List<Path> inputFiles) {
+        String taskId = task.getTaskId();
+        String toolCode = task.getToolCode();
+        log.info("开始同步执行任务, taskId: {}, toolCode: {}", taskId, toolCode);
+
         try {
             task.setStatus(TaskStatus.PROCESSING);
             taskRepository.save(task);
@@ -176,11 +179,13 @@ public class ToolServiceImpl implements ToolService {
             executor.validate(params);
 
             ToolContext context = ToolContext.builder()
-                    .taskId(task.getTaskId())
+                    .taskId(taskId)
                     .userId(task.getUserId())
-                    .tempDir(fileStorageService.getToolDir(task.getToolCode()))
+                    .tempDir(fileStorageService.getTaskDir(toolCode, taskId))
                     .inputFiles(inputFiles)
                     .build();
+
+            log.info("执行任务逻辑, taskId: {}, 任务目录: {}", taskId, context.getTempDir().toAbsolutePath());
 
             R result = executor.execute(params, context);
 
@@ -189,6 +194,8 @@ public class ToolServiceImpl implements ToolService {
             task.setOutputResult(result);
             task.setCompletedAt(LocalDateTime.now());
             taskRepository.save(task);
+
+            log.info("任务执行成功, taskId: {}", taskId);
 
             return ToolExecuteResponse.<R>builder()
                     .taskId(task.getTaskId())
@@ -202,138 +209,57 @@ public class ToolServiceImpl implements ToolService {
             task.setStatus(TaskStatus.FAILED);
             task.setErrorMessage(e.getMessage());
             taskRepository.save(task);
-            log.error("任务执行失败: {}", task.getId(), e);
+            log.error("任务执行失败, taskId: {}, 错误: {}", taskId, e.getMessage());
             throw e;
         } catch (Exception e) {
             task.setStatus(TaskStatus.FAILED);
             task.setErrorMessage("执行失败: " + e.getMessage());
             taskRepository.save(task);
-            log.error("任务执行失败: {}", task.getId(), e);
+            log.error("任务执行失败, taskId: {}, 任务目录: {}", taskId,
+                    fileStorageService.getTaskDirAbsolutePath(toolCode, taskId), e);
             throw new BusinessException("执行失败: " + e.getMessage());
         }
     }
 
     /**
-     * 执行文件处理类型工具（同步执行，支持进度反馈）
+     * 执行文件处理类型工具（异步执行，立即返回任务ID）
      * @param task 任务实体
      * @param executor 工具执行器
      * @param params 工具参数
      * @param inputFiles 输入文件列表
      * @param <T> 参数类型
      * @param <R> 结果类型
-     * @return 工具执行响应
+     * @return 工具执行响应（任务已提交）
      */
-    private <T, R> ToolExecuteResponse<R> executeFileProcess(ToolTask task, ToolExecutor<T, R> executor, T params, List<Path> inputFiles) {
-        try {
-            task.setStatus(TaskStatus.PROCESSING);
-            taskRepository.save(task);
+    private <T, R> ToolExecuteResponse<R> executeFileProcessAsync(ToolTask task, ToolExecutor<T, R> executor, T params, List<Path> inputFiles) {
+        String taskId = task.getTaskId();
+        String toolCode = task.getToolCode();
+        log.info("开始异步执行文件处理任务, taskId: {}, toolCode: {}", taskId, toolCode);
 
-            executor.validate(params);
+        task.setStatus(TaskStatus.PROCESSING);
+        taskRepository.save(task);
 
-            SseEmitter emitter = new SseEmitter(30 * 60 * 1000L);
-            progressEmitters.put(task.getTaskId(), emitter);
+        // 创建SSE发射器
+        SseEmitter emitter = new SseEmitter(60 * 60 * 1000L); // 1小时超时
+        emitter.onCompletion(() -> asyncTaskService.removeEmitter(taskId));
+        emitter.onTimeout(() -> asyncTaskService.removeEmitter(taskId));
+        emitter.onError(e -> asyncTaskService.removeEmitter(taskId));
 
-            ToolContext context = ToolContext.builder()
-                    .taskId(task.getTaskId())
-                    .userId(task.getUserId())
-                    .tempDir(fileStorageService.getToolDir(task.getToolCode()))
-                    .inputFiles(inputFiles)
-                    .progressCallback(progress -> {
-                        try {
-                            emitter.send(SseEmitter.event()
-                                    .name("progress")
-                                    .data(progress));
-                            task.setProgress(progress.getPercent());
-                            taskRepository.save(task);
-                        } catch (IOException e) {
-                            log.warn("Failed to send progress: {}", e.getMessage());
-                        }
-                    })
-                    .build();
+        // 注册发射器到异步任务服务
+        asyncTaskService.registerEmitter(taskId, emitter);
 
-            R result = executor.execute(params, context);
+        // 调用异步服务执行（通过另一个Service调用，@Async才会生效）
+        asyncTaskService.executeFileProcess(task, executor, params, inputFiles);
 
-            task.setStatus(TaskStatus.COMPLETED);
-            task.setProgress(100);
-            task.setOutputResult(result);
-            task.setCompletedAt(LocalDateTime.now());
-            taskRepository.save(task);
+        log.info("文件处理任务已提交, taskId: {}, 任务目录: {}", taskId,
+                fileStorageService.getTaskDirAbsolutePath(toolCode, taskId));
 
-            emitter.send(SseEmitter.event()
-                    .name("complete")
-                    .data(ToolProgress.complete("处理完成")));
-            emitter.complete();
-
-            return ToolExecuteResponse.<R>builder()
-                    .taskId(task.getTaskId())
-                    .status(TaskStatus.COMPLETED.getCode())
-                    .result(result)
-                    .progress(100)
-                    .message("执行成功")
-                    .build();
-
-        } catch (BusinessException e) {
-            handleTaskFailure(task, e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            handleTaskFailure(task, "执行失败: " + e.getMessage());
-            throw new BusinessException("执行失败: " + e.getMessage());
-        }
-    }
-
-    /**
-     * 异步执行工具（后台线程执行）
-     * @param task 任务实体
-     * @param executor 工具执行器
-     * @param params 工具参数
-     * @param inputFiles 输入文件列表
-     * @param <T> 参数类型
-     * @param <R> 结果类型
-     */
-    @Async
-    protected <T, R> void executeAsyncInternal(ToolTask task, ToolExecutor<T, R> executor, T params, List<Path> inputFiles) {
-        SseEmitter emitter = progressEmitters.get(task.getTaskId());
-        try {
-            executor.validate(params);
-
-            ToolContext context = ToolContext.builder()
-                    .taskId(task.getTaskId())
-                    .userId(task.getUserId())
-                    .tempDir(fileStorageService.getToolDir(task.getToolCode()))
-                    .inputFiles(inputFiles)
-                    .progressCallback(progress -> {
-                        try {
-                            if (emitter != null) {
-                                emitter.send(SseEmitter.event()
-                                        .name("progress")
-                                        .data(progress));
-                            }
-                            task.setProgress(progress.getPercent());
-                            taskRepository.save(task);
-                        } catch (IOException e) {
-                            log.warn("Failed to send progress: {}", e.getMessage());
-                        }
-                    })
-                    .build();
-
-            R result = executor.execute(params, context);
-
-            task.setStatus(TaskStatus.COMPLETED);
-            task.setProgress(100);
-            task.setOutputResult(result);
-            task.setCompletedAt(LocalDateTime.now());
-            taskRepository.save(task);
-
-            if (emitter != null) {
-                emitter.send(SseEmitter.event()
-                        .name("complete")
-                        .data(ToolProgress.complete("处理完成")));
-                emitter.complete();
-            }
-
-        } catch (Exception e) {
-            handleTaskFailure(task, e.getMessage());
-        }
+        return ToolExecuteResponse.<R>builder()
+                .taskId(taskId)
+                .status(TaskStatus.PROCESSING.getCode())
+                .progress(0)
+                .message("任务已提交，正在处理中...")
+                .build();
     }
 
     /**
@@ -347,43 +273,34 @@ public class ToolServiceImpl implements ToolService {
      * @return 工具执行响应（任务已提交）
      */
     private <T, R> ToolExecuteResponse<R> executeAsync(ToolTask task, ToolExecutor<T, R> executor, T params, List<Path> inputFiles) {
+        String taskId = task.getTaskId();
+        String toolCode = task.getToolCode();
+        log.info("开始执行异步任务, taskId: {}, toolCode: {}", taskId, toolCode);
+
         task.setStatus(TaskStatus.PROCESSING);
         taskRepository.save(task);
 
-        SseEmitter emitter = new SseEmitter(30 * 60 * 1000L);
-        progressEmitters.put(task.getTaskId(), emitter);
+        // 创建SSE发射器
+        SseEmitter emitter = new SseEmitter(60 * 60 * 1000L); // 1小时超时
+        emitter.onCompletion(() -> asyncTaskService.removeEmitter(taskId));
+        emitter.onTimeout(() -> asyncTaskService.removeEmitter(taskId));
+        emitter.onError(e -> asyncTaskService.removeEmitter(taskId));
 
-        executeAsyncInternal(task, executor, params, inputFiles);
+        // 注册发射器到异步任务服务
+        asyncTaskService.registerEmitter(taskId, emitter);
+
+        // 调用异步服务执行
+        asyncTaskService.executeAsync(task, executor, params, inputFiles);
+
+        log.info("异步任务已提交, taskId: {}, 任务目录: {}", taskId,
+                fileStorageService.getTaskDirAbsolutePath(toolCode, taskId));
 
         return ToolExecuteResponse.<R>builder()
-                .taskId(task.getTaskId())
+                .taskId(taskId)
                 .status(TaskStatus.PROCESSING.getCode())
                 .progress(0)
                 .message("任务已提交")
                 .build();
-    }
-
-    /**
-     * 处理任务失败
-     * @param task 任务实体
-     * @param errorMessage 错误信息
-     */
-    private void handleTaskFailure(ToolTask task, String errorMessage) {
-        task.setStatus(TaskStatus.FAILED);
-        task.setErrorMessage(errorMessage);
-        taskRepository.save(task);
-
-        SseEmitter emitter = progressEmitters.get(task.getTaskId());
-        if (emitter != null) {
-            try {
-                emitter.send(SseEmitter.event()
-                        .name("error")
-                        .data(ToolProgress.error(errorMessage)));
-                emitter.complete();
-            } catch (IOException e) {
-                log.warn("Failed to send error: {}", e.getMessage());
-            }
-        }
     }
 
     /**
@@ -421,7 +338,7 @@ public class ToolServiceImpl implements ToolService {
                 if (task.getStatus() == TaskStatus.COMPLETED) {
                     emitter.send(SseEmitter.event()
                             .name("complete")
-                            .data(ToolProgress.complete("处理完成")));
+                            .data(ToolProgress.complete("处理完成", task.getOutputResult())));
                 } else {
                     emitter.send(SseEmitter.event()
                             .name("error")
@@ -429,22 +346,24 @@ public class ToolServiceImpl implements ToolService {
                 }
                 emitter.complete();
             } catch (IOException e) {
-                log.warn("Failed to send status: {}", e.getMessage());
+                log.warn("发送状态失败, taskId: {}", taskId, e);
             }
             return emitter;
         }
 
-        SseEmitter existingEmitter = progressEmitters.get(taskId);
+        // 检查异步任务服务中是否已有发射器
+        SseEmitter existingEmitter = asyncTaskService.getEmitter(taskId);
         if (existingEmitter != null) {
             return existingEmitter;
         }
 
-        SseEmitter emitter = new SseEmitter(30 * 60 * 1000L);
-        progressEmitters.put(taskId, emitter);
+        // 创建新的发射器
+        SseEmitter emitter = new SseEmitter(60 * 60 * 1000L); // 1小时超时
+        emitter.onCompletion(() -> asyncTaskService.removeEmitter(taskId));
+        emitter.onTimeout(() -> asyncTaskService.removeEmitter(taskId));
+        emitter.onError(e -> asyncTaskService.removeEmitter(taskId));
 
-        emitter.onCompletion(() -> progressEmitters.remove(taskId));
-        emitter.onTimeout(() -> progressEmitters.remove(taskId));
-        emitter.onError(e -> progressEmitters.remove(taskId));
+        asyncTaskService.registerEmitter(taskId, emitter);
 
         return emitter;
     }
@@ -467,6 +386,31 @@ public class ToolServiceImpl implements ToolService {
     }
 
     /**
+     * 获取任务输出文件路径
+     * @param taskId 任务ID
+     * @return 输出文件路径
+     */
+    @Override
+    public Path getTaskOutputFilePath(String taskId) {
+        ToolTask task = taskRepository.findByTaskId(taskId)
+                .orElseThrow(() -> new BusinessException("任务不存在"));
+
+        if (task.getStatus() != TaskStatus.COMPLETED) {
+            throw new BusinessException("任务未完成");
+        }
+
+        if (task.getOutputFileName() == null || task.getOutputFilePath() == null) {
+            throw new BusinessException("任务没有输出文件");
+        }
+
+        return fileStorageService.getTaskOutputFilePath(
+                task.getToolCode(),
+                taskId,
+                task.getOutputFileName()
+        );
+    }
+
+    /**
      * 取消任务
      * @param taskId 任务ID
      */
@@ -480,7 +424,7 @@ public class ToolServiceImpl implements ToolService {
             task.setErrorMessage("用户取消");
             taskRepository.save(task);
 
-            SseEmitter emitter = progressEmitters.get(taskId);
+            SseEmitter emitter = asyncTaskService.getEmitter(taskId);
             if (emitter != null) {
                 try {
                     emitter.send(SseEmitter.event()
@@ -488,9 +432,11 @@ public class ToolServiceImpl implements ToolService {
                             .data(ToolProgress.error("用户取消")));
                     emitter.complete();
                 } catch (IOException e) {
-                    log.warn("Failed to send cancel: {}", e.getMessage());
+                    log.warn("发送取消信息失败, taskId: {}", taskId, e);
                 }
             }
+
+            log.info("任务已取消, taskId: {}", taskId);
         }
     }
 
