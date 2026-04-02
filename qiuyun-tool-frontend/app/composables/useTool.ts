@@ -5,6 +5,7 @@
 import type {
   ToolExecuteResponse,
   ToolProgress,
+  ProcessLogEntry,
   ApiResponse
 } from '~/types/tool'
 
@@ -110,6 +111,7 @@ export function useTool() {
     taskId: string,
     callbacks: {
       onProgress?: (progress: ToolProgress) => void
+      onLog?: (log: ProcessLogEntry) => void
       onComplete?: (progress: ToolProgress) => void
       onError?: (error: string) => void
     }
@@ -122,6 +124,12 @@ export function useTool() {
     eventSource.addEventListener('progress', (event: MessageEvent) => {
       const data = JSON.parse(event.data)
       callbacks.onProgress?.(data)
+    })
+
+    // 监听日志事件
+    eventSource.addEventListener('log', (event: MessageEvent) => {
+      const data = JSON.parse(event.data)
+      callbacks.onLog?.(data)
     })
 
     // 监听完成事件

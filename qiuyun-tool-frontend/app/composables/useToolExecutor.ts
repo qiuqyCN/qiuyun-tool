@@ -1,6 +1,7 @@
 import {
   type ToolExecuteResponse,
   type ToolProgress,
+  type ProcessLogEntry,
   TaskStatus,
   type ToolType
 } from '~/types/tool'
@@ -9,6 +10,7 @@ export interface UseToolExecutorOptions<T = any, R = any> {
   toolCode: string
   toolType: ToolType
   onProgress?: (progress: ToolProgress) => void
+  onLog?: (log: ProcessLogEntry) => void
   onSuccess?: (result: R) => void
   onError?: (error: string) => void
 }
@@ -19,6 +21,7 @@ export function useToolExecutor<T = any, R = any>(options: UseToolExecutorOption
   const taskId = ref<string>('')
   const status = ref<TaskStatus>(TaskStatus.PENDING)
   const progress = ref<ToolProgress | null>(null)
+  const logs = ref<ProcessLogEntry[]>([])
   const result = ref<R | null>(null)
   const error = ref<string>('')
   const isLoading = ref(false)
@@ -32,6 +35,7 @@ export function useToolExecutor<T = any, R = any>(options: UseToolExecutorOption
     error.value = ''
     result.value = null
     progress.value = null
+    logs.value = []
 
     try {
       const response = await executeTool<R>(options.toolCode, params, files, onUploadProgress)
@@ -62,6 +66,10 @@ export function useToolExecutor<T = any, R = any>(options: UseToolExecutorOption
         progress.value = p
         status.value = TaskStatus.PROCESSING
         options.onProgress?.(p)
+      },
+      onLog: (log) => {
+        logs.value.push(log)
+        options.onLog?.(log)
       },
       onComplete: (p) => {
         progress.value = p
@@ -107,6 +115,7 @@ export function useToolExecutor<T = any, R = any>(options: UseToolExecutorOption
     taskId: readonly(taskId),
     status: readonly(status),
     progress: readonly(progress),
+    logs: readonly(logs),
     result: readonly(result),
     error: readonly(error),
     isLoading: readonly(isLoading),

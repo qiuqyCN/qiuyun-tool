@@ -1,5 +1,6 @@
 package dev.qiuyun.qiuyuntoolbackend.entity;
 
+import dev.qiuyun.qiuyuntoolbackend.payload.response.ProcessLogEntry;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +13,7 @@ import org.hibernate.type.SqlTypes;
 import dev.qiuyun.qiuyuntoolbackend.enums.TaskStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "tool_tasks", indexes = {
@@ -70,6 +72,13 @@ public class ToolTask {
      */
     @Column(name = "output_file_path", length = 512)
     private String outputFilePath;
+
+    /**
+     * 处理日志列表
+     */
+    @Column(name = "process_logs", columnDefinition = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<ProcessLogEntry> processLogs;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

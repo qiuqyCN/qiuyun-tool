@@ -39,6 +39,13 @@ export interface ToolProgress {
   completed?: boolean
 }
 
+// 处理日志条目
+export interface ProcessLogEntry {
+  message: string
+  type: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS'
+  time: string
+}
+
 // 任务信息
 export interface TaskInfo {
   taskId: string
@@ -47,6 +54,7 @@ export interface TaskInfo {
   progress: number
   result?: any
   errorMessage?: string
+  processLogs?: ProcessLogEntry[]
   createdAt: string
   completedAt?: string
 }
@@ -110,9 +118,9 @@ export interface ToolConfig {
 }
 
 // SSE 事件类型
-export type SSEEventType = 'progress' | 'complete' | 'error'
+export type SSEEventType = 'progress' | 'log' | 'complete' | 'error'
 
 export interface SSEEvent {
   type: SSEEventType
-  data: ToolProgress
+  data: any
 }

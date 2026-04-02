@@ -111,8 +111,9 @@
     </div>
 
     <!-- 进度显示 -->
-    <div v-if="showProgress && progress" class="px-6 pb-6">
-      <div class="bg-gray-50 rounded-lg p-4">
+    <div v-if="showProgress" class="px-6 pb-6">
+      <!-- 进度条 -->
+      <div v-if="progress" class="bg-gray-50 rounded-lg p-4 mb-4">
         <div class="flex items-center justify-between mb-2">
           <span class="text-sm font-medium text-gray-700">处理进度</span>
           <span class="text-sm text-gray-900 font-bold">{{ progress.percent }}%</span>
@@ -125,6 +126,9 @@
         </div>
         <p class="mt-2 text-sm text-gray-600">{{ progress.message }}</p>
       </div>
+
+      <!-- 处理日志 -->
+      <TaskLogPanel v-if="logs.length > 0" :logs="logs" />
     </div>
 
     <!-- 结果显示区域 -->
@@ -168,7 +172,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { TaskStatus } from '~/types/tool'
+import { TaskStatus, type ProcessLogEntry } from '~/types/tool'
 import type { Tool, ToolType } from '~/types/tool'
 
 interface Props {
@@ -195,6 +199,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const isLoading = ref(false)
 const status = ref<TaskStatus>(TaskStatus.PENDING)
 const progress = ref<{ percent: number; message: string } | null>(null)
+const logs = ref<ProcessLogEntry[]>([])
 const result = ref<any>(null)
 const error = ref('')
 
@@ -205,7 +210,7 @@ const canExecute = computed(() => {
 })
 
 const showProgress = computed(() => {
-  return props.toolType !== 'instant' && status.value === 'processing'
+  return props.toolType !== 'instant' && (status.value === 'processing' || logs.value.length > 0)
 })
 
 // 是否为文件处理类型
@@ -302,6 +307,10 @@ const setProgress = (newProgress: { percent: number; message: string } | null) =
   progress.value = newProgress
 }
 
+const addLog = (log: ProcessLogEntry) => {
+  logs.value.push(log)
+}
+
 const setResult = (newResult: any) => {
   result.value = newResult
   error.value = ''
@@ -316,6 +325,7 @@ const reset = () => {
   isLoading.value = false
   status.value = TaskStatus.PENDING
   progress.value = null
+  logs.value = []
   result.value = null
   error.value = ''
 }
@@ -324,6 +334,7 @@ defineExpose({
   setLoading,
   setStatus,
   setProgress,
+  addLog,
   setResult,
   setError,
   reset

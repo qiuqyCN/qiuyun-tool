@@ -3,6 +3,7 @@ package dev.qiuyun.qiuyuntoolbackend.service;
 import dev.qiuyun.qiuyuntoolbackend.entity.ToolTask;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolContext;
 import dev.qiuyun.qiuyuntoolbackend.executor.ToolExecutor;
+import dev.qiuyun.qiuyuntoolbackend.payload.response.ProcessLogEntry;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolProgress;
 import dev.qiuyun.qiuyuntoolbackend.repository.ToolTaskRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -77,6 +79,9 @@ public class AsyncTaskService {
         String toolCode = task.getToolCode();
         SseEmitter emitter = progressEmitters.get(taskId);
 
+        // 初始化日志列表
+        List<ProcessLogEntry> logs = new ArrayList<>();
+
         log.info("开始执行文件处理任务, taskId: {}, toolCode: {}, 任务目录: {}",
                 taskId, toolCode, fileStorageService.getTaskDirAbsolutePath(toolCode, taskId));
 
@@ -101,7 +106,33 @@ public class AsyncTaskService {
                             log.warn("发送进度失败, taskId: {}", taskId, e);
                         }
                     })
+                    .logCallback(logEntry -> {
+                        // 添加到日志列表
+                        logs.add(logEntry);
+
+                        // 保存到数据库
+                        task.setProcessLogs(new ArrayList<>(logs));
+                        taskRepository.save(task);
+
+                        // 推送到前端
+                        try {
+                            if (emitter != null) {
+                                emitter.send(SseEmitter.event()
+                                        .name("log")
+                                        .data(logEntry));
+                            }
+                        } catch (IOException e) {
+                            log.warn("发送日志失败, taskId: {}", taskId, e);
+                        }
+                    })
                     .build();
+
+            // 执行前记录日志
+            context.log("开始处理任务，工具: " + toolCode);
+            context.log("输入文件数量: " + inputFiles.size());
+            for (Path file : inputFiles) {
+                context.log("输入文件: " + file.getFileName());
+            }
 
             R result = executor.execute(params, context);
 
@@ -117,6 +148,9 @@ public class AsyncTaskService {
                     task.setOutputFilePath("output/" + fileName);
                 }
             }
+
+            // 执行后记录日志
+            context.logSuccess("任务处理完成");
 
             task.setStatus(dev.qiuyun.qiuyuntoolbackend.enums.TaskStatus.COMPLETED);
             task.setProgress(100);
@@ -136,6 +170,11 @@ public class AsyncTaskService {
         } catch (Exception e) {
             log.error("文件处理任务执行失败, taskId: {}, 任务目录: {}", taskId,
                     fileStorageService.getTaskDirAbsolutePath(toolCode, taskId), e);
+
+            // 记录错误日志
+            logs.add(new ProcessLogEntry("任务执行失败: " + e.getMessage(), "ERROR", LocalDateTime.now()));
+            task.setProcessLogs(logs);
+
             handleTaskFailure(task, e.getMessage());
         }
     }
@@ -154,6 +193,9 @@ public class AsyncTaskService {
         String taskId = task.getTaskId();
         String toolCode = task.getToolCode();
         SseEmitter emitter = progressEmitters.get(taskId);
+
+        // 初始化日志列表
+        List<ProcessLogEntry> logs = new ArrayList<>();
 
         try {
             executor.validate(params);
@@ -176,9 +218,34 @@ public class AsyncTaskService {
                             log.warn("发送进度失败, taskId: {}", taskId, e);
                         }
                     })
+                    .logCallback(logEntry -> {
+                        // 添加到日志列表
+                        logs.add(logEntry);
+
+                        // 保存到数据库
+                        task.setProcessLogs(new ArrayList<>(logs));
+                        taskRepository.save(task);
+
+                        // 推送到前端
+                        try {
+                            if (emitter != null) {
+                                emitter.send(SseEmitter.event()
+                                        .name("log")
+                                        .data(logEntry));
+                            }
+                        } catch (IOException e) {
+                            log.warn("发送日志失败, taskId: {}", taskId, e);
+                        }
+                    })
                     .build();
 
+            // 执行前记录日志
+            context.log("开始处理任务，工具: " + toolCode);
+
             R result = executor.execute(params, context);
+
+            // 执行后记录日志
+            context.logSuccess("任务处理完成");
 
             task.setStatus(dev.qiuyun.qiuyuntoolbackend.enums.TaskStatus.COMPLETED);
             task.setProgress(100);
@@ -198,6 +265,11 @@ public class AsyncTaskService {
         } catch (Exception e) {
             log.error("异步任务执行失败, taskId: {}, 任务目录: {}", taskId,
                     fileStorageService.getTaskDirAbsolutePath(toolCode, taskId), e);
+
+            // 记录错误日志
+            logs.add(new ProcessLogEntry("任务执行失败: " + e.getMessage(), "ERROR", LocalDateTime.now()));
+            task.setProcessLogs(logs);
+
             handleTaskFailure(task, e.getMessage());
         }
     }

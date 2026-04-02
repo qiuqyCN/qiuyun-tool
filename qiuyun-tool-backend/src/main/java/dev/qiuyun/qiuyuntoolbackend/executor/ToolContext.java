@@ -1,10 +1,12 @@
 package dev.qiuyun.qiuyuntoolbackend.executor;
 
+import dev.qiuyun.qiuyuntoolbackend.payload.response.ProcessLogEntry;
 import dev.qiuyun.qiuyuntoolbackend.payload.response.ToolProgress;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -35,6 +37,11 @@ public class ToolContext {
      * 进度回调函数，用于向客户端发送执行进度
      */
     private Consumer<ToolProgress> progressCallback;
+
+    /**
+     * 日志回调函数，用于向客户端发送处理日志
+     */
+    private Consumer<ProcessLogEntry> logCallback;
 
     /**
      * 输入文件列表，用户上传的所有文件
@@ -72,5 +79,48 @@ public class ToolContext {
         if (progressCallback != null) {
             progressCallback.accept(ToolProgress.complete(message));
         }
+    }
+
+    /**
+     * 添加处理日志
+     * @param message 日志内容
+     */
+    public void log(String message) {
+        log(message, "INFO");
+    }
+
+    /**
+     * 添加处理日志（带类型）
+     * @param message 日志内容
+     * @param type 日志类型：INFO, WARN, ERROR, SUCCESS
+     */
+    public void log(String message, String type) {
+        if (logCallback != null) {
+            logCallback.accept(new ProcessLogEntry(message, type, LocalDateTime.now()));
+        }
+    }
+
+    /**
+     * 添加成功日志
+     * @param message 日志内容
+     */
+    public void logSuccess(String message) {
+        log(message, "SUCCESS");
+    }
+
+    /**
+     * 添加警告日志
+     * @param message 日志内容
+     */
+    public void logWarn(String message) {
+        log(message, "WARN");
+    }
+
+    /**
+     * 添加错误日志
+     * @param message 日志内容
+     */
+    public void logError(String message) {
+        log(message, "ERROR");
     }
 }
